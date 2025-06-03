@@ -522,6 +522,22 @@
       padding: 3px 6px;
       font-size: 0.6rem;
     }
+    
+    /* 카운트다운 펄스 애니메이션 */
+    @keyframes pulse {
+      0% {
+        transform: scale(1);
+        opacity: 1;
+      }
+      50% {
+        transform: scale(1.1);
+        opacity: 0.7;
+      }
+      100% {
+        transform: scale(1);
+        opacity: 1;
+      }
+    }
   </style>
   <script>
     // 웹뷰 메시지 완전히 제거하기 위한 즉시 실행 스크립트
@@ -1192,6 +1208,17 @@
               <span class="sr-only">처리 중...</span>
             </div>
           </div>
+          
+          <!-- 대형 카운트다운 표시 영역 추가 -->
+          <div id="bulkCountdownDisplay" class="text-center mb-4" style="display: none;">
+            <div style="font-size: 4rem; font-weight: bold; color: #28a745; text-shadow: 2px 2px 4px rgba(0,0,0,0.5);" id="bulkCountdownNumber">
+              2:00
+            </div>
+            <div style="font-size: 1.2rem; color: #6c757d; margin-top: 10px;" id="bulkCountdownLabel">
+              남은 시간
+            </div>
+          </div>
+          
           <div class="progress mb-3" style="height: 10px;">
             <div class="progress-bar bg-success" role="progressbar" id="bulkControlProgress" style="width: 0%"></div>
           </div>
@@ -2201,15 +2228,45 @@
     
     // 카운트다운 대기 함수
     async function countdownWait(seconds, baseMessage, startProgress, endProgress) {
+      // 카운트다운 표시 영역 보이기
+      const countdownDisplay = document.getElementById('bulkCountdownDisplay');
+      const countdownNumber = document.getElementById('bulkCountdownNumber');
+      const countdownLabel = document.getElementById('bulkCountdownLabel');
+      const spinner = document.getElementById('bulkControlSpinner');
+      
+      // 스피너 숨기고 카운트다운 표시
+      if (spinner) spinner.style.display = 'none';
+      if (countdownDisplay) countdownDisplay.style.display = 'block';
+      if (countdownLabel) countdownLabel.textContent = baseMessage;
+      
       for (let i = seconds; i > 0; i--) {
         const minutes = Math.floor(i / 60);
         const secs = i % 60;
         const timeString = `${minutes}:${secs.toString().padStart(2, '0')}`;
         const currentProgress = startProgress + ((seconds - i) / seconds) * (endProgress - startProgress);
         
+        // 대형 카운트다운 숫자 업데이트
+        if (countdownNumber) {
+          countdownNumber.textContent = timeString;
+          
+          // 마지막 10초는 빨간색으로 강조
+          if (i <= 10) {
+            countdownNumber.style.color = '#dc3545'; // 빨간색
+            countdownNumber.style.animation = 'pulse 1s infinite';
+          } else {
+            countdownNumber.style.color = '#28a745'; // 녹색
+            countdownNumber.style.animation = 'none';
+          }
+        }
+        
+        // 기존 상태 메시지도 업데이트
         updateBulkControlStatus(`${baseMessage}... 남은 시간: ${timeString}`, Math.round(currentProgress));
         await new Promise(resolve => setTimeout(resolve, 1000));
       }
+      
+      // 카운트다운 완료 - 다시 스피너 표시
+      if (countdownDisplay) countdownDisplay.style.display = 'none';
+      if (spinner) spinner.style.display = 'block';
     }
     
     // API 함수들
