@@ -1176,6 +1176,57 @@
   </div>
   <!-- ./wrapper -->
 
+  <!-- 전체 제어 모달 -->
+  <div class="modal fade" id="bulkControlModal" tabindex="-1" role="dialog" aria-labelledby="bulkControlModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+      <div class="modal-content" style="background-color: #191c24; border: 1px solid #2c2e33;">
+        <div class="modal-header" style="border-bottom: 1px solid #2c2e33;">
+          <h4 class="modal-title" id="bulkControlTitle" style="color: #e9ecef;">전체 제어</h4>
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close" style="color: #e9ecef;">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <div class="modal-body" style="color: #e9ecef;">
+          <div class="text-center mb-4">
+            <div class="spinner-border text-primary" role="status" id="bulkControlSpinner">
+              <span class="sr-only">처리 중...</span>
+            </div>
+          </div>
+          <div class="progress mb-3" style="height: 10px;">
+            <div class="progress-bar bg-success" role="progressbar" id="bulkControlProgress" style="width: 0%"></div>
+          </div>
+          <div id="bulkControlMessage" class="text-center">
+            준비 중...
+          </div>
+        </div>
+        <div class="modal-footer" style="border-top: 1px solid #2c2e33;">
+          <button type="button" class="btn btn-secondary" data-dismiss="modal" id="bulkCancelBtn">취소</button>
+          <button type="button" class="btn btn-success" id="bulkConfirmBtn">확인</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 백업 모달 (DOM 문제 발생 시 사용) -->
+  <div class="modal fade" id="bulkControlModalBackup" tabindex="-1" role="dialog">
+    <div class="modal-dialog modal-lg" role="document">
+      <div class="modal-content" style="background-color: #191c24; border: 1px solid #2c2e33;">
+        <div class="modal-header" style="border-bottom: 1px solid #2c2e33;">
+          <h4 class="modal-title" id="bulkControlTitleBackup" style="color: #e9ecef;">전체 제어</h4>
+          <button type="button" class="close" data-dismiss="modal" style="color: #e9ecef;">
+            <span>&times;</span>
+          </button>
+        </div>
+        <div class="modal-body" style="color: #e9ecef;">
+          <div id="bulkControlMessageBackup" class="text-center">준비 중...</div>
+        </div>
+        <div class="modal-footer" style="border-top: 1px solid #2c2e33;">
+          <button type="button" class="btn btn-secondary" data-dismiss="modal">취소</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- 자바스크립트 -->
   <script>
     // 페이지 로드 시 실행
@@ -1810,6 +1861,485 @@
         window.location.href = event.state.page;
       }
     });
+
+    // =============== 전체 제어 기능 ===============
+    
+    // 전체 켜기 확인 다이얼로그
+    function showBulkOnConfirm() {
+      console.log('전체 켜기 버튼 클릭됨');
+      
+      // 즉시 confirm 다이얼로그로 확인
+      if (confirm('모든 프로젝터와 PC를 켜시겠습니까?\n\n순서: 프로젝터 켜기 → 2분 예열 → PC 켜기')) {
+        console.log('사용자가 전체 켜기 확인함 - 즉시 실행');
+        executeBulkControl('on');
+      } else {
+        console.log('사용자가 전체 켜기 취소함');
+      }
+    }
+    
+    // 전체 끄기 확인 다이얼로그
+    function showBulkOffConfirm() {
+      console.log('전체 끄기 버튼 클릭됨');
+      
+      // 즉시 confirm 다이얼로그로 확인
+      if (confirm('모든 PC와 프로젝터를 끄시겠습니까?\n\n순서: PC 끄기 → 2분 대기 → 프로젝터 끄기')) {
+        console.log('사용자가 전체 끄기 확인함 - 즉시 실행');
+        executeBulkControl('off');
+      } else {
+        console.log('사용자가 전체 끄기 취소함');
+      }
+    }
+    
+    // 전체 제어 실행
+    async function startBulkControl(action) {
+      console.log(`전체 제어 시작: ${action}`);
+      
+      // DOM 로드 완료 대기
+      await new Promise(resolve => {
+        if (document.readyState === 'complete') {
+          resolve();
+        } else {
+          window.addEventListener('load', resolve);
+        }
+      });
+      
+      // 모달 요소들 찾기 (더 안전한 방식)
+      let modal = document.getElementById('bulkControlModal');
+      let modalBackup = document.getElementById('bulkControlModalBackup');
+      let title = document.getElementById('bulkControlTitle') || document.getElementById('bulkControlTitleBackup');
+      let message = document.getElementById('bulkControlMessage') || document.getElementById('bulkControlMessageBackup');
+      let progress = document.getElementById('bulkControlProgress');
+      let confirmBtn = document.getElementById('bulkConfirmBtn');
+      let cancelBtn = document.getElementById('bulkCancelBtn');
+      
+      // 요소들이 없으면 강제로 생성
+      if (!message) {
+        console.warn('bulkControlMessage 요소를 찾을 수 없음. 백업 요소 생성 시도...');
+        
+        // 백업 메시지 요소 생성
+        const backupMessage = document.createElement('div');
+        backupMessage.id = 'bulkControlMessageForced';
+        backupMessage.style.cssText = 'position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: #191c24; color: #e9ecef; padding: 20px; border: 1px solid #2c2e33; border-radius: 5px; z-index: 9999;';
+        backupMessage.textContent = '전체 제어 준비 중...';
+        document.body.appendChild(backupMessage);
+        message = backupMessage;
+      }
+      
+      // 디버깅: DOM 요소 상태 확인
+      console.log('DOM 요소 상태:', {
+        modal: !!modal,
+        modalBackup: !!modalBackup,
+        title: !!title,
+        message: !!message,
+        progress: !!progress,
+        confirmBtn: !!confirmBtn,
+        cancelBtn: !!cancelBtn
+      });
+      
+      // 모달 표시 시도 (실패해도 계속 진행)
+      let modalShown = false;
+      if (modal || modalBackup) {
+        const activeModal = modal || modalBackup;
+        try {
+          if (window.$ && $.fn.modal) {
+            $(activeModal).modal('show');
+            modalShown = true;
+            console.log('Bootstrap 모달 표시 성공');
+          } else {
+            activeModal.style.display = 'block';
+            activeModal.classList.add('show');
+            modalShown = true;
+            console.log('수동 모달 표시 성공');
+          }
+        } catch (e) {
+          console.error('모달 표시 오류:', e);
+        }
+      }
+      
+      // 제목 설정
+      if (title) {
+        title.textContent = action === 'on' ? '전체 켜기' : '전체 끄기';
+        console.log('모달 제목 설정 완료');
+      }
+      
+      // 모달이 표시된 경우 버튼 이벤트 설정
+      if (modalShown && confirmBtn) {
+        console.log('모달 버튼 이벤트 설정 중...');
+        
+        confirmBtn.onclick = async function() {
+          console.log('확인 버튼 클릭됨');
+          const activeModal = modal || modalBackup;
+          
+          // 모달 숨기기
+          try {
+            if (window.$ && $.fn.modal) {
+              $(activeModal).modal('hide');
+            } else {
+              activeModal.style.display = 'none';
+              activeModal.classList.remove('show');
+            }
+          } catch (e) {
+            console.error('모달 숨기기 오류:', e);
+          }
+          
+          // 실제 실행
+          await executeBulkControl(action);
+        };
+        
+        if (cancelBtn) {
+          cancelBtn.onclick = function() {
+            console.log('취소 버튼 클릭됨');
+            const activeModal = modal || modalBackup;
+            
+            try {
+              if (window.$ && $.fn.modal) {
+                $(activeModal).modal('hide');
+              } else {
+                activeModal.style.display = 'none';
+                activeModal.classList.remove('show');
+              }
+            } catch (e) {
+              console.error('모달 숨기기 오류:', e);
+            }
+          };
+        }
+        
+        // 초기 메시지 설정
+        if (message) {
+          message.textContent = action === 'on' ? 
+            '모든 프로젝터와 PC를 켜시겠습니까?' : 
+            '모든 PC와 프로젝터를 끄시겠습니까?';
+        }
+        
+        // 진행률 초기화
+        if (progress) {
+          progress.style.width = '0%';
+        }
+      } else {
+        // 모달이 없거나 표시 실패한 경우 즉시 실행
+        console.log('모달 표시 실패 또는 불가능. 즉시 실행합니다.');
+        await executeBulkControl(action);
+      }
+    }
+    
+    // 실제 전체 제어 실행
+    async function executeBulkControl(action) {
+      console.log(`=== 전체 제어 실행 시작: ${action} ===`);
+      
+      try {
+        if (action === 'on') {
+          console.log('전체 켜기 시퀀스 시작');
+          await executeAllOn();
+        } else {
+          console.log('전체 끄기 시퀀스 시작');
+          await executeAllOff();
+        }
+        
+        console.log(`=== 전체 제어 완료: ${action} ===`);
+        alert(action === 'on' ? '전체 켜기가 완료되었습니다!' : '전체 끄기가 완료되었습니다!');
+        
+        // 강제 생성된 메시지 요소 제거
+        const forcedMessage = document.getElementById('bulkControlMessageForced');
+        if (forcedMessage) {
+          forcedMessage.remove();
+        }
+        
+      } catch (error) {
+        console.error('전체 제어 실행 중 오류:', error);
+        alert('전체 제어 중 오류가 발생했습니다: ' + error.message);
+        
+        // 강제 생성된 메시지 요소 제거
+        const forcedMessage = document.getElementById('bulkControlMessageForced');
+        if (forcedMessage) {
+          forcedMessage.remove();
+        }
+      }
+    }
+    
+    // 전체 켜기 시퀀스
+    async function executeAllOn() {
+      console.log('전체 켜기 시퀀스 시작');
+      
+      updateBulkControlStatus('프로젝터 목록을 가져오는 중...', 10);
+      
+      // 1. 프로젝터 목록 가져오기
+      const projectors = await getProjectorList();
+      console.log('프로젝터 목록:', projectors);
+      
+      // 2. 모든 프로젝터 켜기
+      updateBulkControlStatus('프로젝터들을 켜는 중...', 20);
+      for (let i = 0; i < projectors.length; i++) {
+        const projector = projectors[i];
+        console.log(`프로젝터 ${projector.name} 켜는 중...`);
+        updateBulkControlStatus(`프로젝터 ${projector.name} 켜는 중... (${i + 1}/${projectors.length})`, 20 + (i / projectors.length) * 20);
+        
+        try {
+          await sendProjectorCommand(projector.id, 'on');
+          console.log(`프로젝터 ${projector.name} 켜기 성공`);
+        } catch (error) {
+          console.error(`프로젝터 ${projector.name} 켜기 실패:`, error);
+        }
+        
+        // 프로젝터 간 2초 간격
+        if (i < projectors.length - 1) {
+          await new Promise(resolve => setTimeout(resolve, 2000));
+        }
+      }
+      
+      // 3. 프로젝터 예열 대기 (2분)
+      updateBulkControlStatus('프로젝터 예열 중... (2분 대기)', 50);
+      await countdownWait(120, '프로젝터 예열 중', 50, 70);
+      
+      // 4. PC 목록 가져오기
+      updateBulkControlStatus('PC 목록을 가져오는 중...', 70);
+      const pcs = await getPCList();
+      console.log('PC 목록:', pcs);
+      
+      // 5. 모든 PC 켜기
+      updateBulkControlStatus('PC들을 켜는 중...', 75);
+      for (let i = 0; i < pcs.length; i++) {
+        const pc = pcs[i];
+        console.log(`PC ${pc.name} 켜는 중...`);
+        updateBulkControlStatus(`PC ${pc.name} 켜는 중... (${i + 1}/${pcs.length})`, 75 + (i / pcs.length) * 20);
+        
+        try {
+          await sendPCCommand(pc.id, 'on');
+          console.log(`PC ${pc.name} 켜기 성공`);
+        } catch (error) {
+          console.error(`PC ${pc.name} 켜기 실패:`, error);
+        }
+        
+        // PC 간 1초 간격
+        if (i < pcs.length - 1) {
+          await new Promise(resolve => setTimeout(resolve, 1000));
+        }
+      }
+      
+      updateBulkControlStatus('전체 켜기 완료!', 100);
+      console.log('전체 켜기 시퀀스 완료');
+    }
+    
+    // 전체 끄기 시퀀스
+    async function executeAllOff() {
+      console.log('전체 끄기 시퀀스 시작');
+      
+      updateBulkControlStatus('PC 목록을 가져오는 중...', 10);
+      
+      // 1. PC 목록 가져오기
+      const pcs = await getPCList();
+      console.log('PC 목록:', pcs);
+      
+      // 2. 모든 PC 끄기
+      updateBulkControlStatus('PC들을 끄는 중...', 20);
+      for (let i = 0; i < pcs.length; i++) {
+        const pc = pcs[i];
+        console.log(`PC ${pc.name} 끄는 중...`);
+        updateBulkControlStatus(`PC ${pc.name} 끄는 중... (${i + 1}/${pcs.length})`, 20 + (i / pcs.length) * 25);
+        
+        try {
+          await sendPCCommand(pc.id, 'off');
+          console.log(`PC ${pc.name} 끄기 성공`);
+        } catch (error) {
+          console.error(`PC ${pc.name} 끄기 실패:`, error);
+        }
+        
+        // PC 간 1초 간격
+        if (i < pcs.length - 1) {
+          await new Promise(resolve => setTimeout(resolve, 1000));
+        }
+      }
+      
+      // 3. PC 종료 대기 (2분)
+      updateBulkControlStatus('PC 종료 대기 중... (2분 대기)', 50);
+      await countdownWait(120, 'PC 종료 대기 중', 50, 70);
+      
+      // 4. 프로젝터 목록 가져오기
+      updateBulkControlStatus('프로젝터 목록을 가져오는 중...', 70);
+      const projectors = await getProjectorList();
+      console.log('프로젝터 목록:', projectors);
+      
+      // 5. 모든 프로젝터 끄기
+      updateBulkControlStatus('프로젝터들을 끄는 중...', 75);
+      for (let i = 0; i < projectors.length; i++) {
+        const projector = projectors[i];
+        console.log(`프로젝터 ${projector.name} 끄는 중...`);
+        updateBulkControlStatus(`프로젝터 ${projector.name} 끄는 중... (${i + 1}/${projectors.length})`, 75 + (i / projectors.length) * 20);
+        
+        try {
+          await sendProjectorCommand(projector.id, 'off');
+          console.log(`프로젝터 ${projector.name} 끄기 성공`);
+        } catch (error) {
+          console.error(`프로젝터 ${projector.name} 끄기 실패:`, error);
+        }
+        
+        // 프로젝터 간 2초 간격
+        if (i < projectors.length - 1) {
+          await new Promise(resolve => setTimeout(resolve, 2000));
+        }
+      }
+      
+      updateBulkControlStatus('전체 끄기 완료!', 100);
+      console.log('전체 끄기 시퀀스 완료');
+    }
+    
+    // 상태 업데이트 함수
+    function updateBulkControlStatus(message, progressPercent) {
+      console.log(`상태 업데이트: ${message} (${progressPercent}%)`);
+      
+      // 메시지 업데이트
+      const messageElement = document.getElementById('bulkControlMessage') || document.getElementById('bulkControlMessageBackup');
+      if (messageElement) {
+        messageElement.textContent = message;
+      }
+      
+      // 진행률 업데이트
+      const progressElement = document.getElementById('bulkControlProgress');
+      if (progressElement) {
+        progressElement.style.width = progressPercent + '%';
+      }
+    }
+    
+    // 카운트다운 대기 함수
+    async function countdownWait(seconds, baseMessage, startProgress, endProgress) {
+      for (let i = seconds; i > 0; i--) {
+        const minutes = Math.floor(i / 60);
+        const secs = i % 60;
+        const timeString = `${minutes}:${secs.toString().padStart(2, '0')}`;
+        const currentProgress = startProgress + ((seconds - i) / seconds) * (endProgress - startProgress);
+        
+        updateBulkControlStatus(`${baseMessage}... 남은 시간: ${timeString}`, Math.round(currentProgress));
+        await new Promise(resolve => setTimeout(resolve, 1000));
+      }
+    }
+    
+    // API 함수들
+    async function getProjectorList() {
+      console.log('프로젝터 목록 API 호출 시작...');
+      try {
+        const response = await fetch('/api/projector/list');
+        console.log('프로젝터 API 응답 상태:', response.status);
+        const data = await response.json();
+        console.log('프로젝터 API 응답 데이터:', data);
+        const devices = data.devices || [];
+        console.log(`프로젝터 ${devices.length}개 발견`);
+        return devices;
+      } catch (error) {
+        console.error('프로젝터 목록 가져오기 오류:', error);
+        return [];
+      }
+    }
+    
+    async function getPCList() {
+      console.log('PC 목록 API 호출 시작...');
+      try {
+        const response = await fetch('/api/pc/list');
+        console.log('PC API 응답 상태:', response.status);
+        const data = await response.json();
+        console.log('PC API 응답 데이터:', data);
+        
+        // PC 데이터 배열 찾기
+        let pcList = [];
+        if (data.pcs && Array.isArray(data.pcs)) {
+          pcList = data.pcs;
+        } else if (data.devices && Array.isArray(data.devices)) {
+          pcList = data.devices;
+        } else if (data.pc_list && Array.isArray(data.pc_list)) {
+          pcList = data.pc_list;
+        } else if (Array.isArray(data)) {
+          pcList = data;
+        }
+        
+        console.log(`PC ${pcList.length}개 발견`);
+        return pcList;
+      } catch (error) {
+        console.error('PC 목록 가져오기 오류:', error);
+        return [];
+      }
+    }
+    
+    async function sendProjectorCommand(projectorId, command) {
+      console.log(`프로젝터 명령 전송: ID=${projectorId}, 명령=${command}`);
+      
+      try {
+        // 먼저 프로젝터 정보를 가져와서 IP 주소 확인
+        const projectors = await getProjectorList();
+        const projector = projectors.find(p => p.id == projectorId);
+        
+        if (!projector) {
+          throw new Error(`프로젝터 ID ${projectorId}를 찾을 수 없습니다`);
+        }
+        
+        if (!projector.ip) {
+          throw new Error(`프로젝터 ${projector.name}의 IP 주소가 설정되지 않았습니다`);
+        }
+        
+        // 서버가 기대하는 형식으로 변환
+        const serverCommand = command === 'on' ? 'power_on' : 'power_off';
+        const requestBody = {
+          ip: projector.ip,
+          command: serverCommand
+        };
+        console.log('프로젝터 명령 요청 데이터 (수정됨):', requestBody);
+        
+        const response = await fetch('/api/projector/command', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(requestBody)
+        });
+        
+        console.log('프로젝터 명령 응답 상태:', response.status);
+        const data = await response.json();
+        console.log('프로젝터 명령 응답 데이터:', data);
+        
+        if (!data.success) {
+          throw new Error(data.error || data.message || '프로젝터 명령 전송 실패');
+        }
+        
+        console.log(`프로젝터 ${projector.name} (${projector.ip}) 명령 ${command} 성공`);
+        return data;
+      } catch (error) {
+        console.error(`프로젝터 ${projectorId} 명령 ${command} 실패:`, error);
+        throw error;
+      }
+    }
+    
+    async function sendPCCommand(pcId, command) {
+      console.log(`PC 명령 전송: ID=${pcId}, 명령=${command}`);
+      
+      try {
+        // 서버가 기대하는 형식으로 변환
+        const serverCommand = command === 'on' ? 'wake' : 'shutdown';
+        const requestBody = {
+          pc_id: pcId,
+          action: serverCommand
+        };
+        console.log('PC 명령 요청 데이터 (수정됨):', requestBody);
+        
+        const response = await fetch('/api/pc/command', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(requestBody)
+        });
+        
+        console.log('PC 명령 응답 상태:', response.status);
+        const data = await response.json();
+        console.log('PC 명령 응답 데이터:', data);
+        
+        if (!data.success) {
+          throw new Error(data.message || 'PC 명령 전송 실패');
+        }
+        
+        console.log(`PC ${pcId} 명령 ${command} 성공`);
+        return data;
+      } catch (error) {
+        console.error(`PC ${pcId} 명령 ${command} 실패:`, error);
+        throw error;
+      }
+    }
   </script>
   
   <!-- FontAwesome 아이콘 확인 및 폴백 처리 -->
