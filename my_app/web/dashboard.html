@@ -2228,16 +2228,85 @@
     
     // 카운트다운 대기 함수
     async function countdownWait(seconds, baseMessage, startProgress, endProgress) {
-      // 카운트다운 표시 영역 보이기
-      const countdownDisplay = document.getElementById('bulkCountdownDisplay');
-      const countdownNumber = document.getElementById('bulkCountdownNumber');
-      const countdownLabel = document.getElementById('bulkCountdownLabel');
-      const spinner = document.getElementById('bulkControlSpinner');
+      console.log(`카운트다운 시작: ${seconds}초, 메시지: ${baseMessage}`);
       
-      // 스피너 숨기고 카운트다운 표시
-      if (spinner) spinner.style.display = 'none';
-      if (countdownDisplay) countdownDisplay.style.display = 'block';
-      if (countdownLabel) countdownLabel.textContent = baseMessage;
+      // 화면 중앙 카운트다운 오버레이 생성
+      let overlay = document.getElementById('countdownOverlay');
+      if (!overlay) {
+        overlay = document.createElement('div');
+        overlay.id = 'countdownOverlay';
+        overlay.style.cssText = `
+          position: fixed;
+          top: 0;
+          left: 0;
+          width: 100%;
+          height: 100%;
+          background: rgba(25, 28, 36, 0.95);
+          display: flex;
+          flex-direction: column;
+          justify-content: center;
+          align-items: center;
+          z-index: 10000;
+          color: #e9ecef;
+        `;
+        
+        const countdownContainer = document.createElement('div');
+        countdownContainer.style.cssText = `
+          text-align: center;
+          padding: 40px;
+          border-radius: 15px;
+          background: rgba(0, 0, 0, 0.8);
+          border: 2px solid #0090e7;
+        `;
+        
+        const bigNumber = document.createElement('div');
+        bigNumber.id = 'overlayCountdownNumber';
+        bigNumber.style.cssText = `
+          font-size: 6rem;
+          font-weight: bold;
+          color: #28a745;
+          text-shadow: 3px 3px 6px rgba(0,0,0,0.8);
+          margin-bottom: 20px;
+          font-family: 'Arial', sans-serif;
+        `;
+        bigNumber.textContent = '2:00';
+        
+        const label = document.createElement('div');
+        label.id = 'overlayCountdownLabel';
+        label.style.cssText = `
+          font-size: 1.5rem;
+          color: #6c757d;
+          margin-bottom: 30px;
+        `;
+        label.textContent = baseMessage;
+        
+        const progressBar = document.createElement('div');
+        progressBar.style.cssText = `
+          width: 300px;
+          height: 8px;
+          background: #2c2e33;
+          border-radius: 4px;
+          overflow: hidden;
+        `;
+        
+        const progressFill = document.createElement('div');
+        progressFill.id = 'overlayProgressFill';
+        progressFill.style.cssText = `
+          height: 100%;
+          background: linear-gradient(90deg, #28a745, #20c997);
+          width: ${startProgress}%;
+          transition: width 0.5s ease;
+        `;
+        
+        progressBar.appendChild(progressFill);
+        countdownContainer.appendChild(bigNumber);
+        countdownContainer.appendChild(label);
+        countdownContainer.appendChild(progressBar);
+        overlay.appendChild(countdownContainer);
+        document.body.appendChild(overlay);
+        
+        console.log('카운트다운 오버레이 생성 완료');
+      }
       
       for (let i = seconds; i > 0; i--) {
         const minutes = Math.floor(i / 60);
@@ -2245,18 +2314,28 @@
         const timeString = `${minutes}:${secs.toString().padStart(2, '0')}`;
         const currentProgress = startProgress + ((seconds - i) / seconds) * (endProgress - startProgress);
         
-        // 대형 카운트다운 숫자 업데이트
-        if (countdownNumber) {
-          countdownNumber.textContent = timeString;
+        console.log(`카운트다운: ${timeString} (${i}초 남음)`);
+        
+        // 오버레이 카운트다운 숫자 업데이트
+        const overlayNumber = document.getElementById('overlayCountdownNumber');
+        const overlayProgress = document.getElementById('overlayProgressFill');
+        
+        if (overlayNumber) {
+          overlayNumber.textContent = timeString;
           
           // 마지막 10초는 빨간색으로 강조
           if (i <= 10) {
-            countdownNumber.style.color = '#dc3545'; // 빨간색
-            countdownNumber.style.animation = 'pulse 1s infinite';
+            overlayNumber.style.color = '#dc3545'; // 빨간색
+            overlayNumber.style.animation = 'pulse 1s infinite';
           } else {
-            countdownNumber.style.color = '#28a745'; // 녹색
-            countdownNumber.style.animation = 'none';
+            overlayNumber.style.color = '#28a745'; // 녹색
+            overlayNumber.style.animation = 'none';
           }
+        }
+        
+        // 진행률 업데이트
+        if (overlayProgress) {
+          overlayProgress.style.width = Math.round(currentProgress) + '%';
         }
         
         // 기존 상태 메시지도 업데이트
@@ -2264,9 +2343,13 @@
         await new Promise(resolve => setTimeout(resolve, 1000));
       }
       
-      // 카운트다운 완료 - 다시 스피너 표시
-      if (countdownDisplay) countdownDisplay.style.display = 'none';
-      if (spinner) spinner.style.display = 'block';
+      console.log('카운트다운 완료 - 오버레이 제거');
+      
+      // 카운트다운 완료 - 오버레이 제거
+      const finalOverlay = document.getElementById('countdownOverlay');
+      if (finalOverlay) {
+        finalOverlay.remove();
+      }
     }
     
     // API 함수들
