@@ -826,8 +826,13 @@
       </ul>
 
       <!-- 우측 네비게이션 링크 -->
-      <ul class="navbar-nav ml-auto">
-        <div id="navbar-time" class="mr-3 mt-2 text-white"></div>
+      <ul class="navbar-nav ml-auto" style="margin-right: 30px !important;">
+        <!-- 카운트다운 표시 영역 (전체 제어 중에만 표시) -->
+        <div id="navbar-countdown" class="mr-4 d-flex align-items-center text-warning" style="display: none !important; font-size: 1.2rem; font-weight: bold;">
+          <i class="fas fa-clock mr-2"></i>
+          <span id="countdown-text"></span>
+        </div>
+        <div id="navbar-time" class="mr-3 d-flex align-items-center text-white" style="font-size: 1.2rem; font-weight: bold;"></div>
       </ul>
     </nav>
     <!-- /.navbar -->
@@ -876,22 +881,8 @@
                 </p>
               </a>
             </li>
-            <li class="nav-item mb-2">
-              <a href="javascript:void(0);" onclick="navigateToPage('group-control.html')" class="nav-link" id="group-control-link" style="border-radius: 5px; margin: 0 10px; transition: all 0.3s;">
-                <i class="nav-icon fas fa-users"></i>
-                <p>
-                  전체 수동 원격제어
-                </p>
-              </a>
-            </li>
-            <li class="nav-item mb-2">
-              <a href="javascript:void(0);" onclick="navigateToPage('settings.html')" class="nav-link" id="settings-link" style="border-radius: 5px; margin: 0 10px; transition: all 0.3s;">
-                <i class="nav-icon fas fa-cog"></i>
-                <p>
-                  설정
-                </p>
-              </a>
-            </li>
+            <!-- 그룹원격제어 메뉴 삭제됨 -->
+            <!-- 설정 메뉴 삭제됨 -->
           </ul>
         </nav>
       </div>
@@ -1209,16 +1200,6 @@
             </div>
           </div>
           
-          <!-- 대형 카운트다운 표시 영역 추가 -->
-          <div id="bulkCountdownDisplay" class="text-center mb-4" style="display: none;">
-            <div style="font-size: 4rem; font-weight: bold; color: #28a745; text-shadow: 2px 2px 4px rgba(0,0,0,0.5);" id="bulkCountdownNumber">
-              2:00
-            </div>
-            <div style="font-size: 1.2rem; color: #6c757d; margin-top: 10px;" id="bulkCountdownLabel">
-              남은 시간
-            </div>
-          </div>
-          
           <div class="progress mb-3" style="height: 10px;">
             <div class="progress-bar bg-success" role="progressbar" id="bulkControlProgress" style="width: 0%"></div>
           </div>
@@ -1307,6 +1288,7 @@
       // 년.월.요일 부분
       const year = now.getFullYear();
       const month = String(now.getMonth() + 1).padStart(2, '0');
+      const day = String(now.getDate()).padStart(2, '0');
       const weekdays = ['일', '월', '화', '수', '목', '금', '토'];
       const weekday = weekdays[now.getDay()];
       
@@ -1321,11 +1303,12 @@
       hours = hours ? hours : 12; // 0시는 12시로 표시
       hours = String(hours).padStart(2, '0');
       
-      const timeString = `${year}.${month}.${weekday} ${ampm} ${hours}:${minutes}:${seconds}`;
+      // 한글 부분(요일, 오전/오후)은 작은 폰트로 표시
+      const timeString = `${year}.${month}.${day}.<span style="font-size: 0.9em;">${weekday}</span>&nbsp;&nbsp;<span style="font-size: 0.8em;">${ampm}</span> ${hours}:${minutes}:${seconds}`;
       
       const timeElement = document.getElementById('navbar-time');
       if (timeElement) {
-        timeElement.textContent = timeString;
+        timeElement.innerHTML = timeString;
       }
     }
     
@@ -2230,70 +2213,14 @@
     async function countdownWait(seconds, baseMessage, startProgress, endProgress) {
       console.log(`카운트다운 시작: ${seconds}초, 메시지: ${baseMessage}`);
       
-      // 기존 오버레이 제거
-      const existingOverlay = document.getElementById('countdownOverlay');
-      if (existingOverlay) {
-        existingOverlay.remove();
-        console.log('기존 오버레이 제거됨');
+      // 상단바 카운트다운 요소 가져오기
+      const navbarCountdown = document.getElementById('navbar-countdown');
+      const countdownText = document.getElementById('countdown-text');
+      
+      if (navbarCountdown && countdownText) {
+        // 카운트다운 표시 (!important 오버라이드)
+        navbarCountdown.style.setProperty('display', 'flex', 'important');
       }
-      
-      // 새로운 오버레이 생성
-      const overlay = document.createElement('div');
-      overlay.id = 'countdownOverlay';
-      overlay.innerHTML = `
-        <div style="
-          position: fixed;
-          top: 0;
-          left: 0;
-          width: 100%;
-          height: 100%;
-          background: rgba(0, 0, 0, 0.9);
-          display: flex;
-          justify-content: center;
-          align-items: center;
-          z-index: 999999;
-          font-family: Arial, sans-serif;
-        ">
-          <div style="
-            background: #000;
-            border: 5px solid #ff0000;
-            border-radius: 20px;
-            padding: 50px;
-            text-align: center;
-            color: #fff;
-          ">
-            <div id="big-countdown" style="
-              font-size: 10rem;
-              font-weight: bold;
-              color: #00ff00;
-              margin-bottom: 20px;
-            ">2:00</div>
-            <div id="countdown-message" style="
-              font-size: 2rem;
-              color: #ffffff;
-              margin-bottom: 20px;
-            ">${baseMessage}</div>
-            <div style="
-              width: 400px;
-              height: 20px;
-              background: #333;
-              border-radius: 10px;
-              overflow: hidden;
-              border: 2px solid #fff;
-            ">
-              <div id="countdown-progress" style="
-                height: 100%;
-                background: linear-gradient(90deg, #00ff00, #ffff00);
-                width: ${startProgress}%;
-                transition: width 0.5s ease;
-              "></div>
-            </div>
-          </div>
-        </div>
-      `;
-      
-      document.body.appendChild(overlay);
-      console.log('새로운 테스트 오버레이 생성 완료');
       
       for (let i = seconds; i > 0; i--) {
         const minutes = Math.floor(i / 60);
@@ -2303,39 +2230,28 @@
         
         console.log(`카운트다운: ${timeString} (${i}초 남음)`);
         
-        // 숫자 업데이트
-        const bigCountdown = document.getElementById('big-countdown');
-        const progressBar = document.getElementById('countdown-progress');
-        
-        if (bigCountdown) {
-          bigCountdown.textContent = timeString;
-          
-          // 마지막 10초는 빨간색
-          if (i <= 10) {
-            bigCountdown.style.color = '#ff0000';
-            bigCountdown.style.transform = 'scale(1.1)';
-          } else {
-            bigCountdown.style.color = '#00ff00';
-            bigCountdown.style.transform = 'scale(1)';
-          }
+        // 상단바에 카운트다운 표시
+        if (countdownText) {
+          countdownText.textContent = timeString;
         }
         
-        // 진행률 업데이트
-        if (progressBar) {
-          progressBar.style.width = Math.round(currentProgress) + '%';
-        }
+        // 브라우저 제목에도 표시
+        document.title = `⏰ ${timeString} - ${baseMessage} - RCS 컨트롤 시스템`;
         
         updateBulkControlStatus(`${baseMessage}... 남은 시간: ${timeString}`, Math.round(currentProgress));
         await new Promise(resolve => setTimeout(resolve, 1000));
       }
       
-      console.log('카운트다운 완료 - 오버레이 제거');
-      
-      // 오버레이 제거
-      const finalOverlay = document.getElementById('countdownOverlay');
-      if (finalOverlay) {
-        finalOverlay.remove();
+      // 카운트다운 완료 후 숨기기
+      if (navbarCountdown) {
+        navbarCountdown.style.setProperty('display', 'none', 'important');
       }
+      
+      // 브라우저 제목 원래대로
+      document.title = "대시보드 - RCS 컨트롤 시스템";
+      
+      
+      console.log('카운트다운 완료');
     }
     
     // API 함수들

@@ -477,8 +477,8 @@
       </ul>
 
       <!-- 우측 네비게이션 링크 -->
-      <ul class="navbar-nav ml-auto">
-        <div id="current-time" class="mr-3 mt-2 text-white"></div>
+      <ul class="navbar-nav ml-auto" style="margin-right: 30px !important;">
+        <div id="current-time" class="d-flex align-items-center text-white" style="font-size: 1.2rem; font-weight: bold;"></div>
       </ul>
     </nav>
     <!-- /.navbar -->
@@ -1985,13 +1985,7 @@ async function checkAllProjectorsStatus() {
 function updateCurrentTime() {
   const now = new Date();
   
-  // 년.월.요일 부분
-  const year = now.getFullYear();
-  const month = String(now.getMonth() + 1).padStart(2, '0');
-  const weekdays = ['일', '월', '화', '수', '목', '금', '토'];
-  const weekday = weekdays[now.getDay()];
-  
-  // 12시간 표시 시간 부분
+  // 12시간 표시 시간 부분만 사용
   let hours = now.getHours();
   const minutes = String(now.getMinutes()).padStart(2, '0');
   const seconds = String(now.getSeconds()).padStart(2, '0');
@@ -2002,11 +1996,12 @@ function updateCurrentTime() {
   hours = hours ? hours : 12; // 0시는 12시로 표시
   hours = String(hours).padStart(2, '0');
   
-  const timeString = `${year}.${month}.${weekday} ${ampm} ${hours}:${minutes}:${seconds}`;
+  // 오전/오후와 시간만 표시 (년월일 제거)
+  const timeString = `<span style="font-size: 0.8em;">${ampm}</span> ${hours}:${minutes}:${seconds}`;
   
   const timeElement = document.getElementById('current-time');
   if (timeElement) {
-    timeElement.textContent = timeString;
+    timeElement.innerHTML = timeString;
   }
 }
 
