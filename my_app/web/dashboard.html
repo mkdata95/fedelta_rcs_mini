@@ -2230,89 +2230,70 @@
     async function countdownWait(seconds, baseMessage, startProgress, endProgress) {
       console.log(`카운트다운 시작: ${seconds}초, 메시지: ${baseMessage}`);
       
-      // 화면 중앙 카운트다운 오버레이 생성
-      let overlay = document.getElementById('countdownOverlay');
-      if (!overlay) {
-        console.log('새로운 카운트다운 오버레이 생성 중...');
-        
-        overlay = document.createElement('div');
-        overlay.id = 'countdownOverlay';
-        overlay.style.cssText = `
-          position: fixed !important;
-          top: 0 !important;
-          left: 0 !important;
-          width: 100vw !important;
-          height: 100vh !important;
-          background: rgba(25, 28, 36, 0.95) !important;
-          display: flex !important;
-          flex-direction: column !important;
-          justify-content: center !important;
-          align-items: center !important;
-          z-index: 999999 !important;
-          color: #e9ecef !important;
-          font-family: Arial, sans-serif !important;
-        `;
-        
-        const countdownContainer = document.createElement('div');
-        countdownContainer.style.cssText = `
-          text-align: center !important;
-          padding: 60px 80px !important;
-          border-radius: 20px !important;
-          background: rgba(0, 0, 0, 0.9) !important;
-          border: 3px solid #0090e7 !important;
-          box-shadow: 0 0 30px rgba(0, 144, 231, 0.5) !important;
-          min-width: 400px !important;
-        `;
-        
-        const bigNumber = document.createElement('div');
-        bigNumber.id = 'overlayCountdownNumber';
-        bigNumber.style.cssText = `
-          font-size: 8rem !important;
-          font-weight: bold !important;
-          color: #28a745 !important;
-          text-shadow: 4px 4px 8px rgba(0,0,0,0.8) !important;
-          margin-bottom: 30px !important;
-          font-family: Arial, sans-serif !important;
-          line-height: 1 !important;
-        `;
-        bigNumber.textContent = '2:00';
-        
-        const label = document.createElement('div');
-        label.id = 'overlayCountdownLabel';
-        label.style.cssText = `
-          font-size: 1.5rem;
-          color: #6c757d;
-          margin-bottom: 30px;
-        `;
-        label.textContent = baseMessage;
-        
-        const progressBar = document.createElement('div');
-        progressBar.style.cssText = `
-          width: 300px;
-          height: 8px;
-          background: #2c2e33;
-          border-radius: 4px;
-          overflow: hidden;
-        `;
-        
-        const progressFill = document.createElement('div');
-        progressFill.id = 'overlayProgressFill';
-        progressFill.style.cssText = `
-          height: 100%;
-          background: linear-gradient(90deg, #28a745, #20c997);
-          width: ${startProgress}%;
-          transition: width 0.5s ease;
-        `;
-        
-        progressBar.appendChild(progressFill);
-        countdownContainer.appendChild(bigNumber);
-        countdownContainer.appendChild(label);
-        countdownContainer.appendChild(progressBar);
-        overlay.appendChild(countdownContainer);
-        document.body.appendChild(overlay);
-        
-        console.log('카운트다운 오버레이 생성 완료');
+      // 기존 오버레이 제거
+      const existingOverlay = document.getElementById('countdownOverlay');
+      if (existingOverlay) {
+        existingOverlay.remove();
+        console.log('기존 오버레이 제거됨');
       }
+      
+      // 새로운 오버레이 생성
+      const overlay = document.createElement('div');
+      overlay.id = 'countdownOverlay';
+      overlay.innerHTML = `
+        <div style="
+          position: fixed;
+          top: 0;
+          left: 0;
+          width: 100%;
+          height: 100%;
+          background: rgba(0, 0, 0, 0.9);
+          display: flex;
+          justify-content: center;
+          align-items: center;
+          z-index: 999999;
+          font-family: Arial, sans-serif;
+        ">
+          <div style="
+            background: #000;
+            border: 5px solid #ff0000;
+            border-radius: 20px;
+            padding: 50px;
+            text-align: center;
+            color: #fff;
+          ">
+            <div id="big-countdown" style="
+              font-size: 10rem;
+              font-weight: bold;
+              color: #00ff00;
+              margin-bottom: 20px;
+            ">2:00</div>
+            <div id="countdown-message" style="
+              font-size: 2rem;
+              color: #ffffff;
+              margin-bottom: 20px;
+            ">${baseMessage}</div>
+            <div style="
+              width: 400px;
+              height: 20px;
+              background: #333;
+              border-radius: 10px;
+              overflow: hidden;
+              border: 2px solid #fff;
+            ">
+              <div id="countdown-progress" style="
+                height: 100%;
+                background: linear-gradient(90deg, #00ff00, #ffff00);
+                width: ${startProgress}%;
+                transition: width 0.5s ease;
+              "></div>
+            </div>
+          </div>
+        </div>
+      `;
+      
+      document.body.appendChild(overlay);
+      console.log('새로운 테스트 오버레이 생성 완료');
       
       for (let i = seconds; i > 0; i--) {
         const minutes = Math.floor(i / 60);
@@ -2322,36 +2303,35 @@
         
         console.log(`카운트다운: ${timeString} (${i}초 남음)`);
         
-        // 오버레이 카운트다운 숫자 업데이트
-        const overlayNumber = document.getElementById('overlayCountdownNumber');
-        const overlayProgress = document.getElementById('overlayProgressFill');
+        // 숫자 업데이트
+        const bigCountdown = document.getElementById('big-countdown');
+        const progressBar = document.getElementById('countdown-progress');
         
-        if (overlayNumber) {
-          overlayNumber.textContent = timeString;
+        if (bigCountdown) {
+          bigCountdown.textContent = timeString;
           
-          // 마지막 10초는 빨간색으로 강조
+          // 마지막 10초는 빨간색
           if (i <= 10) {
-            overlayNumber.style.color = '#dc3545'; // 빨간색
-            overlayNumber.style.animation = 'pulse 1s infinite';
+            bigCountdown.style.color = '#ff0000';
+            bigCountdown.style.transform = 'scale(1.1)';
           } else {
-            overlayNumber.style.color = '#28a745'; // 녹색
-            overlayNumber.style.animation = 'none';
+            bigCountdown.style.color = '#00ff00';
+            bigCountdown.style.transform = 'scale(1)';
           }
         }
         
         // 진행률 업데이트
-        if (overlayProgress) {
-          overlayProgress.style.width = Math.round(currentProgress) + '%';
+        if (progressBar) {
+          progressBar.style.width = Math.round(currentProgress) + '%';
         }
         
-        // 기존 상태 메시지도 업데이트
         updateBulkControlStatus(`${baseMessage}... 남은 시간: ${timeString}`, Math.round(currentProgress));
         await new Promise(resolve => setTimeout(resolve, 1000));
       }
       
       console.log('카운트다운 완료 - 오버레이 제거');
       
-      // 카운트다운 완료 - 오버레이 제거
+      // 오버레이 제거
       const finalOverlay = document.getElementById('countdownOverlay');
       if (finalOverlay) {
         finalOverlay.remove();
