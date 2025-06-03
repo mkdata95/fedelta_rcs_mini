@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RCS 인증 코드 생성기</title>
+    <style>
+        body {
+            font-family: 'Nanum Gothic', 'Malgun Gothic', sans-serif;
+            background-color: #f5f5f5;
+            margin: 0;
+            padding: 20px;
+            color: #333;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #2c3e50;
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 28px;
+        }
+        .subtitle {
+            text-align: center;
+            color: #7f8c8d;
+            margin-bottom: 30px;
+            font-size: 16px;
+        }
+        .input-group {
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            margin-bottom: 10px;
+            font-weight: bold;
+            font-size: 18px;
+        }
+        .input-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        .digit-input {
+            width: 50px;
+            height: 60px;
+            text-align: center;
+            font-size: 32px;
+            margin: 0 5px;
+            border: 2px solid #3498db;
+            border-radius: 8px;
+            background-color: #f8f9fa;
+        }
+        .separator {
+            font-size: 32px;
+            margin: 0 5px;
+            color: #7f8c8d;
+            font-weight: bold;
+        }
+        button {
+            background-color: #3498db;
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 18px;
+            font-weight: bold;
+            display: block;
+            margin: 30px auto;
+            transition: background-color 0.3s;
+        }
+        button:hover {
+            background-color: #2980b9;
+        }
+        .result {
+            margin-top: 40px;
+            background-color: #f9f9f9;
+            padding: 25px;
+            border-radius: 8px;
+            border-left: 6px solid #3498db;
+        }
+        .result h3 {
+            margin-top: 0;
+            color: #2c3e50;
+            font-size: 22px;
+            text-align: center;
+        }
+        .code {
+            font-family: monospace;
+            font-size: 42px;
+            letter-spacing: 4px;
+            background-color: #eef4f7;
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+            margin: 20px 0;
+            color: #2c3e50;
+            border: 2px dashed #3498db;
+            font-weight: bold;
+        }
+        .note {
+            margin-top: 20px;
+            font-size: 16px;
+            color: #777;
+            text-align: center;
+        }
+        .warning {
+            color: #e74c3c;
+            font-weight: bold;
+        }
+        .admin-tools {
+            margin-top: 50px;
+            border-top: 1px solid #ddd;
+            padding-top: 20px;
+        }
+        .admin-tools h3 {
+            font-size: 18px;
+            color: #7f8c8d;
+        }
+        .admin-button {
+            background-color: #e74c3c;
+            font-size: 14px;
+            padding: 10px 15px;
+        }
+    </style>
+    <!-- CryptoJS 라이브러리는 더 이상 필요하지 않음 -->
+</head>
+<body>
+    <div class="container">
+        <h1>RCS 인증 코드 생성기</h1>
+        <p class="subtitle">장치 코드를 입력하여 인증 코드를 생성하세요</p>
+        
+        <div class="input-group">
+            <label for="encodedCode">장치 코드 (8자리 숫자):</label>
+            <div class="input-container">
+                <input type="text" maxlength="1" class="digit-input" id="digit1" onkeyup="moveToNext(this, 'digit2')" inputmode="numeric" pattern="[0-9]">
+                <input type="text" maxlength="1" class="digit-input" id="digit2" onkeyup="moveToNext(this, 'digit3')" inputmode="numeric" pattern="[0-9]">
+                <input type="text" maxlength="1" class="digit-input" id="digit3" onkeyup="moveToNext(this, 'digit4')" inputmode="numeric" pattern="[0-9]">
+                <input type="text" maxlength="1" class="digit-input" id="digit4" onkeyup="moveToNext(this, 'digit5')" inputmode="numeric" pattern="[0-9]">
+                <span class="separator">-</span>
+                <input type="text" maxlength="1" class="digit-input" id="digit5" onkeyup="moveToNext(this, 'digit6')" inputmode="numeric" pattern="[0-9]">
+                <input type="text" maxlength="1" class="digit-input" id="digit6" onkeyup="moveToNext(this, 'digit7')" inputmode="numeric" pattern="[0-9]">
+                <input type="text" maxlength="1" class="digit-input" id="digit7" onkeyup="moveToNext(this, 'digit8')" inputmode="numeric" pattern="[0-9]">
+                <input type="text" maxlength="1" class="digit-input" id="digit8" onkeyup="moveToNext(this, null)" inputmode="numeric" pattern="[0-9]">
+            </div>
+            <div style="text-align: center;">
+                <button type="button" onclick="clearInputs()">지우기</button>
+            </div>
+        </div>
+        
+        <button onclick="generateAuthCode()">인증 코드 생성</button>
+        
+        <div class="result" id="authResult" style="display: none;">
+            <h3>인증 코드 생성 결과</h3>
+            <p style="text-align: center;">입력하신 코드에 대한 인증 코드입니다:</p>
+            <div class="code" id="authCode"></div>
+            <div class="note">
+                <p><span class="warning">주의:</span> 이 인증 코드를 앱에 입력하세요.</p>
+            </div>
+        </div>
+        
+        <div class="admin-tools">
+            <h3>관리자 도구</h3>
+            <button onclick="clearSavedResults()" class="admin-button">저장된 인증 결과 초기화</button>
+            <p class="note" style="margin-top: 10px;">이 버튼은 모든 저장된 인증 결과를 삭제합니다. 각 장치별로 다른 인증 코드를 생성해야 할 경우에만 사용하세요.</p>
+        </div>
+    </div>
+
+    <script>
+        // 입력 필드 간 자동 이동 기능
+        function moveToNext(current, nextId) {
+            if (current.value.length === current.maxLength) {
+                if (nextId) {
+                    document.getElementById(nextId).focus();
+                } else {
+                    current.blur(); // 마지막 입력 필드일 경우 포커스 제거
+                }
+            }
+        }
+        
+        // 입력 필드 초기화
+        function clearInputs() {
+            for (let i = 1; i <= 8; i++) {
+                document.getElementById(`digit${i}`).value = '';
+            }
+            document.getElementById('digit1').focus();
+            document.getElementById('authResult').style.display = 'none';
+        }
+        
+        // 8개의 입력 필드에서 코드 수집
+        function collectInputCode() {
+            let code = '';
+            for (let i = 1; i <= 8; i++) {
+                code += document.getElementById(`digit${i}`).value;
+            }
+            return code;
+        }
+        
+        // 비밀 키 (숫자로 구성)
+        const NUMERIC_KEY = "9876543210";
+        
+        // 인증 코드 생성 함수
+        function generateAuthCode() {
+            // 모든 입력 필드에서 코드 수집
+            let deviceCode = collectInputCode();
+            
+            // 숫자만 필터링
+            deviceCode = deviceCode.replace(/[^0-9]/g, '');
+            
+            if (deviceCode.length !== 8) {
+                alert("모든 자리에 숫자를 입력해주세요 (8자리 숫자)");
+                return;
+            }
+            
+            // 이전에 생성한 결과가 있는지 확인
+            const savedResults = JSON.parse(localStorage.getItem('decoderResults') || '{}');
+            
+            if (savedResults[deviceCode]) {
+                console.log('저장된 인증 코드 결과 사용:', savedResults[deviceCode]);
+                showResult(savedResults[deviceCode]);
+                return;
+            }
+            
+            // 숫자 기반 코드 생성
+            const formattedAuthCode = numericTransform(deviceCode);
+            
+            // 결과 저장
+            saveResult(deviceCode, formattedAuthCode);
+            
+            // 결과 표시
+            showResult(formattedAuthCode);
+            
+            // 디버깅 정보
+            console.group('인증 코드 생성 과정');
+            console.log('입력된 코드:', deviceCode);
+            console.log('변환 결과:', formattedAuthCode);
+            console.groupEnd();
+        }
+        
+        // 결과 표시 함수
+        function showResult(code) {
+            document.getElementById('authCode').textContent = code;
+            document.getElementById('authResult').style.display = 'block';
+            
+            // 결과 영역으로 스크롤
+            document.getElementById('authResult').scrollIntoView({
+                behavior: 'smooth',
+                block: 'center'
+            });
+        }
+        
+        // 결과 저장 함수
+        function saveResult(input, output) {
+            try {
+                // 로컬 스토리지에서 현재 저장된 결과 가져오기
+                const savedResults = JSON.parse(localStorage.getItem('decoderResults') || '{}');
+                
+                // 결과 추가
+                savedResults[input] = output;
+                
+                // 저장
+                localStorage.setItem('decoderResults', JSON.stringify(savedResults));
+                console.log('인증 코드 결과 저장됨:', input, '=>', output);
+            } catch (e) {
+                console.error('결과 저장 중 오류:', e);
+            }
+        }
+        
+        // 결과 초기화 기능 추가
+        function clearSavedResults() {
+            if (confirm("저장된 모든 인증 코드 결과를 삭제하시겠습니까?")) {
+                localStorage.removeItem('decoderResults');
+                alert("저장된 결과가 모두 삭제되었습니다.");
+            }
+        }
+        
+        // 숫자 변환 함수
+        function numericTransform(code) {
+            // 숫자 문자열을 배열로 변환
+            const digits = code.split('');
+            
+            // 각 자리수와 키를 곱한 합 계산
+            let sum = 0;
+            for (let i = 0; i < digits.length; i++) {
+                const digit = parseInt(digits[i]);
+                const keyDigit = parseInt(NUMERIC_KEY[i % NUMERIC_KEY.length]);
+                sum += digit * keyDigit;
+            }
+            
+            // 앞자리에 입력 코드의 첫 자리를 사용 (다양한 앞자리를 위해)
+            const firstDigit = parseInt(digits[0]);
+            const authCode = (firstDigit * 10000000 + (sum % 10000000)).toString();
+            
+            // 4-4 형식으로 변환
+            const formattedCode = authCode.substring(0, 4) + '-' + authCode.substring(4, 8);
+            
+            // 디버깅 정보
+            console.log('===== 변환 과정 =====');
+            console.log('입력 코드:', code);
+            console.log('비밀키:', NUMERIC_KEY);
+            console.log('계산된 합:', sum);
+            console.log('인증 코드:', formattedCode);
+            
+            return formattedCode;
+        }
+        
+        // 테스트 케이스
+        function testAuthCodes() {
+            const testCases = [
+                { code: "80003489" },
+                { code: "40003273" },
+                { code: "30003459" }
+            ];
+            
+            console.group('테스트 케이스');
+            
+            for (const test of testCases) {
+                const result = numericTransform(test.code);
+                console.log(`입력: ${test.code}, 결과: ${result}`);
+            }
+            
+            console.groupEnd();
+        }
+        
+        // 페이지 로드 시 
+        window.onload = function() {
+            testAuthCodes();
+            document.getElementById('digit1').focus();
+            
+            // 숫자 키 입력 제한
+            const digitInputs = document.querySelectorAll('.digit-input');
+            digitInputs.forEach(input => {
+                input.addEventListener('input', function() {
+                    this.value = this.value.replace(/[^0-9]/g, '');
+                });
+                
+                // 백스페이스 처리
+                input.addEventListener('keydown', function(e) {
+                    if (e.key === 'Backspace' && this.value === '') {
+                        const id = this.id;
+                        const currentIndex = parseInt(id.replace('digit', ''));
+                        if (currentIndex > 1) {
+                            const prevInput = document.getElementById(`digit${currentIndex - 1}`);
+                            prevInput.focus();
+                            setTimeout(() => {
+                                prevInput.value = '';
+                            }, 0);
+                        }
+                    }
+                });
+            });
+        };
+    </script>
+</body>
+</html> 

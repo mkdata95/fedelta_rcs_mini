@@ -1,0 +1,1834 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>PC 관리 - RCS 컨트롤 시스템</title>
+  <link rel="icon" href="favicon.png" type="image/png">
+  <!-- 폰트어썸 아이콘 프리로드 -->
+  <link rel="preload" href="assets/fonts/fa-solid-900.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="assets/fonts/fa-regular-400.woff2" as="font" type="font/woff2" crossorigin>
+  <!-- 로컬 CSS 파일 -->
+  <link rel="stylesheet" href="assets/css/bootstrap.min.css">
+  <link rel="stylesheet" href="assets/css/fontawesome.min.css">
+  <link rel="stylesheet" href="assets/css/adminlte.min.css">
+  <link rel="stylesheet" href="assets/css/common.css">
+  <link rel="stylesheet" href="assets/css/icons.css">
+  <link rel="stylesheet" href="assets/css/styles.css">
+  <link rel="stylesheet" href="assets/css/components.css">
+  <link rel="stylesheet" href="assets/css/pc.css">
+  <!-- jQuery 및 JavaScript 파일 -->
+  <script src="assets/js/jquery-3.6.0.min.js"></script>
+  <script src="assets/js/bootstrap.bundle.min.js"></script>
+  <script src="assets/js/common.js"></script>
+  <!-- 자바스크립트 파일 -->
+  <script>
+    // 웹뷰 메시지 완전히 제거하기 위한 즉시 실행 스크립트
+    (function() {
+      // 웹뷰 상단 메시지 제거를 위한 스타일 즉시 적용
+      var style = document.createElement('style');
+      style.textContent = `
+        /* 웹뷰 헤더 강제 제거 */
+        body::before, 
+        body::after, 
+        body > *:not(.wrapper):not(script):not(style):not(.js-modal):not(.js-notification):not(.modal):not(.modal-backdrop),
+        body > div:not(.wrapper):not(.js-modal):not(.js-notification):not(.modal):not(.modal-backdrop),
+        #app-header, .app-header, #status-bar, .status-bar, #title-bar, .title-bar,
+        #server-status, .server-status,
+        div[style*="position: fixed"][style*="top: 0"]:not(.js-modal):not(.js-modal-dialog):not(.js-notification):not(.modal):not(.modal-backdrop),
+        div[style*="position:fixed"][style*="top:0"]:not(.js-modal):not(.js-modal-dialog):not(.js-notification):not(.modal):not(.modal-backdrop),
+        div[style*="background-color"][style*="fixed"]:not(.js-modal):not(.js-modal-dialog):not(.js-notification):not(.modal):not(.modal-backdrop),
+        div[style*="z-index: 9"]:not(.js-modal):not(.js-modal-dialog):not(.js-notification):not(.modal):not(.modal-backdrop),
+        div[style*="z-index:9"]:not(.js-modal):not(.js-modal-dialog):not(.js-notification):not(.modal):not(.modal-backdrop) {
+          display: none !important;
+          height: 0 !important;
+          visibility: hidden !important;
+          opacity: 0 !important;
+          position: absolute !important;
+          z-index: -9999 !important;
+        }
+        
+        /* 문서와 콘텐츠 상단 여백 제거 */
+        html, body, .wrapper {
+          margin-top: 0 !important;
+          padding-top: 0 !important;
+        }
+        
+        /* 모달은 제외할 수 있도록 추가 */
+        .modal {
+          display: none;
+        }
+        .modal.show {
+          display: block !important;
+          visibility: visible !important;
+          opacity: 1 !important;
+          z-index: 1050 !important;
+        }
+      `;
+      document.head.appendChild(style);
+      
+      // DOM 변경 감지하여 웹뷰 요소 제거
+      var observer = new MutationObserver(function(mutations) {
+        const selectors = [
+          '.webview-message', '.webview-title', '.webview-status', '.server-status',
+          '.status-bar', '.app-title-bar', '.app-header-original', '[id*="title-container"]',
+          '[class*="title-container"]', '[id*="server-status"]', '[class*="server-status"]',
+          '[id*="app-header"]', '[class*="app-header"]', '.offline-remote-header',
+          '#offline-remote-header', '.server-status-container', '#server-status-container'
+        ];
+        
+        selectors.forEach(selector => {
+          document.querySelectorAll(selector).forEach(el => {
+            if(el && el.parentNode) {
+              el.parentNode.removeChild(el);
+            }
+          });
+        });
+      });
+      
+      // document.body가 존재할 때만 observer 시작
+      if (document.body) {
+        observer.observe(document.body, { childList: true, subtree: true });
+        // 3초 동안만 감시
+        setTimeout(() => observer.disconnect(), 3000);
+      }
+    })();
+
+    // 문서 로드 시 타이틀 강제 변경
+    document.addEventListener('DOMContentLoaded', function() {
+      document.title = "PC 관리 - RCS 컨트롤 시스템";
+    });
+  </script>
+  <style>
+    /* 활성 버튼 커스텀 스타일 - 밝은 녹색(켜짐) / 밝은 빨간색(꺼짐) */
+    .custom-switch .custom-control-input:checked ~ .custom-control-label::before {
+      background-color: #28a745 !important; /* 밝은 녹색 */
+      border-color: #28a745 !important;
+    }
+    
+    .custom-switch .custom-control-input:not(:checked) ~ .custom-control-label::before {
+      background-color: #dc3545 !important; /* 밝은 빨간색 */
+      border-color: #dc3545 !important;
+    }
+    
+    .custom-switch .custom-control-input:checked ~ .custom-control-label::after {
+      background-color: #fff !important;
+      transform: translateX(0.75rem) !important;
+    }
+    
+    .custom-switch .custom-control-input:not(:checked) ~ .custom-control-label::after {
+      background-color: #fff !important;
+      transform: translateX(0) !important;
+    }
+    
+    .custom-switch .custom-control-input:focus ~ .custom-control-label::before {
+      box-shadow: 0 0 0 0.2rem rgba(40, 167, 69, 0.25) !important;
+    }
+    
+    .custom-switch .custom-control-input:not(:checked):focus ~ .custom-control-label::before {
+      box-shadow: 0 0 0 0.2rem rgba(220, 53, 69, 0.25) !important;
+    }
+
+    /* 카드, 스케줄 카드, 목록 카드 어두운 배경 및 통일 스타일 */
+    .card,
+    .schedule-card,
+    .pc-list-card {
+      background: #191c24 !important;
+      border: none !important;
+      border-radius: 5px !important;
+      box-shadow: 0 0 10px rgba(0,0,0,0.2) !important;
+      color: #e9ecef !important;
+    }
+    .card-header, .schedule-card .card-header, .pc-list-card .card-header {
+      background: #191c24 !important;
+      border-bottom: 1px solid #2c2e33 !important;
+      color: #e9ecef !important;
+    }
+    .card-title {
+      color: #e9ecef !important;
+    }
+    .card table thead th,
+    .pc-list-card table thead th {
+      background: #191c24 !important;
+      color: #e9ecef !important;
+      border-color: #2c2e33 !important;
+    }
+    
+    /* 새로운 요일 선택 스타일 */
+    .weekday-selector {
+      display: flex;
+      gap: 8px;
+      margin-top: 5px;
+    }
+    
+    .weekday-selector label {
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    
+    .weekday-selector input[type="checkbox"] {
+      display: none;
+    }
+    
+    .circle-day {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      background: #2A3038;
+      border: 2px solid #2c2e33;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 500;
+      color: #e9ecef;
+      transition: all 0.2s ease;
+    }
+    
+    .weekday-selector input[type="checkbox"]:checked + .circle-day {
+      background: #1976d2;
+      color: #fff;
+      border: 2px solid #1976d2;
+      box-shadow: 0 0 10px rgba(25, 118, 210, 0.3);
+    }
+    
+    .weekday-selector label:hover .circle-day {
+      border: 2px solid #1976d2;
+      transform: scale(1.05);
+    }
+    
+    .weekday-selector input[type="checkbox"]:checked + .circle-day:hover {
+      background: #1565c0;
+    }
+
+    /* 모달 스타일 완전 재정의 */
+    .modal {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.5);
+      display: none;
+      z-index: 9999;
+      padding: 20px;
+      box-sizing: border-box;
+    }
+
+    .modal.show {
+      display: block !important;
+      visibility: visible !important;
+      opacity: 1 !important;
+      z-index: 9999 !important;
+    }
+
+    .modal-dialog {
+      margin: 30px auto;
+      max-width: 500px;
+      position: relative;
+      pointer-events: auto;
+    }
+
+    .modal-content {
+      background-color: #191c24;
+      color: #e9ecef;
+      border-radius: 5px;
+      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.5);
+      position: relative;
+      pointer-events: auto;
+    }
+
+    .modal-header {
+      padding: 15px;
+      background-color: #0d6efd;
+      color: white;
+      border-top-left-radius: 5px;
+      border-top-right-radius: 5px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .modal-title {
+      margin: 0;
+      font-size: 1.25rem;
+      font-weight: 500;
+      color: white;
+    }
+
+    .close {
+      background: none;
+      border: none;
+      color: white;
+      font-size: 1.5rem;
+      cursor: pointer;
+      opacity: 0.8;
+      padding: 0;
+      margin: 0;
+      line-height: 1;
+    }
+
+    .close:hover {
+      opacity: 1;
+    }
+
+    .modal-body {
+      padding: 15px;
+      background-color: #191c24;
+    }
+
+    .modal-footer {
+      padding: 15px;
+      border-top: 1px solid #2c2e33;
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+      background-color: #191c24;
+    }
+
+    .modal-backdrop {
+      display: none !important;
+    }
+
+    body.modal-open {
+      overflow: hidden;
+      padding-right: 0 !important;
+    }
+
+    /* 로딩 스피너 스타일 */
+    .loading-spinner {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0, 0, 0, 0.7);
+      display: none;
+      justify-content: center;
+      align-items: center;
+      flex-direction: column;
+      z-index: 10000;
+    }
+
+    .spinner {
+      width: 50px;
+      height: 50px;
+      border: 5px solid #f3f3f3;
+      border-top: 5px solid #3498db;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    /* 폼 컨트롤 스타일 */
+    .modal .form-group {
+      margin-bottom: 1rem;
+    }
+
+    .modal .form-control {
+      display: block;
+      width: 100%;
+      padding: 0.375rem 0.75rem;
+      font-size: 1rem;
+      font-weight: 400;
+      line-height: 1.5;
+      color: #e9ecef !important;
+      background-color: #2A3038 !important;
+      background-clip: padding-box;
+      border: 1px solid #2c2e33 !important;
+      border-radius: 0.25rem;
+      transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+    }
+
+    .modal .form-control:focus {
+      color: #e9ecef !important;
+      background-color: #2A3038 !important;
+      border-color: #86b7fe !important;
+      outline: 0;
+      box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+    }
+
+    /* 버튼 스타일 */
+    .modal .btn {
+      display: inline-block;
+      font-weight: 400;
+      text-align: center;
+      vertical-align: middle;
+      user-select: none;
+      padding: 0.375rem 0.75rem;
+      font-size: 1rem;
+      line-height: 1.5;
+      border-radius: 0.25rem;
+      transition: color 0.15s ease-in-out, background-color 0.15s ease-in-out, border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+    }
+
+    .modal .btn-primary {
+      color: #fff;
+      background-color: #0d6efd;
+      border-color: #0d6efd;
+    }
+
+    .modal .btn-primary:hover {
+      color: #fff;
+      background-color: #0b5ed7;
+      border-color: #0a58ca;
+    }
+
+    .modal .btn-secondary {
+      color: #fff;
+      background-color: #6c757d;
+      border-color: #6c757d;
+    }
+
+    .modal .btn-secondary:hover {
+      color: #fff;
+      background-color: #5c636a;
+      border-color: #565e64;
+    }
+
+    /* PC 테이블 중앙 정렬 */
+    #pcTable td {
+      text-align: center !important;
+      vertical-align: middle !important;
+    }
+
+    /* NET상태 밝은 녹색 톤 */
+    .text-success {
+      color: #00ff88 !important;
+    }
+
+    .text-danger {
+      color: #ff4757 !important;
+    }
+
+    .text-warning {
+      color: #ffa502 !important;
+    }
+
+    /* 버튼 그룹 스타일 통일 */
+    .control-buttons, .settings-buttons {
+      display: flex;
+      gap: 5px;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .control-btn {
+      padding: 4px 8px !important;
+      font-size: 0.875rem !important;
+    }
+
+    .btn-group .btn {
+      padding: 4px 8px !important;
+      font-size: 0.875rem !important;
+    }
+
+    /* 네비게이션 바 시간 표시 스타일 */
+    #current-time {
+      background: none !important;
+      border: none !important;
+      box-shadow: none !important;
+      padding: 0 !important;
+      margin: 0 !important;
+    }
+
+  </style>
+</head>
+<body class="hold-transition sidebar-mini layout-fixed">
+<div class="wrapper">
+  <!-- 네비게이션 바 -->
+  <nav class="main-header navbar navbar-expand navbar-dark" style="background-color: #191c24 !important; border-bottom: 1px solid #2c2e33;">
+    <!-- 좌측 네비게이션 링크 -->
+    <ul class="navbar-nav">
+      <li class="nav-item">
+        <span class="nav-link font-weight-bold">SMART RCS</span>
+      </li>
+    </ul>
+
+    <!-- 우측 네비게이션 링크 -->
+    <ul class="navbar-nav ml-auto">
+      <div id="current-time" class="mr-3 mt-2 text-white"></div>
+    </ul>
+  </nav>
+  <!-- /.navbar -->
+
+  <!-- 메인 사이드바 -->
+  <aside class="main-sidebar sidebar-dark-primary elevation-4" style="background-color: #191c24; box-shadow: 0 0 10px rgba(0,0,0,0.2);">
+    <!-- 브랜드 로고 -->
+    <a href="index.html" class="brand-link" style="background-color: #191c24; border-bottom: 1px solid #2c2e33;">
+      <span class="brand-text font-weight-bold ml-3" style="color: #e9ecef;">RCS CONTROL</span>
+    </a>
+
+    <!-- 사이드바 -->
+    <div class="sidebar" style="background-color: #191c24;">
+      <!-- 사이드바 메뉴 -->
+      <nav class="mt-3">
+        <ul class="nav nav-pills nav-sidebar flex-column" data-widget="treeview" role="menu" data-accordion="false">
+          <li class="nav-item mb-2">
+            <a href="javascript:void(0);" onclick="navigateToPage('dashboard.html')" class="nav-link" id="dashboard-link">
+              <i class="nav-icon fas fa-tachometer-alt"></i>
+              <p>
+                대시보드
+              </p>
+            </a>
+          </li>
+          <li class="nav-item mb-2">
+            <a href="javascript:void(0);" onclick="navigateToPage('projector.html')" class="nav-link" id="projector-link">
+              <i class="nav-icon fas fa-projector"></i>
+              <p>
+                빔프로젝터관리
+              </p>
+            </a>
+          </li>
+          <li class="nav-item mb-2">
+            <a href="javascript:void(0);" onclick="navigateToPage('pc.html')" class="nav-link active" id="pc-link">
+              <i class="nav-icon fas fa-desktop"></i>
+              <p>
+                PC관리
+              </p>
+            </a>
+          </li>
+          <li class="nav-item mb-2">
+            <a href="javascript:void(0);" onclick="navigateToPage('pdu.html')" class="nav-link" id="pdu-link">
+              <i class="nav-icon fas fa-plug"></i>
+              <p>
+                PDU관리
+              </p>
+            </a>
+          </li>
+          <!-- 그룹원격제어 메뉴 숨김 -->
+          <!--
+          <li class="nav-item mb-2">
+            <a href="javascript:void(0);" onclick="navigateToPage('group-control.html')" class="nav-link" id="group-control-link">
+              <i class="nav-icon fas fa-users"></i>
+              <p>
+                그룹원격제어
+              </p>
+            </a>
+          </li>
+          -->
+          <!-- 설정 메뉴 숨김 -->
+          <!--
+          <li class="nav-item mb-2">
+            <a href="javascript:void(0);" onclick="navigateToPage('settings.html')" class="nav-link" id="settings-link">
+              <i class="nav-icon fas fa-cog"></i>
+              <p>
+                설정
+              </p>
+            </a>
+          </li>
+          -->
+        </ul>
+      </nav>
+    </div>
+  </aside>
+
+  <!-- 메인 콘텐츠 -->
+  <div class="content-wrapper" style="background-color: #0c1427; padding-top: 70px; margin-left: 260px; overflow-x: hidden;">
+    <!-- 콘텐츠 헤더 (페이지 헤더) -->
+    <div class="content-header">
+      <div class="container-fluid">
+        <div class="row mb-2">
+          <div class="col-sm-6">
+            <h1 class="m-0">PC 관리</h1>
+          </div>
+          <div class="col-sm-6">
+            <ol class="breadcrumb float-sm-right">
+              <li class="breadcrumb-item"><a href="dashboard.html">홈</a></li>
+              <li class="breadcrumb-item active">PC 관리</li>
+            </ol>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <section class="content">
+      <div class="container-fluid">
+        <!-- PC 알람 스케줄 설정 패널 -->
+        <div class="card schedule-card">
+          <div class="card-header">
+            <h4 class="card-title mb-0">
+              <i class="fas fa-clock mr-2" style="color: #0090e7;"></i>스케줄 관리
+            </h4>
+          </div>
+          <div class="card-body">
+            <div class="row">
+              <div class="col-3">
+                <div class="form-group mb-0">
+                  <label class="small" style="color: #e9ecef;"><i class="fas fa-play text-success mr-1"></i>켜기 시간</label>
+                  <input type="time" class="form-control form-control-sm schedule-time-input" id="start-time" value="08:00" style="background-color: #2A3038; border: 1px solid #2c2e33; color: #e9ecef;">
+                </div>
+              </div>
+              <div class="col-3">
+                <div class="form-group mb-0">
+                  <label class="small" style="color: #e9ecef;"><i class="fas fa-stop text-danger mr-1"></i>끄기 시간</label>
+                  <input type="time" class="form-control form-control-sm schedule-time-input" id="end-time" value="18:00" style="background-color: #2A3038; border: 1px solid #2c2e33; color: #e9ecef;">
+                </div>
+              </div>
+              <div class="col-3">
+                <div class="form-group mb-0">
+                  <label class="small" style="color: #e9ecef;"><i class="fas fa-calendar-alt text-primary mr-1"></i>요일</label>
+                  <div class="weekday-selector">
+                    <label>
+                      <input type="checkbox" class="day-checkbox" value="1" checked>
+                      <span class="circle-day">월</span>
+                    </label>
+                    <label>
+                      <input type="checkbox" class="day-checkbox" value="2" checked>
+                      <span class="circle-day">화</span>
+                    </label>
+                    <label>
+                      <input type="checkbox" class="day-checkbox" value="3" checked>
+                      <span class="circle-day">수</span>
+                    </label>
+                    <label>
+                      <input type="checkbox" class="day-checkbox" value="4" checked>
+                      <span class="circle-day">목</span>
+                    </label>
+                    <label>
+                      <input type="checkbox" class="day-checkbox" value="5" checked>
+                      <span class="circle-day">금</span>
+                    </label>
+                    <label>
+                      <input type="checkbox" class="day-checkbox" value="6">
+                      <span class="circle-day">토</span>
+                    </label>
+                    <label>
+                      <input type="checkbox" class="day-checkbox" value="0">
+                      <span class="circle-day">일</span>
+                    </label>
+                    </div>
+                </div>
+              </div>
+              <div class="col-3">
+                <div class="form-group mb-0">
+                  <label class="small invisible" style="color: #e9ecef;">적용</label>
+                  <div class="d-flex flex-column">
+                    <button type="button" class="btn btn-success btn-sm" id="save-schedule-btn" onclick="saveSchedule()">
+                      <i class="fas fa-check mr-1"></i> 적용
+                    </button>
+                    <div class="custom-control custom-switch mt-2">
+                      <input type="checkbox" class="custom-control-input" id="schedule-active">
+                      <label class="custom-control-label" for="schedule-active" style="color: #e9ecef;">활성</label>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 구분선 -->
+        <div class="section-divider">
+          <h5 style="color: #000000; text-align: center;">PC 관리</h5>
+        </div>
+
+        <!-- PC 목록 -->
+        <div class="card pc-list-card">
+          <div class="card-header d-flex justify-content-between align-items-center">
+            <div class="d-flex align-items-center">
+              <i class="fas fa-desktop mr-2"></i>
+              <h4 class="card-title mb-0">PC 목록</h4>
+            </div>
+            <div>
+              <button class="btn btn-primary btn-add-pc">
+                <i class="fas fa-plus"></i>
+                PC 추가
+              </button>
+            </div>
+          </div>
+          <div class="card-body p-0">
+            <div class="table-responsive">
+              <table class="table table-hover m-0" id="pcTable">
+                <thead>
+                  <tr>
+                    <th style="text-align: center;">NO.</th>
+                    <th style="text-align: center;">이름</th>
+                    <th style="text-align: center;">IP 주소</th>
+                    <th style="text-align: center;">NET상태</th>
+                    <th style="text-align: center;">상태</th>
+                    <th style="text-align: center;">제어</th>
+                    <th style="text-align: center;">설정</th>
+                  </tr>
+                </thead>
+                <tbody id="pc-list">
+                  <!-- PC 목록이 여기에 동적으로 추가됩니다 -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div><!-- /.container-fluid -->
+    </section>
+    <!-- /.content -->
+  </div>
+  <!-- /.content-wrapper -->
+  <footer class="main-footer d-flex justify-content-between align-items-center" style="background-color: #191c24; border-top: 1px solid #2c2e33; color: #6c757d;">
+    <div>
+      <strong>Copyright © 2025 <a href="#" style="color: #0090e7;">FEDETA SMART RCS</a>.</strong> All rights reserved.
+    </div>
+    <div class="d-flex align-items-center">
+      <span class="mr-4" title="서버 상태">
+        <span class="status-indicator online" id="server-status-indicator"></span>
+        <span class="server-status-text">서버 정상</span>
+      </span>
+      <span title="네트워크 상태">
+        <span class="status-indicator online" id="network-status-indicator"></span>
+        <span class="network-status-text">네트워크 정상</span>
+      </span>
+    </div>
+  </footer>
+</div>
+<!-- ./wrapper -->
+
+<!-- 로딩 스피너 -->
+<div id="pcSpinner" class="loading-spinner">
+  <div class="spinner"></div>
+  <p>로딩 중...</p>
+</div>
+
+<!-- PC 추가 모달 -->
+<div class="modal" id="addPCModal" tabindex="-1" role="dialog" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">
+          <i class="fas fa-desktop mr-2"></i>PC 추가
+        </h5>
+        <button type="button" class="close" onclick="hideModal('addPCModal')">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <!-- 안내 메시지 -->
+        <div class="alert alert-info" style="background-color: #1f4e79; border-color: #2563eb; color: #bfdbfe; border-radius: 4px; padding: 12px; margin-bottom: 20px;">
+          <i class="fas fa-info-circle mr-2"></i>
+          <strong>PC 등록 가이드</strong><br>
+          원격으로 제어할 PC의 정보를 등록합니다. WoL(Wake-on-LAN) 기능을 사용하려면 MAC 주소도 함께 입력해주세요.
+        </div>
+        
+        <form id="pcForm">
+          <div class="form-group">
+            <label for="pcName" class="d-flex align-items-center">
+              <i class="fas fa-tag mr-2 text-primary"></i>
+              <span>PC 이름</span>
+              <span class="text-danger ml-1">*</span>
+            </label>
+            <input type="text" 
+                   class="form-control" 
+                   id="pcName" 
+                   placeholder="예: 강의실1번-PC, 회의실-컴퓨터" 
+                   style="background-color: #2A3038; border: 1px solid #2c2e33; color: #e9ecef;" 
+                   required>
+            <small class="form-text" style="color: #6c757d;">
+              <i class="fas fa-lightbulb mr-1"></i>PC를 쉽게 구분할 수 있는 이름을 입력하세요.
+            </small>
+          </div>
+          
+          <div class="form-group">
+            <label for="pcIp" class="d-flex align-items-center">
+              <i class="fas fa-network-wired mr-2 text-primary"></i>
+              <span>IP 주소</span>
+              <span class="text-danger ml-1">*</span>
+            </label>
+            <input type="text" 
+                   class="form-control" 
+                   id="pcIp" 
+                   placeholder="예: 192.168.1.100" 
+                   style="background-color: #2A3038; border: 1px solid #2c2e33; color: #e9ecef;" 
+                   required 
+                   pattern="^(?:[0-9]{1,3}\.){3}[0-9]{1,3}$">
+            <small class="form-text" style="color: #6c757d;">
+              <i class="fas fa-lightbulb mr-1"></i>제어할 PC의 고정 IP 주소를 입력하세요. (형식: 000.000.000.000)
+            </small>
+          </div>
+          
+          <div class="form-group">
+            <label for="pcMac" class="d-flex align-items-center">
+              <i class="fas fa-ethernet mr-2 text-success"></i>
+              <span>MAC 주소</span>
+              <span class="text-muted ml-1">(선택사항)</span>
+            </label>
+            <input type="text" 
+                   class="form-control" 
+                   id="pcMac" 
+                   placeholder="예: 00:11:22:33:44:55 또는 00-11-22-33-44-55" 
+                   style="background-color: #2A3038; border: 1px solid #2c2e33; color: #e9ecef;">
+            <small class="form-text" style="color: #6c757d;">
+              <i class="fas fa-lightbulb mr-1"></i>WoL(Wake-on-LAN) 원격 부팅 기능을 사용하려면 MAC 주소가 필요합니다.
+            </small>
+          </div>
+          
+          <!-- MAC 주소 확인 방법 안내 -->
+          <div class="alert alert-light" style="background-color: #2A3038; border-color: #495057; color: #adb5bd; border-radius: 4px; padding: 10px; margin-top: 15px;">
+            <i class="fas fa-question-circle mr-2"></i>
+            <strong>MAC 주소 확인 방법:</strong><br>
+            <small>
+              • Windows: cmd 창에서 <code style="background-color: #495057; padding: 2px 4px; border-radius: 2px;">ipconfig /all</code> 입력<br>
+              • "물리적 주소" 또는 "Physical Address" 항목 확인<br>
+              • 형식: 00:11:22:33:44:55 또는 00-11-22-33-44-55
+            </small>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" onclick="hideModal('addPCModal')">
+          <i class="fas fa-times mr-1"></i>취소
+        </button>
+        <button type="button" class="btn btn-primary" onclick="addPC()">
+          <i class="fas fa-plus mr-1"></i>PC 추가
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- PC 설정 모달 -->
+<div class="modal" id="settingsModal" tabindex="-1" role="dialog" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">
+          <i class="fas fa-cog mr-2"></i>PC 설정
+        </h5>
+        <button type="button" class="close" data-dismiss="modal">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <!-- 안내 메시지 -->
+        <div class="alert alert-warning" style="background-color: #854d0e; border-color: #f59e0b; color: #fed7aa; border-radius: 4px; padding: 12px; margin-bottom: 20px;">
+          <i class="fas fa-edit mr-2"></i>
+          <strong>PC 정보 수정</strong><br>
+          등록된 PC의 정보를 수정합니다. IP 주소 변경 시 해당 PC와의 연결이 일시적으로 끊어질 수 있습니다.
+        </div>
+        
+        <form id="updatePCForm">
+          <input type="hidden" id="pcId">
+          <input type="hidden" id="pcUuid">
+          <div class="form-group">
+            <label for="editPcName" class="d-flex align-items-center">
+              <i class="fas fa-tag mr-2 text-primary"></i>
+              <span>PC 이름</span>
+              <span class="text-danger ml-1">*</span>
+            </label>
+            <input type="text" 
+                   class="form-control" 
+                   id="editPcName" 
+                   placeholder="예: 강의실1번-PC, 회의실-컴퓨터" 
+                   style="background-color: #2A3038; border: 1px solid #2c2e33; color: #e9ecef;" 
+                   required>
+            <small class="form-text" style="color: #6c757d;">
+              <i class="fas fa-lightbulb mr-1"></i>PC를 쉽게 구분할 수 있는 이름을 입력하세요.
+            </small>
+          </div>
+          
+          <div class="form-group">
+            <label for="editPcIp" class="d-flex align-items-center">
+              <i class="fas fa-network-wired mr-2 text-primary"></i>
+              <span>IP 주소</span>
+              <span class="text-danger ml-1">*</span>
+            </label>
+            <input type="text" 
+                   class="form-control" 
+                   id="editPcIp" 
+                   placeholder="예: 192.168.1.100" 
+                   style="background-color: #2A3038; border: 1px solid #2c2e33; color: #e9ecef;" 
+                   required 
+                   pattern="^(?:[0-9]{1,3}\.){3}[0-9]{1,3}$">
+            <small class="form-text" style="color: #6c757d;">
+              <i class="fas fa-lightbulb mr-1"></i>제어할 PC의 고정 IP 주소를 입력하세요. (형식: 000.000.000.000)
+            </small>
+          </div>
+          
+          <div class="form-group">
+            <label for="editPcMac" class="d-flex align-items-center">
+              <i class="fas fa-ethernet mr-2 text-success"></i>
+              <span>MAC 주소</span>
+              <span class="text-muted ml-1">(선택사항)</span>
+            </label>
+            <input type="text" 
+                   class="form-control" 
+                   id="editPcMac" 
+                   placeholder="예: 00:11:22:33:44:55 또는 00-11-22-33-44-55" 
+                   style="background-color: #2A3038; border: 1px solid #2c2e33; color: #e9ecef;">
+            <small class="form-text" style="color: #6c757d;">
+              <i class="fas fa-lightbulb mr-1"></i>WoL(Wake-on-LAN) 원격 부팅 기능을 사용하려면 MAC 주소가 필요합니다.
+            </small>
+          </div>
+          
+          <!-- 참고사항 안내 -->
+          <div class="alert alert-light" style="background-color: #2A3038; border-color: #495057; color: #adb5bd; border-radius: 4px; padding: 10px; margin-top: 15px;">
+            <i class="fas fa-info-circle mr-2"></i>
+            <strong>참고사항:</strong><br>
+            <small>
+              • IP 주소 변경 시 해당 PC와의 연결 상태가 변경될 수 있습니다.<br>
+              • MAC 주소는 네트워크 카드 교체 시에만 변경됩니다.<br>
+              • 변경사항은 즉시 적용되며, PC 목록에서 확인 가능합니다.
+            </small>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">
+          <i class="fas fa-times mr-1"></i>취소
+        </button>
+        <button type="button" class="btn btn-primary" onclick="updatePC()">
+          <i class="fas fa-save mr-1"></i>저장
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 스크립트 -->
+<script>
+// PC 관리 페이지 관련 스크립트
+
+// WebSocket 연결 변수
+let pcWebSocket = null;
+
+/**
+ * WebSocket 연결 초기화
+ */
+function initWebSocket() {
+  // 여러 포트를 시도
+  const ports = [8081, 8082, 8083, 8084, 8085];
+  let currentPortIndex = 0;
+  
+  function tryConnect() {
+    if (currentPortIndex >= ports.length) {
+      console.error('모든 WebSocket 포트 연결 실패');
+      // 10초 후 처음부터 다시 시도
+      setTimeout(() => {
+        currentPortIndex = 0;
+        tryConnect();
+      }, 10000);
+      return;
+    }
+    
+    const port = ports[currentPortIndex];
+    console.log(`WebSocket 연결 시도: 포트 ${port}`);
+    
+    try {
+      pcWebSocket = new WebSocket(`ws://localhost:${port}/ws/pc`);
+      
+      pcWebSocket.onopen = function(event) {
+        console.log(`PC WebSocket 연결 성공: 포트 ${port}`);
+        currentPortIndex = 0; // 성공하면 다음에 다시 첫 번째 포트부터 시도
+      };
+      
+      pcWebSocket.onmessage = function(event) {
+        try {
+          const data = JSON.parse(event.data);
+          console.log('PC WebSocket 메시지 수신:', data);
+          
+          // 상태 변경 이벤트 처리
+          if (data.type === 'status_change') {
+            updatePCStatusInList(data.pc_id, data.status, data.network_status);
+          } else if (data.type === 'initial_pc_list' || data.type === 'initial_status') {
+            // 초기 PC 목록이나 상태 정보 수신 시 목록 새로고침
+            loadPCList();
+          }
+        } catch (e) {
+          console.error('WebSocket 메시지 파싱 오류:', e);
+        }
+      };
+      
+      pcWebSocket.onclose = function(event) {
+        console.log(`PC WebSocket 연결 종료: 포트 ${port}`);
+        // 3초 후 재연결 시도
+        setTimeout(tryConnect, 3000);
+      };
+      
+      pcWebSocket.onerror = function(error) {
+        console.error(`PC WebSocket 오류: 포트 ${port}`, error);
+        // 다음 포트로 시도
+        currentPortIndex++;
+        setTimeout(tryConnect, 1000);
+      };
+    } catch (e) {
+      console.error(`WebSocket 초기화 오류: 포트 ${port}`, e);
+      // 다음 포트로 시도
+      currentPortIndex++;
+      setTimeout(tryConnect, 1000);
+    }
+  }
+  
+  tryConnect();
+}
+
+/**
+ * PC 목록에서 특정 PC의 상태만 업데이트
+ */
+function updatePCStatusInList(pcId, newStatus, networkStatus) {
+  try {
+    const row = document.querySelector(`tr[data-pc-id="${pcId}"]`);
+    if (!row) {
+      console.log(`PC ID ${pcId}에 해당하는 행을 찾을 수 없음`);
+      return;
+    }
+    
+    // 네트워크 상태와 PC 상태 업데이트
+    const networkCell = row.children[3]; // NET상태 열
+    const statusCell = row.children[4];   // 상태 열
+    
+    if (networkCell && statusCell) {
+      // PC 상태에 따른 표시
+      let pcStatus;
+      
+      switch(newStatus) {
+        case 'online':
+          pcStatus = { class: 'text-success', text: '작동중' };
+          break;
+        case 'starting':
+          pcStatus = { class: 'text-warning', text: '작동중' };
+          break;
+        case 'shutting_down':
+          pcStatus = { class: 'text-warning', text: '작동중' };
+          break;
+        case 'rebooting':
+          pcStatus = { class: 'text-warning', text: '작동중' };
+          break;
+        case 'offline':
+        default:
+          pcStatus = { class: 'text-danger', text: '꺼짐' };
+      }
+      
+      // 네트워크 상태 처리 (핑 테스트 결과)
+      let networkStatusDisplay;
+      if (networkStatus === 'online') {
+        networkStatusDisplay = { class: 'text-success', text: '연결됨' };
+      } else {
+        networkStatusDisplay = { class: 'text-danger', text: '끊김' };
+      }
+      
+      // DOM 업데이트
+      networkCell.innerHTML = `<span class="${networkStatusDisplay.class}"><i class="fas fa-circle mr-1"></i>${networkStatusDisplay.text}</span>`;
+      statusCell.innerHTML = `<span class="${pcStatus.class}"><i class="fas fa-circle mr-1"></i>${pcStatus.text}</span>`;
+      
+      console.log(`PC ${pcId} 상태 업데이트: ${newStatus}`);
+    }
+  } catch (e) {
+    console.error('PC 상태 업데이트 오류:', e);
+  }
+}
+
+/**
+ * 스케줄 설정 저장
+ */
+async function saveSchedule() {
+  try {
+    // 로딩 표시
+    document.getElementById('pcSpinner').style.display = 'flex';
+    
+    // 스케줄 데이터 수집
+    const startTime = document.getElementById('start-time').value || '08:00';
+    const endTime = document.getElementById('end-time').value || '18:00';
+    
+    // 요일 체크박스 값 수집
+    const dayCheckboxes = document.querySelectorAll('.day-checkbox');
+    const selectedDays = [];
+    
+    dayCheckboxes.forEach(checkbox => {
+      if (checkbox.checked) {
+        selectedDays.push(checkbox.value);
+      }
+    });
+    
+    // 활성화 상태 체크
+    const checkbox = document.getElementById('schedule-active');
+    const isActive = checkbox ? checkbox.checked : false;
+    
+    console.log('활성화 체크박스 상태:', isActive, '체크박스 존재:', !!checkbox);
+    
+    // API 요청 데이터 구성
+    const scheduleData = {
+      wake_on_time: startTime,
+      shutdown_time: endTime,
+      days: selectedDays.join(','),
+      is_active: isActive ? 1 : 0
+    };
+    
+    console.log('저장할 스케줄 데이터:', scheduleData);
+      
+    // API 호출
+    const response = await fetch('/api/pc/schedule/add', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(scheduleData)
+    });
+    
+    const data = await response.json();
+    
+    if (data.success) {
+      alert('PC 스케줄이 성공적으로 저장되었습니다.');
+      } else {
+      alert('PC 스케줄 저장에 실패했습니다: ' + (data.message || '알 수 없는 오류'));
+      }
+    } catch (error) {
+    console.error('스케줄 저장 중 오류 발생:', error);
+    alert('스케줄 저장 중 오류가 발생했습니다.');
+  } finally {
+    // 로딩 표시 숨기기
+    document.getElementById('pcSpinner').style.display = 'none';
+  }
+}
+
+/**
+ * 현재 설정된 스케줄 가져오기
+ */
+async function loadSchedule() {
+  try {
+    console.log('PC 스케줄 로드 시작');
+    
+    // API 호출
+    const response = await fetch('/api/pc/schedule');
+    
+    if (!response.ok) {
+      console.warn('PC 스케줄 API 응답 실패:', response.status);
+      return;
+    }
+    
+    const data = await response.json();
+    console.log('PC 스케줄 API 응답:', data);
+    
+    if (!data.success || !data.schedule) {
+      console.warn('PC 스케줄 로드 실패 또는 스케줄 없음');
+      return;
+    }
+    
+    const schedule = data.schedule;
+    console.log('PC 스케줄 데이터:', schedule);
+    
+    // 시간 설정
+    document.getElementById('start-time').value = schedule.wake_on_time || '08:00';
+    document.getElementById('end-time').value = schedule.shutdown_time || '18:00';
+    
+    // 요일 설정
+    const days = schedule.days ? schedule.days.split(',').map(d => parseInt(d, 10)) : [1, 2, 3, 4, 5];
+    const dayCheckboxes = document.querySelectorAll('.day-checkbox');
+    
+    dayCheckboxes.forEach(checkbox => {
+      checkbox.checked = days.includes(parseInt(checkbox.value, 10));
+    });
+    
+    // 활성화 상태 설정 - API에서 받은 실제 값으로 설정
+    console.log('서버에서 받은 is_active 원본 값:', schedule.is_active, '타입:', typeof schedule.is_active);
+    const isActive = schedule.is_active === 1 || schedule.is_active === '1' || schedule.is_active === true || schedule.is_active === 'true';
+    console.log('변환된 활성화 상태:', isActive);
+    
+    const checkbox = document.getElementById('schedule-active');
+    if (checkbox) {
+      checkbox.checked = isActive;
+      console.log('체크박스 상태 설정 완료:', checkbox.checked);
+    } else {
+      console.error('schedule-active 체크박스를 찾을 수 없습니다.');
+    }
+    
+    console.log('PC 스케줄 로드 완료 - 활성화 상태:', isActive);
+    
+  } catch (error) {
+    console.error('PC 스케줄 로드 중 오류 발생:', error);
+  }
+}
+
+/**
+ * 스케줄 활성화 상태 즉시 토글
+ */
+async function toggleScheduleActive() {
+  try {
+    const isActive = document.getElementById('schedule-active').checked;
+    
+    console.log('PC 스케줄 활성화 상태 변경 시도:', isActive);
+    
+    // 로딩 표시
+    const loadingSpinner = document.getElementById('pcSpinner');
+    if (loadingSpinner) {
+      loadingSpinner.style.display = 'flex';
+    }
+    
+    // 현재 스케줄 정보를 가져와서 활성화 상태만 변경하여 저장
+    const scheduleResponse = await fetch('/api/pc/schedule');
+    let scheduleData = {
+      wake_on_time: '08:00',
+      shutdown_time: '18:00',
+      days: '1,2,3,4,5',
+      is_active: isActive ? 1 : 0
+    };
+    
+    if (scheduleResponse.ok) {
+      const currentSchedule = await scheduleResponse.json();
+      if (currentSchedule.success && currentSchedule.schedule) {
+        scheduleData = {
+          wake_on_time: currentSchedule.schedule.wake_on_time || '08:00',
+          shutdown_time: currentSchedule.schedule.shutdown_time || '18:00',
+          days: currentSchedule.schedule.days || '1,2,3,4,5',
+          is_active: isActive ? 1 : 0
+        };
+      }
+    }
+    
+    // API 호출하여 스케줄 저장 (활성화 상태 포함)
+    const response = await fetch('/api/pc/schedule/add', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(scheduleData)
+    });
+    
+    const data = await response.json();
+    
+    if (data.success) {
+      console.log(`PC 스케줄이 ${isActive ? '활성화' : '비활성화'}되었습니다.`);
+      alert(`PC 스케줄이 ${isActive ? '활성화' : '비활성화'}되었습니다.`);
+    } else {
+      console.error('PC 스케줄 활성화 상태 변경 실패:', data.message);
+      alert('PC 스케줄 활성화 상태 변경에 실패했습니다: ' + (data.message || '알 수 없는 오류'));
+      // 실패 시 체크박스 상태 원복
+      document.getElementById('schedule-active').checked = !isActive;
+    }
+  } catch (error) {
+    console.error('PC 스케줄 활성화 상태 변경 중 오류:', error);
+    alert('PC 스케줄 활성화 상태 변경 중 오류가 발생했습니다.');
+    // 오류 시 체크박스 상태 원복
+    const checkbox = document.getElementById('schedule-active');
+    if (checkbox) {
+      checkbox.checked = !checkbox.checked;
+    }
+  } finally {
+    // 로딩 표시 숨기기
+    const loadingSpinner = document.getElementById('pcSpinner');
+    if (loadingSpinner) {
+      loadingSpinner.style.display = 'none';
+    }
+  }
+}
+
+/**
+ * PC 목록 로드
+ */
+async function loadPCList() {
+  try {
+    // 로딩 표시
+    document.getElementById('pcSpinner').style.display = 'flex';
+    
+    // API 호출
+    const response = await fetch('/api/pc/list');
+    const data = await response.json();
+    
+    if (!data.success) {
+      console.error('PC 목록 로드 실패:', data.message || '알 수 없는 오류');
+      document.getElementById('pc-list').innerHTML = '<tr><td colspan="7" class="text-center">PC 목록을 불러올 수 없습니다</td></tr>';
+      return;
+    }
+    
+    const pcList = data.pc_list || [];
+    console.log('PC 목록 로드 성공:', pcList);
+    
+    if (pcList.length === 0) {
+      document.getElementById('pc-list').innerHTML = '<tr><td colspan="7" class="text-center">등록된 PC가 없습니다</td></tr>';
+      return;
+    }
+    
+    // PC 목록 렌더링
+    let html = '';
+    pcList.forEach((pc, index) => {
+      // 네트워크 상태 처리 (핑 테스트 결과)
+      let networkStatusClass, networkStatusText;
+      
+      if (pc.network_status === 'online') {
+        networkStatusClass = 'text-success';
+        networkStatusText = '연결됨';
+      } else {
+        networkStatusClass = 'text-danger';
+        networkStatusText = '끊김';
+      }
+
+      // PC 전원 상태 처리
+      const powerStatus = getPCPowerStatus(pc, pc.status === 'online');
+      
+      html += `
+        <tr data-pc-id="${pc.id}">
+          <td>${index + 1}</td>
+          <td>${pc.name}</td>
+          <td>${pc.ip}</td>
+          <td><span class="${networkStatusClass}"><i class="fas fa-circle mr-1"></i>${networkStatusText}</span></td>
+          <td><span class="${powerStatus.class}"><i class="fas fa-circle mr-1"></i>${powerStatus.text}</span></td>
+          <td>
+            <div class="control-buttons">
+              <button class="btn control-btn btn-success" onclick="controlPC(${pc.id}, 'on')">
+                <i class="fas fa-power-off"></i> 켜기
+              </button>
+              <button class="btn control-btn btn-danger" onclick="controlPC(${pc.id}, 'off')">
+                <i class="fas fa-power-off"></i> 끄기
+              </button>
+            </div>
+          </td>
+          <td>
+            <div class="settings-buttons">
+              <button class="btn control-btn btn-info" onclick="openEditPC(${pc.id})">
+                <i class="fas fa-cog"></i> 설정
+              </button>
+              <button class="btn control-btn btn-secondary" onclick="deletePC(${pc.id}, '${pc.uuid}')">
+                <i class="fas fa-trash"></i> 삭제
+              </button>
+            </div>
+          </td>
+        </tr>
+      `;
+    });
+    
+    document.getElementById('pc-list').innerHTML = html;
+  } catch (error) {
+    console.error('PC 목록 로드 중 오류 발생:', error);
+    document.getElementById('pc-list').innerHTML = '<tr><td colspan="7" class="text-center">PC 목록을 불러오는 중 오류가 발생했습니다</td></tr>';
+  } finally {
+    // 로딩 표시 숨기기
+    document.getElementById('pcSpinner').style.display = 'none';
+  }
+}
+
+/**
+ * PC 전원 상태 정보 생성
+ */
+function getPCPowerStatus(pc, isNetworkOnline) {
+  // PC 상태에 따라 분류 (네트워크 상태와 독립적으로)
+  switch(pc.status || pc.power_status) {
+    case 'online':
+    case 'on':
+    case '1':
+      return {
+        class: 'text-success',
+        text: '작동중'
+      };
+    case 'starting':
+      return {
+        class: 'text-warning',
+        text: '작동중'
+      };
+    case 'shutting_down':
+      return {
+        class: 'text-warning',
+        text: '작동중'
+      };
+    case 'rebooting':
+      return {
+        class: 'text-warning',
+        text: '작동중'
+      };
+    case 'sleep':
+    case 'standby':
+      return {
+        class: 'text-warning',
+        text: '작동중'
+      };
+    case 'offline':
+    case 'off':
+    case '0':
+    default:
+      // PC가 꺼져 있는 상태 (정상적인 상태)
+      return {
+        class: 'text-danger',
+        text: '꺼짐'
+      };
+  }
+}
+
+/**
+ * PC 제어 (켜기/끄기)
+ */
+async function controlPC(pcId, action) {
+  try {
+    // 로딩 표시
+    document.getElementById('pcSpinner').style.display = 'flex';
+    
+    // API 요청 데이터
+    const controlData = {
+      pc_id: pcId,
+      action: action // 'on' 또는 'off'
+    };
+    
+    // API 호출
+    const response = await fetch('/api/pc/control', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(controlData)
+    });
+    
+    const data = await response.json();
+    
+    if (data.success) {
+      alert(`PC가 성공적으로 ${action === 'on' ? '켜졌' : '꺼졌'}습니다.`);
+      
+      // 상태 변경 후 즉시 UI 업데이트
+      const expectedStatus = action === 'on' ? 'starting' : 'shutting_down';
+      updatePCStatusInList(pcId, expectedStatus, 'offline'); // 초기에는 네트워크 오프라인
+      
+      // 더 자주 상태 확인 (0.5초, 1초, 2초, 3초, 5초, 10초 후)
+      setTimeout(() => loadPCList(), 500);
+      setTimeout(() => loadPCList(), 1000);
+      setTimeout(() => loadPCList(), 2000);
+      setTimeout(() => loadPCList(), 3000);
+      setTimeout(() => loadPCList(), 5000);
+      setTimeout(() => loadPCList(), 10000);
+    } else {
+      alert(`PC ${action === 'on' ? '켜기' : '끄기'}에 실패했습니다: ` + (data.message || '알 수 없는 오류'));
+    }
+  } catch (error) {
+    console.error('PC 제어 중 오류 발생:', error);
+    alert('PC 제어 중 오류가 발생했습니다.');
+  } finally {
+    // 로딩 표시 숨기기
+    document.getElementById('pcSpinner').style.display = 'none';
+  }
+}
+
+/**
+ * PC 수정 모달 열기
+ */
+async function openEditPC(pcId) {
+  try {
+    console.log('PC 설정 모달 열기:', pcId);
+    
+    // 로딩 표시
+    document.getElementById('pcSpinner').style.display = 'flex';
+    
+    // API 호출
+    const response = await fetch(`/api/pc/detail/${pcId}`);
+    const data = await response.json();
+    
+    if (!data.success || !data.pc) {
+      alert('PC 정보를 불러올 수 없습니다.');
+      return;
+    }
+    
+    const pc = data.pc;
+    
+    // 폼 필드에 데이터 설정 (UUID 포함)
+    document.getElementById('pcId').value = pc.id;
+    document.getElementById('pcUuid').value = pc.uuid; // UUID 추가
+    document.getElementById('editPcName').value = pc.name;
+    document.getElementById('editPcIp').value = pc.ip;
+    document.getElementById('editPcMac').value = pc.mac || '';
+    
+    // 모달 열기
+    showModal('settingsModal');
+    
+  } catch (error) {
+    console.error('PC 정보 로드 중 오류 발생:', error);
+    alert('PC 정보를 불러오는 중 오류가 발생했습니다.');
+  } finally {
+    // 로딩 표시 숨기기
+    document.getElementById('pcSpinner').style.display = 'none';
+  }
+}
+
+/**
+ * PC 수정 저장
+ */
+async function updatePC() {
+  try {
+    const id = document.getElementById('pcId').value;
+    const uuid = document.getElementById('pcUuid').value; // UUID 가져오기
+    const name = document.getElementById('editPcName').value.trim();
+    const ip = document.getElementById('editPcIp').value.trim();
+    const mac = document.getElementById('editPcMac').value.trim();
+    
+    if (!name || !ip) {
+      alert('이름과 IP 주소는 필수 입력 항목입니다.');
+      return;
+    }
+    
+    // IP 주소 유효성 검사
+    const ipPattern = /^(?:[0-9]{1,3}\.){3}[0-9]{1,3}$/;
+    if (!ipPattern.test(ip)) {
+      alert('유효한 IP 주소 형식이 아닙니다.');
+      return;
+    }
+    
+    // 로딩 표시
+    document.getElementById('pcSpinner').style.display = 'flex';
+    
+    const pcData = {
+      uuid: uuid, // UUID 포함
+      name: name,
+      ip: ip,
+      mac: mac
+    };
+    
+    console.log('PC 수정 요청:', pcData);
+    
+    const response = await fetch('/api/pc/update', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(pcData)
+    });
+    
+    const result = await response.json();
+    
+    if (result.success) {
+      alert('PC가 성공적으로 수정되었습니다.');
+      hideModal('settingsModal');
+      loadPCList(); // 목록 새로고침
+    } else {
+      alert('PC 수정 실패: ' + (result.error || result.message || '알 수 없는 오류'));
+    }
+  } catch (error) {
+    console.error('PC 수정 중 오류 발생:', error);
+    alert('PC 수정 중 오류가 발생했습니다.');
+  } finally {
+    document.getElementById('pcSpinner').style.display = 'none';
+  }
+}
+
+/**
+ * PC 삭제
+ */
+async function deletePC(pcId, pcUuid) {
+  if (!confirm('정말 이 PC를 삭제하시겠습니까?')) {
+    return;
+  }
+  
+  try {
+    // 로딩 표시
+    document.getElementById('pcSpinner').style.display = 'flex';
+    
+    // API 호출 - UUID 우선 사용, 없으면 ID 사용
+    const deleteData = pcUuid ? { uuid: pcUuid } : { id: pcId };
+    
+    const response = await fetch('/api/pc/delete', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(deleteData)
+    });
+    
+    const data = await response.json();
+    
+    if (data.success) {
+      alert('PC가 성공적으로 삭제되었습니다.');
+      
+      // PC 목록 다시 로드
+      loadPCList();
+    } else {
+      alert('PC 삭제에 실패했습니다: ' + (data.error || data.message || '알 수 없는 오류'));
+    }
+  } catch (error) {
+    console.error('PC 삭제 중 오류 발생:', error);
+    alert('PC 삭제 중 오류가 발생했습니다.');
+  } finally {
+    // 로딩 표시 숨기기
+    document.getElementById('pcSpinner').style.display = 'none';
+  }
+}
+
+// 모달 관련 함수들
+function showModal(modalId) {
+  const modal = document.getElementById(modalId);
+  if (!modal) return;
+  
+  // 모달 표시
+  modal.classList.add('show');
+  document.body.classList.add('modal-open');
+  
+  // 첫 번째 입력 필드에 포커스
+  const firstInput = modal.querySelector('input:not([type="hidden"])');
+  if (firstInput) {
+    setTimeout(() => firstInput.focus(), 100);
+  }
+}
+
+function hideModal(modalId) {
+  const modal = document.getElementById(modalId);
+  if (!modal) return;
+  
+  // 모달 숨기기
+  modal.classList.remove('show');
+  document.body.classList.remove('modal-open');
+  
+  // 폼 초기화
+  const form = modal.querySelector('form');
+  if (form) {
+    form.reset();
+  }
+}
+
+// PC 추가
+async function addPC() {
+  try {
+    // 현재 등록된 PC 수량 확인 (3개 제한)
+    const listResponse = await fetch('/api/pc/list');
+    const listData = await listResponse.json();
+    
+    if (listData.success && listData.pc_list) {
+      const currentCount = listData.pc_list.length;
+      if (currentCount >= 3) {
+        alert('PC는 최대 3개까지만 등록할 수 있습니다.\n현재 등록된 PC: ' + currentCount + '개');
+        return;
+      }
+      console.log(`현재 등록된 PC: ${currentCount}개 (최대 3개)`);
+    }
+    
+    const name = document.getElementById('pcName').value.trim();
+    const ip = document.getElementById('pcIp').value.trim();
+    const mac = document.getElementById('pcMac').value.trim();
+    
+    if (!name || !ip) {
+      alert('이름과 IP 주소는 필수 입력 항목입니다.');
+      return;
+    }
+    
+    // IP 주소 유효성 검사
+    const ipPattern = /^(?:[0-9]{1,3}\.){3}[0-9]{1,3}$/;
+    if (!ipPattern.test(ip)) {
+      alert('유효한 IP 주소 형식이 아닙니다.');
+      return;
+    }
+    
+    // IP 중복 검사
+    const isDuplicate = await checkIPDuplicate(ip);
+    if (isDuplicate) {
+      alert(`IP 주소 "${ip}"는 이미 다른 장비에서 사용 중입니다.\n다른 IP 주소를 입력해주세요.`);
+      document.getElementById('pcIp').focus();
+      return;
+    }
+    
+    // 로딩 표시
+    document.getElementById('pcSpinner').style.display = 'flex';
+    
+    const pcData = {
+      name: name,
+      ip: ip,
+      mac: mac
+    };
+    
+    console.log('PC 추가 요청:', pcData);
+    
+    const response = await fetch('/api/pc/add', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(pcData)
+    });
+    
+    const result = await response.json();
+    
+    if (result.success) {
+      alert('PC가 성공적으로 추가되었습니다.');
+      hideModal('addPCModal');
+      loadPCList(); // 목록 새로고침
+    } else {
+      alert('PC 추가 실패: ' + (result.message || '알 수 없는 오류'));
+    }
+  } catch (error) {
+    console.error('PC 추가 중 오류 발생:', error);
+    alert('PC 추가 중 오류가 발생했습니다.');
+  } finally {
+    document.getElementById('pcSpinner').style.display = 'none';
+  }
+}
+
+/**
+ * 모든 장비의 IP 주소 중복 검사
+ * @param {string} ipAddress - 검사할 IP 주소
+ * @returns {boolean} - 중복 여부 (true: 중복됨, false: 중복되지 않음)
+ */
+async function checkIPDuplicate(ipAddress) {
+  try {
+    console.log('IP 중복 검사 시작:', ipAddress);
+    
+    const allDevices = [];
+    
+    // 1. 프로젝터 목록 조회
+    try {
+      const projectorResponse = await fetch('/api/projector/list');
+      const projectorData = await projectorResponse.json();
+      if (projectorData.success && projectorData.devices) {
+        projectorData.devices.forEach(device => {
+          allDevices.push({ type: '프로젝터', name: device.name, ip: device.ip });
+        });
+      }
+    } catch (e) {
+      console.warn('프로젝터 목록 조회 실패:', e);
+    }
+    
+    // 2. PC 목록 조회
+    try {
+      const pcResponse = await fetch('/api/pc/list');
+      const pcData = await pcResponse.json();
+      if (pcData.success && pcData.pc_list) {
+        pcData.pc_list.forEach(device => {
+          allDevices.push({ type: 'PC', name: device.name, ip: device.ip });
+        });
+      }
+    } catch (e) {
+      console.warn('PC 목록 조회 실패:', e);
+    }
+    
+    // 3. PDU 목록 조회
+    try {
+      const pduResponse = await fetch('/api/pdu/list');
+      const pduData = await pduResponse.json();
+      if (pduData.pdus) {
+        pduData.pdus.forEach(device => {
+          allDevices.push({ type: 'PDU', name: device.name, ip: device.ip });
+        });
+      }
+    } catch (e) {
+      console.warn('PDU 목록 조회 실패:', e);
+    }
+    
+    // 중복 검사
+    const duplicateDevice = allDevices.find(device => device.ip === ipAddress);
+    
+    if (duplicateDevice) {
+      console.log('IP 중복 발견:', duplicateDevice);
+      return true;
+    }
+    
+    console.log('IP 중복 없음');
+    return false;
+    
+  } catch (error) {
+    console.error('IP 중복 검사 중 오류:', error);
+    // 오류가 발생해도 추가를 막지 않도록 false 반환
+    return false;
+  }
+}
+
+// 페이지 로드 시 초기화
+document.addEventListener('DOMContentLoaded', function() {
+  console.log('DOM Content Loaded - 페이지 초기화 시작');
+  
+  // WebSocket 연결 초기화 (비활성화)
+  // initWebSocket();
+  
+  // 스케줄 로드
+  loadSchedule();
+  
+  // PC 목록 로드
+  loadPCList();
+  
+  // 주기적으로 PC 목록 새로고침 (WebSocket 대신)
+  setInterval(() => {
+    loadPCList();
+  }, 3000); // 3초마다 새로고침
+  
+  // 현재 시간 표시 시작
+  updateCurrentTime();
+  setInterval(updateCurrentTime, 1000);
+  
+  // 스케줄 활성화 체크박스 이벤트 리스너 등록
+  const scheduleActiveCheckbox = document.getElementById('schedule-active');
+  if (scheduleActiveCheckbox) {
+    scheduleActiveCheckbox.addEventListener('change', function() {
+      console.log('PC 스케줄 활성화 체크박스 변경됨:', this.checked);
+      toggleScheduleActive();
+    });
+    console.log('PC 스케줄 활성화 체크박스 이벤트 리스너 등록 완료');
+  } else {
+    console.warn('PC 스케줄 활성화 체크박스를 찾을 수 없습니다.');
+  }
+  
+  try {
+    // PC 추가 버튼 클릭 이벤트 설정
+    const addPCButton = document.querySelector('.btn-add-pc');
+    if (addPCButton) {
+      addPCButton.addEventListener('click', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        console.log('PC 추가 버튼 클릭');
+        showModal('addPCModal');
+      });
+    }
+    
+    // 모달 닫기 버튼 이벤트 설정
+    document.querySelectorAll('.modal .close, .modal .btn-secondary').forEach(button => {
+      button.addEventListener('click', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        const modal = this.closest('.modal');
+        if (modal) {
+          hideModal(modal.id);
+        }
+      });
+    });
+    
+    // ESC 키로 모달 닫기
+    document.addEventListener('keydown', function(event) {
+      if (event.key === 'Escape') {
+        const visibleModal = document.querySelector('.modal.show');
+        if (visibleModal) {
+          hideModal(visibleModal.id);
+        }
+      }
+    });
+    
+    // 모달 외부 클릭으로 닫기
+    document.querySelectorAll('.modal').forEach(modal => {
+      modal.addEventListener('click', function(event) {
+        if (event.target === this) {
+          hideModal(this.id);
+        }
+      });
+      
+      // 모달 내부 클릭은 전파 중단
+      modal.querySelector('.modal-dialog').addEventListener('click', function(e) {
+        e.stopPropagation();
+      });
+    });
+    
+    console.log('모달 초기화 성공');
+  } catch (error) {
+    console.error('초기화 중 오류 발생:', error);
+  }
+});
+
+// 현재 시간 업데이트 (네비게이션 바용)
+function updateCurrentTime() {
+  const now = new Date();
+  
+  // 년.월.요일 부분
+  const year = now.getFullYear();
+  const month = String(now.getMonth() + 1).padStart(2, '0');
+  const weekdays = ['일', '월', '화', '수', '목', '금', '토'];
+  const weekday = weekdays[now.getDay()];
+  
+  // 12시간 표시 시간 부분
+  let hours = now.getHours();
+  const minutes = String(now.getMinutes()).padStart(2, '0');
+  const seconds = String(now.getSeconds()).padStart(2, '0');
+  const ampm = hours >= 12 ? '오후' : '오전';
+  
+  // 12시간제로 변환
+  hours = hours % 12;
+  hours = hours ? hours : 12; // 0시는 12시로 표시
+  hours = String(hours).padStart(2, '0');
+  
+  const timeString = `${year}.${month}.${weekday} ${ampm} ${hours}:${minutes}:${seconds}`;
+  
+  const timeElement = document.getElementById('current-time');
+  if (timeElement) {
+    timeElement.textContent = timeString;
+  }
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,112 @@
+/* 공통 CSS 스타일 */
+
+/* 제목 스타일 개선 */
+.content-header {
+  padding: 15px 0 10px 0;
+  margin-bottom: 20px;
+  border-bottom: 1px solid #eee;
+}
+
+.content-header h1 {
+  font-size: 16px !important;
+  font-weight: 600;
+  margin: 0;
+  padding: 0;
+  color: #333;
+}
+
+/* 카드 스타일 개선 */
+.card {
+  border-radius: 3px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  margin-bottom: 20px;
+  border: none;
+}
+
+.card-header {
+  background-color: #f8f9fa;
+  border-bottom: 1px solid #eaeaea;
+  padding: 12px 15px;
+  border-radius: 3px 3px 0 0;
+}
+
+.card-body {
+  padding: 15px;
+}
+
+/* 버튼 스타일 개선 */
+.btn-control {
+  margin: 0;
+  border-radius: 3px;
+  padding: 5px 10px;
+  font-weight: 500;
+  font-size: 12px;
+}
+
+/* 로그 컨테이너 공통 스타일 */
+.log-container {
+  height: 250px;
+  overflow-y: auto;
+  background-color: #f8f9fa;
+  border: 1px solid #e9ecef;
+  border-radius: 3px;
+  padding: 10px;
+  font-family: monospace;
+  font-size: 12px;
+}
+
+.log-container p {
+  margin-bottom: 4px;
+  border-bottom: 1px solid #eaeaea;
+  padding-bottom: 4px;
+}
+
+.log-container p:last-child {
+  border-bottom: none;
+}
+
+/* 배지 스타일 */
+.badge-online {
+  background-color: #28a745;
+  color: white;
+}
+
+.badge-offline {
+  background-color: #dc3545;
+  color: white;
+}
+
+.badge-warning {
+  background-color: #ffc107;
+  color: black;
+}
+
+/* 버튼 스타일 추가 */
+.btn-info {
+  background-color: #17a2b8;
+  border-color: #17a2b8;
+  margin: 0 3px;
+}
+
+.btn-info:hover {
+  background-color: #138496;
+  border-color: #117a8b;
+}
+
+/* 사이드바 폰트 크기 설정 - 16px로 변경 */
+.nav-sidebar .nav-link {
+  font-size: 16px !important;
+}
+
+.sidebar-menu .nav-item {
+  font-size: 16px !important;
+}
+
+.main-sidebar .nav-item a {
+  font-size: 16px !important;
+}
+
+/* 사이드바 사용자 패널 텍스트 사이즈도 일관성을 위해 조정 */
+.user-panel .info a {
+  font-size: 16px !important;
+} 

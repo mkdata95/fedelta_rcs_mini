@@ -1,0 +1,1245 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>대시보드 - RCS 컨트롤 시스템</title>
+  <link rel="icon" href="favicon.png" type="image/png">
+  <!-- 폰트어썸 아이콘 프리로드 -->
+  <link rel="preload" href="assets/fonts/fa-solid-900.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="assets/fonts/fa-regular-400.woff2" as="font" type="font/woff2" crossorigin>
+  <!-- CSS 파일 -->
+  <link rel="stylesheet" href="assets/css/bootstrap.min.css">
+  <link rel="stylesheet" href="assets/css/fontawesome.min.css">
+  <link rel="stylesheet" href="assets/css/adminlte.min.css">
+  <link rel="stylesheet" href="assets/css/common.css">
+  <link rel="stylesheet" href="assets/css/icons.css">
+  <link rel="stylesheet" href="assets/css/styles.css">
+  <link rel="stylesheet" href="assets/css/dashboard.css">
+  <!-- 자바스크립트 파일 -->
+  <script src="assets/js/common.js"></script>
+  <style>
+    /* 대시보드 카드 스타일 */
+    .dashboard-card {
+      height: 150px;
+      border-radius: 10px;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+      margin-bottom: 20px;
+      color: white;
+      transition: all 0.3s ease;
+      position: relative;
+      overflow: hidden;
+      display: block;
+    }
+    
+    .dashboard-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 8px 15px rgba(0, 0, 0, 0.2);
+    }
+    
+    .dashboard-card-content {
+      padding: 1.25rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      height: 100%;
+    }
+    
+    .dashboard-card-left {
+      display: flex;
+      flex-direction: row;
+      align-items: center;
+      gap: 20px;
+      width: 70%;
+    }
+    
+    .dashboard-card-right {
+      width: 30%;
+      text-align: right;
+    }
+    
+    .dashboard-card-icon {
+      width: 60px;
+      height: 60px;
+      border-radius: 50%;
+      background-color: rgba(255, 255, 255, 0.5);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-size: 1.5rem;
+    }
+    
+    .dashboard-card-icon img {
+      max-width: 70%;
+      max-height: 70%;
+      object-fit: contain;
+    }
+    
+    .nav-icon img {
+      max-width: 100%;
+      max-height: 100%;
+      object-fit: contain;
+    }
+    
+    .dashboard-card-title {
+      font-size: 1.1rem;
+      font-weight: 600;
+      margin-bottom: 8px;
+    }
+    
+    .dashboard-card-number {
+      font-size: 28px;
+      font-weight: bold;
+    }
+    
+    .btn-more {
+      padding: 8px 15px;
+      background-color: rgba(255, 255, 255, 0.2);
+      border-radius: 5px;
+      color: white;
+      font-size: 0.9rem;
+      text-decoration: none;
+      display: inline-block;
+      transition: background-color 0.3s;
+    }
+    
+    .btn-more:hover {
+      background-color: rgba(255, 255, 255, 0.3);
+      color: white;
+      text-decoration: none;
+    }
+    
+    /* 카드 색상 */
+    .dashboard-card.blue {
+      background: linear-gradient(135deg, #0072ff, #00c6ff);
+    }
+    
+    .dashboard-card.green {
+      background: linear-gradient(135deg, #11998e, #38ef7d);
+    }
+    
+    .dashboard-card.yellow {
+      background: linear-gradient(135deg, #f46b45, #eea849);
+    }
+    
+    .dashboard-card.red {
+      background: linear-gradient(135deg, #ED213A, #93291E);
+    }
+    
+    /* 모바일 반응형 */
+    @media (max-width: 767px) {
+      .dashboard-card {
+        min-height: 160px;
+      }
+      
+      .dashboard-card-content {
+        flex-direction: column;
+        text-align: center;
+      }
+      
+      .dashboard-card-left, .dashboard-card-right {
+        width: 100%;
+      }
+      
+      .dashboard-card-left {
+        margin-bottom: 15px;
+      }
+      
+      .dashboard-card-right {
+        text-align: center;
+      }
+    }
+  </style>
+  <script>
+    // 웹뷰 메시지 완전히 제거하기 위한 즉시 실행 스크립트
+    (function() {
+      // 웹뷰 상단 메시지 제거를 위한 스타일 즉시 적용
+      var style = document.createElement('style');
+      style.textContent = `
+        /* 웹뷰 헤더 강제 제거 */
+        body::before, 
+        body::after, 
+        body > *:not(.wrapper):not(script):not(style),
+        body > div:not(.wrapper),
+        #app-header, 
+        .app-header, 
+        #status-bar, 
+        .status-bar,
+        #title-bar,
+        .title-bar,
+        #server-status,
+        .server-status,
+        div[style*="position: fixed"][style*="top: 0"],
+        div[style*="position:fixed"][style*="top:0"],
+        div[style*="background-color"][style*="fixed"],
+        div[style*="z-index: 9"],
+        div[style*="z-index:9"] {
+          display: none !important;
+          height: 0 !important;
+          max-height: 0 !important;
+          min-height: 0 !important;
+          visibility: hidden !important;
+          opacity: 0 !important;
+          position: absolute !important;
+          z-index: -9999 !important;
+          overflow: hidden !important;
+          pointer-events: none !important;
+          margin: 0 !important;
+          padding: 0 !important;
+          border: none !important;
+          transform: translateY(-999px) !important;
+          clip: rect(0, 0, 0, 0) !important;
+          clip-path: inset(50%) !important;
+        }
+        
+        /* 문서가 상단에서 시작하도록 설정 */
+        html, body {
+          margin-top: 0 !important;
+          padding-top: 0 !important;
+        }
+        
+        /* 웹페이지 내용이 상단에서 시작하도록 설정 */
+        .wrapper {
+          margin-top: 0 !important;
+          padding-top: 0 !important;
+        }
+      `;
+      document.head.appendChild(style);
+    })();
+
+    // 문서 로드 시 실행할 코드
+    document.addEventListener('DOMContentLoaded', function() {
+      document.title = "대시보드 - RCS 컨트롤 시스템";
+      
+      // DOM이 변경될 때마다 웹뷰 메시지 요소를 찾아 제거
+      var observer = new MutationObserver(function(mutations) {
+        var selectors = [
+          '.webview-message', 
+          '.webview-title', 
+          '.webview-status',
+          '.server-status',
+          '.status-bar',
+          '.app-title-bar',
+          '.app-header-original',
+          '[id*="title-container"]',
+          '[class*="title-container"]',
+          '[id*="server-status"]',
+          '[class*="server-status"]',
+          '[id*="app-header"]',
+          '[class*="app-header"]',
+          '.offline-remote-header',
+          '#offline-remote-header',
+          '.server-status-container',
+          '#server-status-container'
+        ];
+        
+        selectors.forEach(function(selector) {
+          var elements = document.querySelectorAll(selector);
+          elements.forEach(function(el) {
+            if(el && el.parentNode) {
+              el.style.display = 'none';
+              el.style.height = '0';
+              el.style.visibility = 'hidden';
+              el.style.opacity = '0';
+              el.style.position = 'absolute';
+              el.style.zIndex = '-9999';
+              // 부모 노드에서 요소 제거
+              el.parentNode.removeChild(el);
+            }
+          });
+        });
+        
+        // 첫 번째 요소가 wrapper가 아니면 제거
+        var firstElement = document.body.firstElementChild;
+        if(firstElement && !firstElement.classList.contains('wrapper') && 
+           !firstElement.tagName.toLowerCase().match(/^(script|style|link|meta)$/)) {
+          firstElement.style.display = 'none';
+          if(firstElement.parentNode) {
+            firstElement.parentNode.removeChild(firstElement);
+          }
+        }
+      });
+      
+      // document.body가 존재할 때만 observer 시작
+      if (document.body) {
+        observer.observe(document.body, { childList: true, subtree: true });
+        
+        // 1초마다 반복 실행하여 웹뷰 메시지 요소 제거
+        var interval = setInterval(function() {
+          observer.takeRecords(); // 현재까지 발생한 변경 확인
+        }, 500);
+        
+        // 30초 후 interval 정지
+        setTimeout(function() {
+          clearInterval(interval);
+        }, 30000);
+      }
+      
+      // 웹뷰 상단 메시지 숨기기
+      hideWebViewHeader();
+    });
+    
+    // 웹뷰 상단 헤더 숨기기 함수
+    function hideWebViewHeader() {
+      // Android WebView
+      if (window.AndroidChannel) {
+        try {
+          window.AndroidChannel.postMessage('hideHeader:true');
+          window.AndroidChannel.postMessage('hideStatusBar:true');
+          window.AndroidChannel.postMessage('fullscreen:true');
+          window.AndroidChannel.postMessage('hideSystemUI:true');
+        } catch (e) {
+          console.error('Android WebView 통신 오류:', e);
+        }
+      }
+      
+      // iOS WKWebView
+      try {
+        window.webkit.messageHandlers.hideHeader.postMessage(true);
+        window.webkit.messageHandlers.hideStatusBar.postMessage(true);
+        window.webkit.messageHandlers.fullscreen.postMessage(true);
+        window.webkit.messageHandlers.hideSystemUI.postMessage(true);
+      } catch (e) {
+        // iOS 핸들러가 없는 경우 무시
+      }
+      
+      // 상단 메시지 요소 직접 숨기기
+      const possibleSelectors = [
+        '.webview-message', 
+        '.webview-title', 
+        '.webview-status',
+        '.server-status',
+        '.status-bar',
+        '.app-title-bar',
+        '.app-header-original',
+        'div[class*="webview-"]',
+        'div[id*="webview-"]',
+        'div[id*="header"]',
+        'div[class*="header"]',
+        'div[id*="status"]',
+        'div[class*="status"]',
+        '.system-message',
+        '.system-status',
+        '.offline-remote-header',
+        '#offline-remote-header',
+        '.offline-remote-status',
+        '#offline-remote-status',
+        '.remote-control-header',
+        '#remote-control-header',
+        '#app-header',
+        '.app-header',
+        '#status-bar',
+        '.status-bar',
+        '#title-bar',
+        '.title-bar'
+      ];
+      
+      // 모든 선택자를 대상으로 요소를 찾아 숨김 처리
+      possibleSelectors.forEach(selector => {
+        const elements = document.querySelectorAll(selector);
+        elements.forEach(element => {
+          // 요소의 스타일 속성 변경
+          element.style.display = 'none';
+          element.style.height = '0';
+          element.style.visibility = 'hidden';
+          element.style.opacity = '0';
+          element.style.position = 'absolute';
+          element.style.zIndex = '-9999';
+          
+          // 가능하면 DOM에서 제거
+          if(element.parentNode) {
+            element.parentNode.removeChild(element);
+          }
+        });
+      });
+    }
+  </script>
+</head>
+<body class="hold-transition sidebar-mini layout-fixed">
+  <div class="wrapper">
+    <!-- 네비게이션 바 -->
+    <nav class="main-header navbar navbar-expand navbar-dark" style="background-color: #191c24 !important; border-bottom: 1px solid #2c2e33;">
+      <!-- 좌측 네비게이션 링크 -->
+      <ul class="navbar-nav">
+        <li class="nav-item">
+          <span class="nav-link font-weight-bold">EASYSIGN RCS</span>
+        </li>
+      </ul>
+
+      <!-- 우측 네비게이션 링크 -->
+      <ul class="navbar-nav ml-auto">
+        <div id="navbar-time" class="mr-3 mt-2 text-white"></div>
+      </ul>
+    </nav>
+    <!-- /.navbar -->
+
+    <!-- 메인 사이드바 -->
+    <aside class="main-sidebar sidebar-dark-primary elevation-4">
+      <!-- 브랜드 로고 -->
+      <a href="index.html" class="brand-link" style="background-color: #191c24; border-bottom: 1px solid #2c2e33;">
+        <span class="brand-text font-weight-bold ml-3" style="color: #e9ecef;">RCS CONTROL</span>
+      </a>
+
+      <!-- 사이드바 -->
+      <div class="sidebar" style="background-color: #191c24;">
+        <!-- 사이드바 메뉴 -->
+        <nav class="mt-3">
+          <ul class="nav nav-pills nav-sidebar flex-column" data-widget="treeview" role="menu" data-accordion="false">
+            <li class="nav-item mb-2">
+              <a href="javascript:void(0);" onclick="navigateToPage('dashboard.html')" class="nav-link active" id="dashboard-link" style="background-color: #0090e7; border-radius: 5px; margin: 0 10px;">
+                <i class="nav-icon fas fa-tachometer-alt"></i>
+                <p>
+                  대시보드
+                </p>
+              </a>
+            </li>
+            <li class="nav-item mb-2">
+              <a href="javascript:void(0);" onclick="navigateToPage('projector.html')" class="nav-link" id="projector-link" style="border-radius: 5px; margin: 0 10px; transition: all 0.3s;">
+                <i class="nav-icon fas fa-video"></i>
+                <p>
+                  빔프로젝터관리
+                </p>
+              </a>
+            </li>
+            <li class="nav-item mb-2">
+              <a href="javascript:void(0);" onclick="navigateToPage('pc.html')" class="nav-link" id="pc-link" style="border-radius: 5px; margin: 0 10px; transition: all 0.3s;">
+                <i class="nav-icon fas fa-desktop"></i>
+                <p>
+                  PC관리
+                </p>
+              </a>
+            </li>
+            <li class="nav-item mb-2">
+              <a href="javascript:void(0);" onclick="navigateToPage('pdu.html')" class="nav-link" id="pdu-link" style="border-radius: 5px; margin: 0 10px; transition: all 0.3s;">
+                <i class="nav-icon fas fa-power-off"></i>
+                <p>
+                  PDU관리
+                </p>
+              </a>
+            </li>
+          </ul>
+        </nav>
+      </div>
+    </aside>
+
+    <!-- 콘텐츠 래퍼. 페이지 콘텐츠 포함 -->
+    <div class="content-wrapper">
+      <!-- 콘텐츠 헤더 (페이지 헤더) -->
+      <div class="content-header">
+        <div class="container-fluid">
+          <div class="row mb-2">
+            <div class="col-sm-6">
+              <h1 class="m-0">대시보드</h1>
+            </div><!-- /.col -->
+            <div class="col-sm-6">
+              <ol class="breadcrumb float-sm-right">
+                <li class="breadcrumb-item"><a href="javascript:void(0);" onclick="navigateToPage('dashboard.html')">홈</a></li>
+                <li class="breadcrumb-item active">대시보드</li>
+              </ol>
+            </div><!-- /.col -->
+          </div><!-- /.row -->
+        </div><!-- /.container-fluid -->
+      </div>
+      <!-- /.content-header -->
+
+      <!-- 메인 콘텐츠 -->
+      <section class="content">
+        <div class="container-fluid">
+          <div class="row">
+            <!-- 프로젝터 관리 카드 -->
+            <div class="col-md-6 col-xl-3 mb-4">
+              <div class="dashboard-card blue">
+                <div class="dashboard-card-content">
+                  <div class="dashboard-card-left">
+                    <div class="dashboard-card-icon">
+                      <i class="fas fa-video fa-lg"></i>
+                    </div>
+                    <div>
+                      <div class="dashboard-card-title">빔프로젝터 관리</div>
+                      <div class="dashboard-card-number">3</div>
+                    </div>
+                  </div>
+                  <div class="dashboard-card-right">
+                    <a href="projector.html" class="btn-more">더보기</a>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <!-- PC 관리 카드 -->
+            <div class="col-md-6 col-xl-3 mb-4">
+              <div class="dashboard-card green">
+                <div class="dashboard-card-content">
+                  <div class="dashboard-card-left">
+                    <div class="dashboard-card-icon">
+                      <i class="fas fa-desktop fa-lg"></i>
+                    </div>
+                    <div>
+                      <div class="dashboard-card-title">PC 관리</div>
+                      <div class="dashboard-card-number">5</div>
+                    </div>
+                  </div>
+                  <div class="dashboard-card-right">
+                    <a href="pc.html" class="btn-more">더보기</a>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <!-- PDU 관리 카드 -->
+            <div class="col-md-6 col-xl-3 mb-4">
+              <div class="dashboard-card yellow">
+                <div class="dashboard-card-content">
+                  <div class="dashboard-card-left">
+                    <div class="dashboard-card-icon">
+                      <i class="fas fa-power-off fa-lg"></i>
+                    </div>
+                    <div>
+                      <div class="dashboard-card-title">PDU 관리</div>
+                      <div class="dashboard-card-number">2</div>
+                    </div>
+                  </div>
+                  <div class="dashboard-card-right">
+                    <a href="pdu.html" class="btn-more">더보기</a>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <!-- 현재 시간 카드 -->
+            <div class="col-md-6 col-xl-3 mb-4">
+              <div class="dashboard-card red">
+                <div class="dashboard-card-content">
+                  <div class="dashboard-card-left">
+                    <div class="dashboard-card-icon">
+                      <i class="fas fa-clock"></i>
+                    </div>
+                    <div>
+                      <div class="dashboard-card-title">현재 시간</div>
+                      <div class="dashboard-card-number" id="current-time">00:00:00</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <!-- /.row -->
+          
+          <!-- 프로젝터 목록 테이블 -->
+          <div class="row mt-5">
+            <div class="col-12">
+              <h4 class="mb-4 ml-2" style="color: #e9ecef;">빔프로젝터 모니터링</h4>
+              
+              <div class="card shadow-sm">
+                <div class="card-header d-flex justify-content-between align-items-center text-white py-3" style="background-color: #0090e7; border-radius: 5px 5px 0 0;">
+                  <div class="d-flex align-items-center">
+                    <i class="fas fa-video mr-3 fa-lg"></i>
+                    <h3 class="card-title mb-0 font-weight-bold">빔프로젝터 실시간 모니터링</h3>
+                  </div>
+                  <div>
+                    <span class="small"><i class="fas fa-sync-alt mr-1"></i> 20초마다 자동 새로고침</span>
+                  </div>
+                </div>
+                
+                <div class="card-header py-3 border-bottom" style="background-color: #191c24; border-bottom: 1px solid #2c2e33;">
+                  <div class="text-center">
+                    <h4 class="font-weight-bold mb-0" style="color: #e9ecef;">전체 빔프로젝터 상태 목록</h4>
+                  </div>
+                </div>
+                <div class="card-body p-0">
+                  <div class="table-responsive">
+                    <table class="table table-hover table-striped m-0" id="dashboardProjectorTable">
+                      <thead>
+                        <tr>
+                          <th style="width: 5%" class="text-center">순번</th>
+                          <th style="width: 20%" class="text-center">이름</th>
+                          <th style="width: 15%" class="text-center">IP 주소</th>
+                          <th style="width: 20%" class="text-center">모델명</th>
+                          <th style="width: 20%" class="text-center">네트워크 상태</th>
+                          <th style="width: 20%" class="text-center">전원 상태</th>
+                        </tr>
+                      </thead>
+                      <tbody id="dashboard-projector-list">
+                        <!-- 프로젝터 목록이 여기에 동적으로 추가됩니다 -->
+                        <tr>
+                          <td colspan="6" class="text-center">데이터를 불러오는 중...</td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <!-- PC 목록 테이블 -->
+          <div class="row mt-5">
+            <div class="col-12">
+              <h4 class="mb-4 ml-2">PC 모니터링</h4>
+              
+              <div class="card shadow-sm">
+                <div class="card-header d-flex justify-content-between align-items-center bg-success text-white py-3">
+                  <div class="d-flex align-items-center">
+                    <i class="fas fa-desktop mr-3 fa-lg"></i>
+                    <h3 class="card-title mb-0 font-weight-bold">PC 실시간 모니터링</h3>
+                  </div>
+                  <div>
+                    <span class="small"><i class="fas fa-sync-alt mr-1"></i> 20초마다 자동 새로고침</span>
+                  </div>
+                </div>
+                
+                <div class="card-header bg-light py-3 border-bottom">
+                  <div class="text-center">
+                    <h4 class="font-weight-bold mb-0">전체 PC 상태 목록</h4>
+                  </div>
+                </div>
+                <div class="card-body p-0">
+                  <div class="table-responsive">
+                    <table class="table table-hover table-striped m-0" id="dashboardPCTable">
+                      <thead>
+                        <tr>
+                          <th style="width: 5%" class="text-center">순번</th>
+                          <th style="width: 20%" class="text-center">이름</th>
+                          <th style="width: 15%" class="text-center">IP 주소</th>
+                          <th style="width: 20%" class="text-center">MAC 주소</th>
+                          <th style="width: 20%" class="text-center">네트워크 상태</th>
+                          <th style="width: 20%" class="text-center">전원 상태</th>
+                        </tr>
+                      </thead>
+                      <tbody id="dashboard-pc-list">
+                        <!-- PC 목록이 여기에 동적으로 추가됩니다 -->
+                        <tr>
+                          <td colspan="6" class="text-center">데이터를 불러오는 중...</td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <!-- PDU 목록 테이블 -->
+          <div class="row mt-5 mb-5">
+            <div class="col-12">
+              <h4 class="mb-4 ml-2">PDU 모니터링</h4>
+              
+              <div class="card shadow-sm">
+                <div class="card-header d-flex justify-content-between align-items-center bg-warning text-dark py-3">
+                  <div class="d-flex align-items-center">
+                    <i class="fas fa-plug mr-3 fa-lg"></i>
+                    <h3 class="card-title mb-0 font-weight-bold">PDU 실시간 모니터링</h3>
+                  </div>
+                  <div>
+                    <span class="small"><i class="fas fa-sync-alt mr-1"></i> 20초마다 자동 새로고침</span>
+                  </div>
+                </div>
+                
+                <div class="card-header bg-light py-3 border-bottom">
+                  <div class="text-center">
+                    <h4 class="font-weight-bold mb-0">전체 PDU 상태 목록</h4>
+                  </div>
+                </div>
+                <div class="card-body p-0">
+                  <div class="table-responsive">
+                    <table class="table table-hover table-striped m-0" id="dashboardPDUTable">
+                      <thead>
+                        <tr>
+                          <th style="width: 5%" class="text-center">순번</th>
+                          <th style="width: 20%" class="text-center">이름</th>
+                          <th style="width: 15%" class="text-center">IP 주소</th>
+                          <th style="width: 20%" class="text-center">포트</th>
+                          <th style="width: 20%" class="text-center">네트워크 상태</th>
+                          <th style="width: 20%" class="text-center">전원 상태</th>
+                        </tr>
+                      </thead>
+                      <tbody id="dashboard-pdu-list">
+                        <!-- PDU 목록이 여기에 동적으로 추가됩니다 -->
+                        <tr>
+                          <td colspan="6" class="text-center">데이터를 불러오는 중...</td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div><!-- /.container-fluid -->
+      </section>
+      <!-- /.content -->
+    </div>
+    <!-- /.content-wrapper -->
+    <footer class="main-footer d-flex justify-content-between align-items-center" style="background-color: #191c24; border-top: 1px solid #2c2e33; color: #6c757d;">
+      <div>
+        <strong>Copyright © 2025 <a href="#" style="color: #0090e7;">DIDBANK RCS CONTROL</a>.</strong> All rights reserved.
+      </div>
+      <div class="d-flex align-items-center">
+        <span class="mr-4" title="서버 상태">
+          <span class="status-indicator online" id="server-status-indicator"></span>
+          <span class="server-status-text">서버 정상</span>
+        </span>
+        <span title="네트워크 상태">
+          <span class="status-indicator online" id="network-status-indicator"></span>
+          <span class="network-status-text">네트워크 정상</span>
+        </span>
+      </div>
+    </footer>
+  </div>
+  <!-- ./wrapper -->
+
+  <!-- 자바스크립트 -->
+  <script>
+    // 페이지 로드 시 실행
+    document.addEventListener('DOMContentLoaded', function() {
+      // 현재 시간 표시
+      updateCurrentTime();
+      updateTimeDisplay();
+      
+      // 1초마다 시간 갱신
+      setInterval(updateCurrentTime, 1000);
+      setInterval(updateTimeDisplay, 1000);
+      
+      // 장치 수량 가져오기
+      fetchDeviceCounts();
+      
+      // 모든 장치 목록 가져오기
+      loadDashboardProjectorList();
+      loadDashboardPCList();
+      loadDashboardPDUList();
+      
+      // 시스템 상태 가져오기
+      fetchSystemStatus();
+      
+      // 20초마다 장치 목록 자동 새로고침
+      setInterval(loadDashboardProjectorList, 20000);
+      setInterval(loadDashboardPCList, 20000);
+      setInterval(loadDashboardPDUList, 20000);
+      
+      // 모든 링크에 이벤트 추가
+      setupNavigation();
+      
+      // 현재 URL에 맞는 메뉴 활성화
+      const currentPath = window.location.pathname;
+      const pageName = currentPath.split('/').pop() || 'dashboard.html';
+      
+      activateMenu(pageName);
+      
+      // 브라우저 히스토리 상태 설정
+      if (history.replaceState) {
+        history.replaceState({ page: pageName }, '', pageName);
+      }
+    });
+    
+    // 현재 시간 업데이트 (네비게이션 바용)
+    function updateCurrentTime() {
+      const now = new Date();
+      const options = {
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit',
+        hour12: false
+      };
+      const timeString = now.toLocaleString('ko-KR', options);
+      
+      const timeElement = document.getElementById('navbar-time');
+      if (timeElement) {
+        timeElement.textContent = timeString;
+      }
+    }
+    
+    // 대시보드 카드용 시간 표시
+    function updateTimeDisplay() {
+      const now = new Date();
+      const hours = now.getHours();
+      const minutes = String(now.getMinutes()).padStart(2, '0');
+      const seconds = String(now.getSeconds()).padStart(2, '0');
+      
+      // 오전/오후 구분
+      const period = hours < 12 ? '오전' : '오후';
+      // 12시간제 시간 계산
+      const displayHours = String(hours % 12 || 12).padStart(2, '0');
+      
+      // 대시보드 카드의 시간 요소만 업데이트
+      const timeDisplayElement = document.querySelector('.dashboard-card.red .dashboard-card-number');
+      if (timeDisplayElement) {
+        timeDisplayElement.textContent = `${period} ${displayHours}:${minutes}:${seconds}`;
+      }
+    }
+    
+    // API에서 장치 수량 가져오기
+    function fetchDeviceCounts() {
+      // 실제 API 호출은 다음과 같이 할 수 있습니다
+      /*
+      fetch('/api/devices/count')
+        .then(response => response.json())
+        .then(data => {
+          updateDeviceCounts(data);
+        })
+        .catch(error => {
+          console.error('장치 수량 가져오기 오류:', error);
+        });
+      */
+      
+      // 시뮬레이션 데이터
+      const data = {
+        projectors: 0,
+        pcs: 0,
+        pdus: 0
+      };
+      
+      updateDeviceCounts(data);
+    }
+    
+    // 장치 수량 업데이트
+    function updateDeviceCounts(data) {
+      const projectorElement = document.querySelector('.dashboard-card.blue .dashboard-card-number');
+      const pcElement = document.querySelector('.dashboard-card.green .dashboard-card-number');
+      const pduElement = document.querySelector('.dashboard-card.yellow .dashboard-card-number');
+      
+      if (projectorElement) {
+        projectorElement.textContent = data.projectors;
+      }
+      
+      if (pcElement) {
+        pcElement.textContent = data.pcs;
+      }
+      
+      if (pduElement) {
+        pduElement.textContent = data.pdus;
+      }
+    }
+    
+    // 페이지 이동 함수
+    function navigateTo(url) {
+      console.log('페이지 이동:', url);
+      
+      // 기본 이동 방식 시도
+      try {
+        window.location.href = url;
+      } catch (e) {
+        console.error('기본 이동 실패:', e);
+        
+        // WebView와 통신 시도
+        try {
+          if (window.AndroidChannel) {
+            window.AndroidChannel.postMessage('navigate:' + url);
+          } else {
+            console.log('AndroidChannel을 찾을 수 없음, 직접 이동 시도');
+            document.location.href = url;
+          }
+        } catch (e2) {
+          console.error('대체 이동 실패:', e2);
+        }
+      }
+    }
+    
+    // 모든 링크에 이벤트 추가
+    function setupNavigation() {
+      document.querySelectorAll('a[href$=".html"]').forEach(function(link) {
+        // 이미 처리된 링크는 건너뜁니다
+        if (!link.getAttribute('onclick')) {
+          const url = link.getAttribute('href');
+          link.addEventListener('click', function(e) {
+            e.preventDefault();
+            navigateTo(url);
+          });
+        }
+      });
+    }
+    
+    // 시스템 상태 업데이트 함수 추가
+    function fetchSystemStatus() {
+      // 실제 API 호출은 다음과 같이 할 수 있습니다
+      /*
+      fetch('/api/system/status')
+        .then(response => response.json())
+        .then(data => {
+          updateSystemStatus(data);
+        })
+        .catch(error => {
+          console.error('시스템 상태 가져오기 오류:', error);
+        });
+      */
+      
+      // 시뮬레이션 데이터
+      const data = {
+        server: 'online',
+        network: 'online'
+      };
+      
+      updateSystemStatus(data);
+    }
+    
+    // 시스템 상태 UI 업데이트
+    function updateSystemStatus(data) {
+      const serverIndicator = document.getElementById('server-status-indicator');
+      const networkIndicator = document.getElementById('network-status-indicator');
+      const serverText = document.querySelector('.server-status-text');
+      const networkText = document.querySelector('.network-status-text');
+      
+      if (serverIndicator && serverText) {
+        if (data.server === 'online') {
+          serverIndicator.className = 'status-indicator online';
+          serverText.textContent = '서버 정상';
+        } else {
+          serverIndicator.className = 'status-indicator offline';
+          serverText.textContent = '서버 오류';
+        }
+      }
+      
+      if (networkIndicator && networkText) {
+        if (data.network === 'online') {
+          networkIndicator.className = 'status-indicator online';
+          networkText.textContent = '네트워크 정상';
+        } else {
+          networkIndicator.className = 'status-indicator offline';
+          networkText.textContent = '네트워크 오류';
+        }
+      }
+    }
+
+    // 대시보드용 프로젝터 목록 로드
+    async function loadDashboardProjectorList() {
+      try {
+        // 데이터 로드
+        const response = await fetch('/api/projector/list');
+        const data = await response.json();
+        
+        // 프로젝터 테이블 초기화
+        const tbody = document.querySelector('#dashboardProjectorTable tbody');
+        if (!tbody) {
+          console.error('프로젝터 목록 테이블을 찾을 수 없습니다.');
+          return;
+        }
+        
+        // 테이블 초기화
+        tbody.innerHTML = '';
+        
+        // 데이터 없음 처리
+        if (!data.devices || data.devices.length === 0) {
+          tbody.innerHTML = '<tr><td colspan="6" class="text-center">등록된 빔프로젝터가 없습니다.</td></tr>';
+          
+          // 대시보드 카드의 프로젝터 수량 업데이트
+          const projectorElement = document.querySelector('.dashboard-card.blue .dashboard-card-number');
+          if (projectorElement) {
+            projectorElement.textContent = '0';
+          }
+          return;
+        }
+        
+        // 대시보드 카드의 프로젝터 수량 업데이트
+        const projectorElement = document.querySelector('.dashboard-card.blue .dashboard-card-number');
+        if (projectorElement) {
+          projectorElement.textContent = data.devices.length;
+        }
+        
+        // 프로젝터 목록 렌더링
+        data.devices.forEach((projector, index) => {
+          const tr = document.createElement('tr');
+          tr.setAttribute('data-id', projector.id);
+          tr.setAttribute('data-ip', projector.ip);
+          
+          // extra 데이터 파싱
+          let extraData = {};
+          try {
+            if (projector.extra) {
+              extraData = JSON.parse(projector.extra);
+            }
+          } catch (e) {
+            console.warn(`프로젝터 ID ${projector.id}의 extra 데이터 파싱 오류:`, e);
+          }
+          
+          // 네트워크 상태 배지 CSS 클래스
+          const networkStatusClass = projector.network_status === 'online' ? 'badge-online' : 'badge-offline';
+          const networkStatusText = projector.network_status === 'online' ? '연결됨' : '대기중';
+          
+          // 장비 상태 배지 CSS 클래스
+          let statusClass = 'badge-offline';
+          let statusText = '꺼짐';
+          
+          // 네트워크 상태가 online일 때만 실제 장비 상태 사용, 아닐 경우 항상 꺼짐으로 표시
+          if (projector.network_status === 'online') {
+            switch(projector.status) {
+              case 'online':
+                statusClass = 'badge-online';
+                statusText = '켜짐';
+                break;
+              case 'warming':
+                statusClass = 'badge-warning';
+                statusText = '예열중';
+                break;
+              case 'cooling':
+                statusClass = 'badge-warning';
+                statusText = '냉각중';
+                break;
+            }
+          }
+          
+          // 행 내용 구성 (순번 추가)
+          tr.innerHTML = `            <td class="text-center">${index + 1}</td>
+            <td class="text-center">${projector.name || ''}</td>
+            <td class="text-center">${projector.ip || ''}</td>
+            <td class="text-center">${extraData.model || '미지정'}</td>
+            <td class="text-center"><span class="badge ${networkStatusClass}" title="네트워크 연결 상태">${networkStatusText}</span></td>
+            <td class="text-center"><span class="badge ${statusClass}" title="장비 전원 상태">${statusText}</span></td>
+          `;
+          
+          tbody.appendChild(tr);
+        });
+      } catch (error) {
+        console.error('프로젝터 목록 로딩 중 오류:', error);
+        // 오류 발생 시 사용자에게 표시
+        const tbody = document.querySelector('#dashboardProjectorTable tbody');
+        if (tbody) {
+          tbody.innerHTML = '<tr><td colspan="6" class="text-center text-danger">데이터 로딩 중 오류가 발생했습니다.</td></tr>';
+        }
+      }
+    }
+    
+    // 대시보드용 PC 목록 로드
+    async function loadDashboardPCList() {
+      try {
+        // 데이터 로드
+        const response = await fetch('/api/pc/list');
+        const data = await response.json();
+        
+        // PC 테이블 초기화
+        const tbody = document.querySelector('#dashboardPCTable tbody');
+        if (!tbody) {
+          console.error('PC 목록 테이블을 찾을 수 없습니다.');
+          return;
+        }
+        
+        // 테이블 초기화
+        tbody.innerHTML = '';
+        
+        // 데이터 없음 처리 - PC는 data.pcs 배열 사용
+        if (!data.pcs || data.pcs.length === 0) {
+          tbody.innerHTML = '<tr><td colspan="6" class="text-center">등록된 PC가 없습니다.</td></tr>';
+          
+          // 대시보드 카드의 PC 수량 업데이트
+          const pcElement = document.querySelector('.dashboard-card.green .dashboard-card-number');
+          if (pcElement) {
+            pcElement.textContent = '0';
+          }
+          return;
+        }
+        
+        // 대시보드 카드의 PC 수량 업데이트
+        const pcElement = document.querySelector('.dashboard-card.green .dashboard-card-number');
+        if (pcElement) {
+          pcElement.textContent = data.pcs.length;
+        }
+        
+        // PC 목록 렌더링
+        data.pcs.forEach((pc, index) => {
+          const tr = document.createElement('tr');
+          tr.setAttribute('data-id', pc.id);
+          tr.setAttribute('data-ip', pc.ip);
+          
+          // 네트워크 상태 배지 CSS 클래스
+          const networkStatusClass = pc.network_status === 'online' ? 'badge-online' : 'badge-offline';
+          const networkStatusText = pc.network_status === 'online' ? '연결됨' : '대기중';
+          
+          // PC 상태 배지 CSS 클래스와 텍스트
+          let statusClass = 'badge-offline';
+          let statusText = '꺼짐';
+          
+          switch(pc.status) {
+            case 'online':
+              statusClass = 'badge-online';
+              statusText = '작동중';
+              break;
+            case 'starting':
+              statusClass = 'badge-warning';
+              statusText = '시작중';
+              break;
+            case 'shutting_down':
+              statusClass = 'badge-warning';
+              statusText = '종료중';
+              break;
+            case 'rebooting':
+              statusClass = 'badge-warning';
+              statusText = '재부팅중';
+              break;
+          }
+          
+          // 행 내용 구성
+          tr.innerHTML = `
+            <td class="text-center">${index + 1}</td>
+            <td class="text-center">${pc.name || ''}</td>
+            <td class="text-center">${pc.ip || ''}</td>
+            <td class="text-center">${pc.mac || ''}</td>
+            <td class="text-center"><span class="badge ${networkStatusClass}" title="네트워크 연결 상태">${networkStatusText}</span></td>
+            <td class="text-center"><span class="badge ${statusClass}" title="PC 전원 상태">${statusText}</span></td>
+          `;
+          
+          tbody.appendChild(tr);
+        });
+      } catch (error) {
+        console.error('PC 목록 로딩 중 오류:', error);
+        // 오류 발생 시 사용자에게 표시
+        const tbody = document.querySelector('#dashboardPCTable tbody');
+        if (tbody) {
+          tbody.innerHTML = '<tr><td colspan="6" class="text-center text-danger">데이터 로딩 중 오류가 발생했습니다.</td></tr>';
+        }
+      }
+    }
+    
+    // 대시보드용 PDU 목록 로드
+    async function loadDashboardPDUList() {
+      try {
+        // 데이터 로드
+        const response = await fetch('/api/pdu/list');
+        const data = await response.json();
+        
+        // PDU 테이블 초기화
+        const tbody = document.querySelector('#dashboardPDUTable tbody');
+        if (!tbody) {
+          console.error('PDU 목록 테이블을 찾을 수 없습니다.');
+          return;
+        }
+        
+        // 테이블 초기화
+        tbody.innerHTML = '';
+        
+        // 데이터 없음 처리 - PDU는 data.pdus 배열 사용
+        if (!data.pdus || data.pdus.length === 0) {
+          tbody.innerHTML = '<tr><td colspan="6" class="text-center">등록된 PDU가 없습니다.</td></tr>';
+          
+          // 대시보드 카드의 PDU 수량 업데이트
+          const pduElement = document.querySelector('.dashboard-card.yellow .dashboard-card-number');
+          if (pduElement) {
+            pduElement.textContent = '0';
+          }
+          return;
+        }
+        
+        // 대시보드 카드의 PDU 수량 업데이트
+        const pduElement = document.querySelector('.dashboard-card.yellow .dashboard-card-number');
+        if (pduElement) {
+          pduElement.textContent = data.pdus.length;
+        }
+        
+        // PDU 목록 렌더링
+        data.pdus.forEach((pdu, index) => {
+          const tr = document.createElement('tr');
+          tr.setAttribute('data-id', pdu.id);
+          tr.setAttribute('data-ip', pdu.ip);
+          
+          // 네트워크 상태 배지 CSS 클래스
+          const networkStatusClass = pdu.network_status === 'online' ? 'badge-online' : 'badge-offline';
+          const networkStatusText = pdu.network_status === 'online' ? '연결됨' : '대기중';
+          
+          // PDU 전원 상태 배지 CSS 클래스
+          let statusClass = 'badge-offline';
+          let statusText = '꺼짐';
+          
+          // power_status 필드로 상태 확인 (power_status가 우선, 없으면 status 사용)
+          if (pdu.power_status === 'on' || pdu.power_status === 'online') {
+            statusClass = 'badge-online';
+            statusText = '켜짐';
+          } else if (pdu.status === 'on' || pdu.status === 'online') {
+            // 하위 호환성을 위해 status 필드도 확인
+            statusClass = 'badge-online';
+            statusText = '켜짐';
+          }
+          
+          // 행 내용 구성
+          tr.innerHTML = `
+            <td class="text-center">${index + 1}</td>
+            <td class="text-center">${pdu.name || ''}</td>
+            <td class="text-center">${pdu.ip || ''}</td>
+            <td class="text-center">${pdu.port || ''}</td>
+            <td class="text-center"><span class="badge ${networkStatusClass}" title="네트워크 연결 상태">${networkStatusText}</span></td>
+            <td class="text-center"><span class="badge ${statusClass}" title="PDU 전원 상태">${statusText}</span></td>
+          `;
+          
+          tbody.appendChild(tr);
+        });
+      } catch (error) {
+        console.error('PDU 목록 로딩 중 오류:', error);
+        // 오류 발생 시 사용자에게 표시
+        const tbody = document.querySelector('#dashboardPDUTable tbody');
+        if (tbody) {
+          tbody.innerHTML = '<tr><td colspan="6" class="text-center text-danger">데이터 로딩 중 오류가 발생했습니다.</td></tr>';
+        }
+      }
+    }
+
+    // 웹뷰 내에서 페이지 이동을 처리하는 함수 추가
+    function navigateToPage(pageName) {
+      // 현재 활성화된 메뉴 변경
+      activateMenu(pageName);
+      
+      // 직접 페이지 이동 방식으로 변경 (SPA 방식 제거)
+      console.log('페이지 이동:', pageName);
+      
+      // 네이티브 앱 통신이 있는 경우 시도
+      try {
+        if (window.AndroidChannel) {
+          window.AndroidChannel.postMessage('navigate:' + pageName);
+        } else {
+          // 일반 브라우저 이동
+          window.location.href = pageName;
+        }
+      } catch (error) {
+        console.error('페이지 이동 오류:', error);
+        // 오류 발생 시 직접 이동 시도
+        window.location.href = pageName;
+      }
+    }
+
+    // 현재 페이지에 따라 메뉴 활성화
+    function activateMenu(pageName) {
+      // 모든 메뉴 링크 비활성화
+      document.querySelectorAll('.nav-sidebar .nav-link').forEach(link => {
+        link.classList.remove('active');
+      });
+      
+      // 현재 페이지에 맞는 메뉴 활성화
+      let linkId = "";
+      
+      switch(pageName) {
+        case 'index.html':
+        case '':
+          linkId = "dashboard-link";
+          break;
+        case 'dashboard.html':
+          linkId = "dashboard-link";
+          break;
+        case 'projector.html':
+          linkId = "projector-link";
+          break;
+        case 'pc.html':
+          linkId = "pc-link";
+          break;
+        case 'pdu.html':
+          linkId = "pdu-link";
+          break;
+        default:
+          linkId = "dashboard-link";
+      }
+      
+      const activeLink = document.getElementById(linkId);
+      if (activeLink) {
+        activeLink.classList.add('active');
+      }
+    }
+
+    // 브라우저 뒤로가기/앞으로가기 처리
+    window.addEventListener('popstate', function(event) {
+      if (event.state && event.state.page) {
+        // 페이지 이동 (새로운 함수 사용)
+        window.location.href = event.state.page;
+      }
+    });
+  </script>
+</body>
+</html>
+
+

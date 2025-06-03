@@ -1,0 +1,2657 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>프로젝터 관리 - RCS 컨트롤 시스템</title>
+  <link rel="icon" href="favicon.png" type="image/png">
+  <!-- 폰트어썸 아이콘 프리로드 -->
+  <link rel="preload" href="assets/fonts/fa-solid-900.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="assets/fonts/fa-regular-400.woff2" as="font" type="font/woff2" crossorigin>
+  <!-- CSS 파일 -->
+  <link rel="stylesheet" href="assets/css/bootstrap.min.css">
+  <link rel="stylesheet" href="assets/css/fontawesome.min.css">
+  <link rel="stylesheet" href="assets/css/common.css">
+  <link rel="stylesheet" href="assets/css/icons.css">
+  <link rel="stylesheet" href="assets/css/styles.css">
+  <link rel="stylesheet" href="assets/css/components.css">
+  <link rel="stylesheet" href="assets/css/projector.css">
+  <!-- jQuery 및 JavaScript 파일 -->
+  <script src="assets/js/jquery-3.6.0.min.js"></script>
+  <script src="assets/js/bootstrap.bundle.min.js"></script>
+  <script src="assets/js/common.js"></script>
+  <!-- 전역 함수를 미리 정의 -->
+  <script>
+    // 웹뷰 호환성을 위해 전역에 명시적으로 saveSchedule 함수 정의
+    window.saveSchedule = function() {
+      try {
+        console.log('스케줄 저장 함수 시작');
+        // 스케줄 데이터 수집
+        const startTime = document.getElementById('start-time').value;
+        const endTime = document.getElementById('end-time').value;
+        
+        // 요일 수집
+        const selectedDays = [];
+        for (let i = 1; i <= 7; i++) {
+          const checkbox = document.getElementById(`day-${i}`);
+          if (checkbox && checkbox.checked) {
+            selectedDays.push(i.toString());
+          }
+        }
+        
+        // 활성화 상태 확인
+        const isActive = document.getElementById('projector-schedule-active').checked;
+        
+        // 유효성 검사
+        if (!startTime || !endTime) {
+          alert('시작 시간과 종료 시간을 모두 설정해주세요.');
+          return;
+        }
+        
+        if (selectedDays.length === 0) {
+          alert('최소 하나 이상의 요일을 선택해주세요.');
+          return;
+        }
+        
+        // 서버에 전송할 데이터 - 데이터베이스 필드명과 일치하도록 설정
+        const scheduleData = {
+          start_time: startTime,
+          end_time: endTime,
+          days: selectedDays.join(','),
+          is_active: isActive ? 1 : 0
+        };
+        
+        console.log('스케줄 저장 요청 데이터:', scheduleData);
+        
+        // API 호출하여 스케줄 저장
+        fetch('/api/projector/schedule', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(scheduleData)
+        })
+        .then(function(response) {
+          if (!response.ok) {
+            throw new Error('스케줄 저장 실패 (' + response.status + ')');
+          }
+          return response.json();
+        })
+        .then(function(data) {
+          if (data && data.success) {
+            alert('프로젝터 알람 스케줄이 저장되었습니다.');
+          } else {
+            alert('스케줄 저장에 실패했습니다: ' + (data && data.message ? data.message : '알 수 없는 오류'));
+          }
+        })
+        .catch(function(error) {
+          console.error('스케줄 저장 오류:', error);
+          alert('스케줄 저장 중 오류가 발생했습니다: ' + error.message);
+        });
+      } catch (error) {
+        console.error('스케줄 저장 함수 실행 오류:', error);
+        alert('스케줄 저장 기능 오류 발생: ' + error.message);
+      }
+    };
+
+    // 프로젝터 상태 확인 함수
+    window.checkAllProjectorsStatus = async function() {
+      try {
+        console.log('모든 프로젝터 상태 확인 시작');
+        // 프로젝터 목록 가져오기
+        const response = await fetch('/api/projector/list');
+        const data = await response.json();
+        
+        if (!data.success || !data.devices) {
+          console.error('프로젝터 목록을 가져오는데 실패했습니다.');
+          return;
+        }
+        
+        // 각 프로젝터 상태 확인
+        for (const projector of data.devices) {
+          if (projector.id) {
+            if (typeof checkNetworkStatus === 'function') {
+              await checkNetworkStatus(projector.id);
+              // 연속 요청 방지를 위한 지연
+              await new Promise(resolve => setTimeout(resolve, 1000));
+            } else {
+              console.warn('checkNetworkStatus 함수가 정의되지 않았습니다.');
+            }
+          }
+        }
+        console.log('모든 프로젝터 상태 확인 완료');
+      } catch (error) {
+        console.error('프로젝터 상태 확인 오류:', error);
+      }
+    };
+  </script>
+  <script>
+    // 모든 함수 정의를 먼저 합니다
+    // 프로젝터 추가 모달 열기
+    function openAddProjectorModal() {
+      try {
+        console.log('openAddProjectorModal 함수 실행');
+        // jQuery를 사용한 Bootstrap 방식 시도
+        if (typeof $ !== 'undefined' && typeof $.fn.modal !== 'undefined') {
+          $('#addProjectorModal').modal('show');
+          console.log('jQuery 방식으로 모달 열기 성공');
+          return;
+        }
+        
+        // 순수 JavaScript로 모달 표시
+        const modal = document.getElementById('addProjectorModal');
+        if (!modal) {
+          console.error('모달 요소를 찾을 수 없습니다.');
+          return;
+        }
+        
+        // 웹뷰 호환성을 위해 간소화된 표시 방식 사용
+        modal.style.display = 'block';
+        modal.style.paddingRight = '17px';
+        document.body.classList.add('modal-open');
+        
+        // 더 간단한 방식으로 백드롭 추가
+        let backdrop = document.querySelector('.modal-backdrop');
+        if (!backdrop) {
+          backdrop = document.createElement('div');
+          backdrop.className = 'modal-backdrop fade show';
+          document.body.appendChild(backdrop);
+        }
+        
+        // 모달 자체에 show 클래스 추가
+        modal.classList.add('show');
+        console.log('순수 JavaScript 방식으로 모달 열기 성공');
+      } catch (error) {
+        console.error('모달 열기 중 오류 발생:', error);
+        alert('프로젝터 추가 창을 열 수 없습니다. 페이지를 새로고침하고 다시 시도해주세요.');
+      }
+    }
+
+    // 프로젝터 추가 모달 닫기
+    function closeAddProjectorModal() {
+      try {
+        // jQuery를 사용한 Bootstrap 방식 시도
+        if (typeof $ !== 'undefined' && typeof $.fn.modal !== 'undefined') {
+          $('#addProjectorModal').modal('hide');
+          console.log('jQuery 방식으로 모달 닫기 성공');
+          return;
+        }
+        
+        // 순수 JavaScript로 모달 숨김
+        const modal = document.getElementById('addProjectorModal');
+        if (!modal) {
+          console.error('모달 요소를 찾을 수 없습니다.');
+          return;
+        }
+        
+        // 직접 스타일 및 클래스 수정
+        modal.style.display = 'none';
+        modal.classList.remove('show');
+        document.body.classList.remove('modal-open');
+        
+        // 백드롭 제거
+        const backdrop = document.querySelector('.modal-backdrop');
+        if (backdrop) {
+          backdrop.parentNode.removeChild(backdrop);
+        }
+        
+        // 폼 초기화
+        const form = document.getElementById('addProjectorForm');
+        if (form) {
+          form.reset();
+        }
+        
+        console.log('순수 JavaScript 방식으로 모달 닫기 성공');
+      } catch (error) {
+        console.error('모달 닫기 중 오류 발생:', error);
+      }
+    }
+    
+    // 프로젝터 추가
+    async function addProjector() {
+      try {
+        const name = document.getElementById('projectorName').value;
+        const ip = document.getElementById('projectorIp').value;
+        const model = document.getElementById('projectorModel').value;
+        const username = document.getElementById('projectorUsername').value || 'admin';
+        const password = document.getElementById('projectorPassword').value || '';
+        
+        // 유효성 검사
+        if (!name || !ip) {
+          alert('프로젝터 이름과 IP 주소는 필수 입력 항목입니다.');
+          return;
+        }
+        
+        // IP 주소 유효성 검사
+        const ipPattern = /^(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/;
+        if (!ipPattern.test(ip)) {
+          // 웹뷰용 메시지 표시
+          if (window.flutter_inappwebview) {
+            alert('유효한 IP 주소 형식으로 입력해주세요. (예: 192.168.0.100)');
+          } else {
+            alert('유효한 IP 주소를 입력하세요.');
+          }
+          return;
+        }
+        
+        // extra 데이터를 JSON 문자열로 생성
+        const extraData = JSON.stringify({
+          model: model,
+          username: username,
+          password: password
+        });
+
+        // API 요청 데이터 준비
+        const deviceData = {
+          type: 'projector',
+          name: name,
+          ip: ip,
+          status: 'offline',
+          network_status: 'unknown',
+          extra: extraData
+        };
+
+        console.log('프로젝터 추가 요청 데이터:', deviceData);
+
+        // API 호출하여 프로젝터 추가
+        const response = await fetch('/api/projector/add', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(deviceData)
+        });
+
+        // 응답 확인
+        console.log('서버 응답 상태:', response.status, response.statusText);
+        
+        const responseText = await response.text();
+        console.log('서버 응답 원본:', responseText);
+        
+        let result;
+        try {
+          result = JSON.parse(responseText);
+          console.log('파싱된 응답:', result);
+        } catch (parseError) {
+          console.error('응답 파싱 오류:', parseError);
+          alert('서버 응답을 처리하는 중 오류가 발생했습니다.');
+          return;
+        }
+
+        if (result && result.success) {
+          // 프로젝터 목록 다시 로드
+          loadProjectorList();
+          
+          // 모달 닫기
+          closeAddProjectorModal();
+          
+          // 폼 초기화
+          document.getElementById('addProjectorForm').reset();
+        } else {
+          alert('프로젝터 추가 실패: ' + (result.error || '알 수 없는 오류'));
+          console.error('프로젝터 추가 실패 세부 정보:', result);
+        }
+      } catch (error) {
+        alert('프로젝터 추가 중 오류 발생: ' + error.message);
+        console.error('프로젝터 추가 중 예외 발생:', error);
+      }
+    }
+    
+    // 프로젝터 제어
+    async function controlProjector(ip, command) {
+      try {
+        // API 호출
+        const response = await fetch('/api/projector/command', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            ip: ip,
+            command: command
+          })
+        });
+        
+        if (!response.ok) {
+          throw new Error(`서버 오류: ${response.status}`);
+        }
+        
+        const result = await response.json();
+        
+        if (result.success) {
+          console.log('명령 실행 성공:', result);
+          // 1초 후 상태 다시 확인 
+          setTimeout(loadProjectorList, 1000);
+        } else {
+          console.error('명령 실행 실패:', result);
+          alert('명령 실행 실패: ' + (result.error || '알 수 없는 오류'));
+        }
+      } catch (error) {
+        console.error('명령 실행 중 오류:', error);
+        alert('명령 실행 중 오류 발생: ' + error.message);
+      }
+    }
+    
+    // 프로젝터 네트워크 상태 확인
+    async function checkNetworkStatus(id) {
+      try {
+        const response = await fetch(`/api/projector/check-network/${id}`);
+        if (!response.ok) {
+          throw new Error(`서버 오류: ${response.status}`);
+        }
+        
+        const result = await response.json();
+        
+        // 상태 업데이트 처리
+        updateProjectorStatus(id, result);
+        
+        return result;
+      } catch (error) {
+        console.error('네트워크 상태 확인 중 오류:', error);
+        return { success: false, error: error.message };
+      }
+    }
+    
+    // 프로젝터 상태 업데이트
+    function updateProjectorStatus(id, result) {
+      try {
+        const row = document.querySelector(`tr[data-id="${id}"]`);
+        if (!row) return;
+        
+        const networkBadge = row.querySelector('td:nth-child(5) .badge');
+        const powerBadge = row.querySelector('td:nth-child(6) .badge');
+        
+        if (networkBadge) {
+          // 하나라도 온라인 상태이면 연결됨으로 표시
+          if (result.success && (result.online || result.network_status === 'online' || result.status === 'online' || result.status === 'warming' || result.status === 'cooling')) {
+            networkBadge.className = 'badge badge-online';
+            networkBadge.textContent = '연결됨';
+          } else {
+            networkBadge.className = 'badge badge-offline';
+            networkBadge.textContent = '끊김';
+          }
+        }
+        
+        if (powerBadge) {
+          // 장비 상태 업데이트 (PJLink 응답 처리)
+          if (result.power_status === 'on' || result.power_status === '1') {
+            powerBadge.className = 'badge badge-online';
+            powerBadge.textContent = '켜짐';
+          } else if (result.power_status === 'warming' || result.power_status === '3') {
+            powerBadge.className = 'badge badge-warning';
+            powerBadge.textContent = '예열중';
+          } else if (result.power_status === 'cooling' || result.power_status === '2') {
+            powerBadge.className = 'badge badge-warning';
+            powerBadge.textContent = '냉각중';
+          } else {
+            powerBadge.className = 'badge badge-offline';
+            powerBadge.textContent = '꺼짐';
+          }
+          
+          // 장비 상태도 확인하여 업데이트
+          if (result.status === 'online') {
+            powerBadge.className = 'badge badge-online';
+            powerBadge.textContent = '켜짐';
+          } else if (result.status === 'warming') {
+            powerBadge.className = 'badge badge-warning';
+            powerBadge.textContent = '예열중';
+          } else if (result.status === 'cooling') {
+            powerBadge.className = 'badge badge-warning';
+            powerBadge.textContent = '냉각중';
+          }
+        }
+      } catch (error) {
+        console.error('상태 업데이트 중 오류:', error);
+      }
+    }
+    
+    // 프로젝터 페이지 초기화
+    function initProjectorPage() {
+      console.log('프로젝터 페이지 초기화 시작');
+      
+      // 모달 요소 확인
+      const addProjectorModal = document.getElementById('addProjectorModal');
+      console.log('프로젝터 추가 모달 요소 존재 여부:', !!addProjectorModal);
+      
+      // 모달 버튼 확인
+      const addButton = document.querySelector('.btn-add-projector');
+      console.log('프로젝터 추가 버튼 존재 여부:', !!addButton);
+      
+      // jQuery 로딩 확인
+      console.log('jQuery 로딩 상태:', typeof $ !== 'undefined' ? '로드됨' : '로드 안됨');
+      console.log('Bootstrap 모달 기능 상태:', (typeof $ !== 'undefined' && typeof $.fn.modal === 'function') ? '사용 가능' : '사용 불가');
+      
+      try {
+        // 프로젝터 목록 로드
+        loadProjectorList();
+        
+        // 프로젝터 스케줄 로드
+        loadSchedule();
+        
+        // 스케줄 활성화 토글 이벤트 리스너 등록
+        const scheduleActiveCheckbox = document.getElementById('projector-schedule-active');
+        if (scheduleActiveCheckbox) {
+          scheduleActiveCheckbox.addEventListener('change', toggleScheduleActive);
+        }
+        
+        // 20초마다 프로젝터 목록 자동 새로고침
+        setInterval(loadProjectorList, 20000);
+      } catch (error) {
+        console.error('초기화 중 오류:', error);
+      }
+      
+      console.log('프로젝터 페이지 초기화 완료');
+    }
+    
+    // 웹뷰 상단 헤더 숨기기 함수
+    function hideWebViewHeader() {
+      // Android WebView
+      if (window.AndroidChannel) {
+        try {
+          window.AndroidChannel.postMessage('hideHeader:true');
+          window.AndroidChannel.postMessage('hideStatusBar:true');
+          window.AndroidChannel.postMessage('fullscreen:true');
+          window.AndroidChannel.postMessage('hideSystemUI:true');
+        } catch (e) {
+          console.error('Android WebView 통신 오류:', e);
+        }
+      }
+      
+      // iOS WKWebView
+      try {
+        window.webkit.messageHandlers.hideHeader.postMessage(true);
+        window.webkit.messageHandlers.hideStatusBar.postMessage(true);
+        window.webkit.messageHandlers.fullscreen.postMessage(true);
+        window.webkit.messageHandlers.hideSystemUI.postMessage(true);
+      } catch (e) {
+        // iOS 핸들러가 없는 경우 무시
+      }
+    }
+    
+    // 프로젝터 목록 로드
+    async function loadProjectorList() {
+      try {
+        // 데이터 로드
+        const response = await fetch('/api/projector/list');
+        const data = await response.json();
+        
+        // 프로젝터 테이블 초기화
+        const tbody = document.querySelector('#projectorTable tbody');
+        if (!tbody) {
+          console.error('프로젝터 목록 테이블을 찾을 수 없습니다.');
+          return;
+        }
+        
+        // 테이블 초기화
+        tbody.innerHTML = '';
+        
+        // 데이터 없음 처리
+        if (!data.devices || data.devices.length === 0) {
+          tbody.innerHTML = '<tr><td colspan="8" class="text-center">등록된 프로젝터가 없습니다.</td></tr>';
+          return;
+        }
+        
+        // 프로젝터 목록 렌더링
+        data.devices.forEach((projector, index) => {
+          const tr = document.createElement('tr');
+          tr.setAttribute('data-id', projector.id);
+          tr.setAttribute('data-ip', projector.ip);
+        
+          // extra 데이터 파싱
+          let extraData = {};
+          try {
+            if (projector.extra) {
+              extraData = JSON.parse(projector.extra);
+            }
+          } catch (e) {
+            console.warn('extra 데이터 파싱 오류:', e);
+          }
+          
+          // 네트워크 상태 배지 CSS 클래스
+          // 장비가 제어 가능한 경우 네트워크 상태를 온라인으로 표시 (버그 수정)
+          const isControlWorking = projector.status === 'online' || projector.status === 'warming' || projector.status === 'cooling';
+          // 핑 테스트가 성공했거나 제어가 가능한 경우 네트워크 상태를 '연결됨'으로 표시
+          const networkStatus = (projector.network_status === 'online' || isControlWorking) ? 'online' : 'offline';
+          const networkStatusClass = networkStatus === 'online' ? 'badge-online' : 'badge-offline';
+          const networkStatusText = networkStatus === 'online' ? '연결됨' : '끊김';
+          
+          // 장비 상태 배지 CSS 클래스
+          let statusClass = 'badge-offline';
+          let statusText = '꺼짐';
+          
+          // 네트워크 상태가 online이거나 제어가 가능한 경우 실제 장비 상태 표시
+          if (networkStatus === 'online') {
+            switch(projector.status) {
+              case 'online':
+                statusClass = 'badge-online';
+                statusText = '켜짐';
+                break;
+              case 'warming':
+                statusClass = 'badge-warning';
+                statusText = '예열중';
+                break;
+              case 'cooling':
+                statusClass = 'badge-warning';
+                statusText = '냉각중';
+                break;
+            }
+        }
+        
+          // 행 내용 구성 (순번 추가)
+          tr.innerHTML = `
+            <td>${index + 1}</td>
+            <td>${projector.name || ''}</td>
+            <td>${projector.ip || ''}</td>
+            <td>${extraData.model || ''}</td>
+            <td><span class="badge ${networkStatusClass}" title="네트워크 연결 상태">${networkStatusText}</span></td>
+            <td><span class="badge ${statusClass}" title="장비 전원 상태">${statusText}</span></td>
+            <td>
+              <div class="control-buttons">
+                <button class="btn control-btn btn-success" onclick="controlProjector('${projector.ip}', 'power_on')">
+                  <i class="fas fa-power-off"></i> 켜기
+                </button>
+                <button class="btn control-btn btn-danger" onclick="controlProjector('${projector.ip}', 'power_off')">
+                  <i class="fas fa-power-off"></i> 끄기
+                </button>
+              </div>
+            </td>
+            <td>
+              <div class="settings-buttons">
+                <button class="btn control-btn btn-info" onclick="openProjectorSettings('${projector.id}')">
+                  <i class="fas fa-cog"></i> 수정
+                </button>
+                <button class="btn control-btn btn-secondary" onclick="deleteProjector('${projector.id}')">
+                  <i class="fas fa-trash-alt"></i> 삭제
+                </button>
+              </div>
+            </td>
+          `;
+          
+          tbody.appendChild(tr);
+        });
+      } catch (error) {
+        console.error('프로젝터 목록 로딩 중 오류:', error);
+      }
+    }
+    
+    // 프로젝터 스케줄 로드
+    async function loadSchedule() {
+      try {
+        const response = await fetch('/api/projector/schedule');
+        const data = await response.json();
+        
+        console.log('스케줄 로드 응답:', data);
+        
+        if (data.success && data.schedule) {
+          console.log('로드된 스케줄:', data.schedule);
+          
+          // 시작 시간 설정 - 필드명 매핑 처리
+          if (data.schedule.power_on_time) {
+            document.getElementById('start-time').value = data.schedule.power_on_time;
+          } else if (data.schedule.startup_time) {
+            document.getElementById('start-time').value = data.schedule.startup_time;
+          } else if (data.schedule.start_time) {
+            document.getElementById('start-time').value = data.schedule.start_time;
+          }
+          
+          // 종료 시간 설정 - 필드명 매핑 처리
+          if (data.schedule.power_off_time) {
+            document.getElementById('end-time').value = data.schedule.power_off_time;
+          } else if (data.schedule.shutdown_time) {
+            document.getElementById('end-time').value = data.schedule.shutdown_time;
+          } else if (data.schedule.end_time) {
+            document.getElementById('end-time').value = data.schedule.end_time;
+          }
+          
+          // 요일 설정 적용
+          if (data.schedule.days) {
+            const days = data.schedule.days.split(',');
+            
+            // 모든 요일 체크박스 초기화
+            for (let i = 1; i <= 7; i++) {
+              const checkbox = document.getElementById(`day-${i}`);
+              if (checkbox) {
+                checkbox.checked = days.includes(i.toString());
+              }
+            }
+          }
+          
+          // 스케줄 활성화 상태 적용
+          const scheduleActiveCheckbox = document.getElementById('projector-schedule-active');
+          if (scheduleActiveCheckbox && data.schedule.is_active !== undefined) {
+            scheduleActiveCheckbox.checked = data.schedule.is_active === 1 || data.schedule.is_active === true;
+          }
+        } else {
+          console.warn('스케줄 정보 없음 또는 로드 실패:', data);
+        }
+      } catch (error) {
+        console.error('스케줄 로드 오류:', error);
+      }
+    }
+    
+    // 스케줄 활성화 토글 함수
+    async function toggleScheduleActive() {
+      try {
+        const isActive = document.getElementById('projector-schedule-active').checked;
+        
+        // API 호출하여 스케줄 활성화 상태 변경
+        const response = await fetch('/api/projector/schedule/toggle', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            is_active: isActive
+          })
+        });
+        
+        if (!response.ok) {
+          throw new Error('스케줄 활성화 상태 변경에 실패했습니다.');
+        }
+        
+        const data = await response.json();
+        
+        if (data.success) {
+          showSimpleToast(`프로젝터 스케줄이 ${isActive ? '활성화' : '비활성화'}되었습니다.`, 'success');
+        } else {
+          showSimpleToast('스케줄 활성화 상태 변경에 실패했습니다.', 'error');
+          // 실패 시 체크박스 상태 원복
+          document.getElementById('projector-schedule-active').checked = !isActive;
+        }
+      } catch (error) {
+        console.error('스케줄 활성화 상태 변경 오류:', error);
+        showSimpleToast('스케줄 활성화 상태 변경 중 오류가 발생했습니다.', 'error');
+        // 오류 시 체크박스 상태 원복
+        const checkbox = document.getElementById('projector-schedule-active');
+        if (checkbox) {
+          checkbox.checked = !checkbox.checked;
+        }
+      }
+    }
+    
+    // 프로젝터 설정 모달 열기
+    async function openProjectorSettings(id) {
+      try {
+        // 프로젝터 데이터 로드
+        const response = await fetch(`/api/projector/status/${id}`);
+        if (!response.ok) {
+          throw new Error(`서버 오류: ${response.status}`);
+        }
+        
+        const data = await response.json();
+        
+        if (!data.success || !data.projector) {
+          alert('프로젝터 정보를 불러올 수 없습니다.');
+          return;
+        }
+        
+        // 프로젝터 정보
+        const projector = data.projector;
+        
+        // ID 설정
+        document.getElementById('projectorId').value = id;
+        
+        // 기본 필드 설정
+        document.getElementById('editProjectorName').value = projector.name || '';
+        document.getElementById('editProjectorIp').value = projector.ip || '';
+        
+        // extra 데이터 파싱
+        let extraData = {};
+        try {
+          if (projector.extra) {
+            extraData = JSON.parse(projector.extra);
+          }
+        } catch (e) {
+          console.warn('extra 데이터 파싱 오류:', e);
+        }
+        
+        // 모델 선택
+        const modelSelect = document.getElementById('editProjectorModel');
+        if (modelSelect) {
+          if (extraData.model) {
+            // 옵션 중에 일치하는 항목이 있는지 확인
+            let found = false;
+            for (let i = 0; i < modelSelect.options.length; i++) {
+              if (modelSelect.options[i].value === extraData.model) {
+                modelSelect.selectedIndex = i;
+                found = true;
+                break;
+              }
+            }
+            
+            // 일치하는 항목이 없으면 기타로 설정
+            if (!found) {
+              // 기타 옵션 찾기
+              for (let i = 0; i < modelSelect.options.length; i++) {
+                if (modelSelect.options[i].value === 'OTHER') {
+                  modelSelect.selectedIndex = i;
+                  break;
+                }
+              }
+            }
+          }
+        }
+        
+        // 사용자명 설정
+        if (extraData.username) {
+          document.getElementById('editProjectorUsername').value = extraData.username;
+        }
+        
+        // 비밀번호는 비워둡니다 - 수정하지 않을 경우 기존 비밀번호 유지
+        document.getElementById('editProjectorPassword').value = '';
+        
+        // jQuery가 있으면 Bootstrap 모달 사용
+        if (typeof $ !== 'undefined' && typeof $.fn.modal !== 'undefined') {
+          $('#settingsModal').modal('show');
+        } else {
+          // 일반 DOM 조작
+          const modal = document.getElementById('settingsModal');
+          if (modal) {
+            modal.style.display = 'block';
+            modal.classList.add('show');
+            document.body.classList.add('modal-open');
+            
+            // 백드롭 추가
+            const backdrop = document.createElement('div');
+            backdrop.className = 'modal-backdrop fade show';
+            document.body.appendChild(backdrop);
+          }
+        }
+      } catch (error) {
+        console.error('프로젝터 설정 불러오기 오류:', error);
+        alert('프로젝터 설정을 불러오는 중 오류가 발생했습니다: ' + error.message);
+      }
+    }
+    
+    // 프로젝터 설정 모달 닫기
+    function closeSettingsModal() {
+      // jQuery가 있으면 Bootstrap 모달 사용
+      if (typeof $ !== 'undefined' && typeof $.fn.modal !== 'undefined') {
+        $('#settingsModal').modal('hide');
+      } else {
+        // 일반 DOM 조작
+        const modal = document.getElementById('settingsModal');
+        if (modal) {
+          modal.style.display = 'none';
+          modal.classList.remove('show');
+          document.body.classList.remove('modal-open');
+          
+          // 백드롭 제거
+          const backdrop = document.querySelector('.modal-backdrop');
+          if (backdrop) {
+            backdrop.parentNode.removeChild(backdrop);
+          }
+        }
+      }
+    }
+    
+    // 프로젝터 업데이트
+    async function updateProjector() {
+      try {
+        const id = document.getElementById('projectorId').value;
+        const name = document.getElementById('editProjectorName').value;
+        const ip = document.getElementById('editProjectorIp').value;
+        const model = document.getElementById('editProjectorModel').value;
+        const username = document.getElementById('editProjectorUsername').value || 'admin';
+        const password = document.getElementById('editProjectorPassword').value;
+        
+        // 유효성 검사
+        if (!name || !ip) {
+          alert('프로젝터 이름과 IP 주소는 필수 입력 항목입니다.');
+          return;
+        }
+        
+        // IP 주소 유효성 검사
+        const ipPattern = /^(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/;
+        if (!ipPattern.test(ip)) {
+          alert('유효한 IP 주소를 입력하세요.');
+          return;
+        }
+        
+        // extra 데이터 준비
+        const extraData = {
+          model: model,
+          username: username
+        };
+        
+        // 비밀번호가 입력된 경우에만 변경
+        if (password) {
+          extraData.password = password;
+        }
+        
+        // 업데이트 데이터 준비
+        const updateData = {
+          id: id,
+          name: name,
+          ip: ip,
+          extra: JSON.stringify(extraData)
+        };
+        
+        // API 호출
+        const response = await fetch(`/api/projector/update/${id}`, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(updateData)
+        });
+        
+        if (!response.ok) {
+          throw new Error(`서버 오류: ${response.status}`);
+        }
+        
+        const result = await response.json();
+        
+        if (result.success) {
+          // 목록 새로고침
+          loadProjectorList();
+          
+          // 모달 닫기
+          closeSettingsModal();
+          
+          // 성공 메시지 표시
+          showSimpleToast('프로젝터 정보가 업데이트되었습니다.', 'success');
+        } else {
+          alert('프로젝터 업데이트 실패: ' + (result.error || '알 수 없는 오류'));
+        }
+      } catch (error) {
+        console.error('프로젝터 업데이트 오류:', error);
+        alert('프로젝터 업데이트 중 오류 발생: ' + error.message);
+      }
+    }
+    
+    // 프로젝터 삭제
+    async function deleteProjector(id) {
+      try {
+        // 확인 대화상자
+        if (!confirm('정말로 이 프로젝터를 삭제하시겠습니까?')) {
+          return;
+        }
+        
+        // API 호출
+        const response = await fetch(`/api/projector/${id}`, {
+          method: 'DELETE'
+        });
+        
+        if (!response.ok) {
+          throw new Error(`서버 오류: ${response.status}`);
+        }
+        
+        const result = await response.json();
+        
+        if (result.success) {
+          // 목록 새로고침
+          loadProjectorList();
+          
+          // 성공 메시지 표시
+          showSimpleToast('프로젝터가 삭제되었습니다.', 'success');
+        } else {
+          alert('프로젝터 삭제 실패: ' + (result.error || '알 수 없는 오류'));
+        }
+      } catch (error) {
+        console.error('프로젝터 삭제 오류:', error);
+        alert('프로젝터 삭제 중 오류 발생: ' + error.message);
+      }
+    }
+
+    // 모든 코드 초기화를 jQuery ready 함수에서 수행
+    $(document).ready(function() {
+      console.log('jQuery ready 이벤트 발생');
+      
+      try {
+        // 문서 제목 설정
+        document.title = "프로젝터 관리 - RCS 컨트롤 시스템";
+        
+        // 기존 토스트 메시지 제거
+        const existingToasts = document.querySelectorAll('.toast-message');
+        existingToasts.forEach(toast => toast.remove());
+        
+        // 웹뷰 상단 메시지 숨기기
+        hideWebViewHeader();
+        
+        // 웹뷰 호환성을 위한 모달 초기화
+        if (typeof $.fn.modal === 'function') {
+          console.log('Bootstrap 모달 초기화 중');
+          $('#addProjectorModal').modal({
+            backdrop: 'static',
+            keyboard: false,
+            show: false
+          });
+          console.log('Bootstrap 모달 초기화 완료');
+          
+          // 프로젝터 추가 버튼 이벤트 핸들러 추가 (jQuery 방식)
+          $('.btn-add-projector').on('click', function(e) {
+            console.log('프로젝터 추가 버튼 클릭 감지 (jQuery)');
+            e.preventDefault();
+            openAddProjectorModal();
+            return false;
+          });
+        } else {
+          console.warn('Bootstrap 모달 기능을 찾을 수 없습니다');
+          
+          // 프로젝터 추가 버튼에 이벤트 리스너 추가 (표준 JS 방식)
+          document.querySelectorAll('.btn-add-projector').forEach(function(button) {
+            button.addEventListener('click', function(e) {
+              console.log('프로젝터 추가 버튼 클릭 감지 (표준 JS)');
+              e.preventDefault();
+              openAddProjectorModal();
+            });
+          });
+        }
+        
+        // 프로젝터 페이지 초기화 호출
+        initProjectorPage();
+        
+        // 프로젝터 자동 상태 체크
+        setTimeout(checkAllProjectorsStatus, 1000);
+        
+        // 자동 상태 확인 (30초마다)
+        setInterval(checkAllProjectorsStatus, 30000);
+        
+        console.log('jQuery ready 이벤트 처리 완료');
+      } catch (error) {
+        console.error('jQuery ready 이벤트 처리 중 오류:', error);
+      }
+    });
+  </script>
+  <style>
+    /* Skydash Dark 테마 스타일 */
+    body {
+      background-color: #191c24;
+      color: #e9ecef;
+      font-family: 'Noto Sans KR', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;
+    }
+    
+    /* 모달 스타일 */
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0, 0, 0, 0.5);
+      z-index: 9999;
+    }
+    
+    .modal.show {
+      display: block;
+    }
+    
+    .modal-dialog {
+      position: relative;
+      width: auto;
+      margin: 100px auto;
+      max-width: 500px;
+    }
+    
+    .modal-content {
+      position: relative;
+      background-color: #191c24;
+      border-radius: 0.3rem;
+      border: 1px solid #2c2e33;
+      box-shadow: 0 0 20px rgba(0, 0, 0, 0.2);
+    }
+    
+    .modal-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 1rem;
+      border-bottom: 1px solid #2c2e33;
+      background-color: #0090e7;
+      color: white;
+      border-top-left-radius: 0.3rem;
+      border-top-right-radius: 0.3rem;
+    }
+    
+    .modal-title {
+      margin: 0;
+      font-size: 1.25rem;
+    }
+    
+    .modal-body {
+      padding: 1rem;
+      color: #e9ecef;
+    }
+    
+    .modal-footer {
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      padding: 1rem;
+      border-top: 1px solid #2c2e33;
+    }
+    
+    .close {
+      float: right;
+      font-size: 1.5rem;
+      font-weight: 700;
+      line-height: 1;
+      color: white;
+      text-shadow: none;
+      opacity: .5;
+      background: none;
+      border: none;
+      padding: 0;
+      cursor: pointer;
+    }
+    
+    .close:hover {
+      opacity: 1;
+    }
+
+    /* 프로젝터 관리 특화 스타일 */
+    .btn-add-projector {
+      padding: 8px 16px;
+      font-size: 14px;
+      font-weight: 500;
+      background-color: #0090e7;
+      border-color: #0090e7;
+      box-shadow: 0 2px 4px rgba(0, 144, 231, 0.3);
+    }
+    
+    .btn-add-projector:hover {
+      background-color: #0083d3;
+      border-color: #0083d3;
+      box-shadow: 0 3px 6px rgba(0, 144, 231, 0.4);
+    }
+    
+    .btn-add-projector i {
+      margin-right: 8px;
+    }
+    
+    .card {
+      background: #191c24;
+      border: none;
+      border-radius: 5px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.2);
+      margin-bottom: 20px;
+    }
+    
+    .card-header {
+      padding: 1rem;
+      background-color: #191c24;
+      border-bottom: 1px solid #2c2e33;
+      color: #e9ecef;
+    }
+    
+    .card-title {
+      font-size: 1.1rem;
+      margin: 0;
+      color: #e9ecef;
+    }
+    
+    /* 향상된 토글 스위치 스타일 */
+    .custom-switch .custom-control-label::before {
+      width: 2.5rem;
+      height: 1.25rem;
+      border-radius: 0.625rem;
+      cursor: pointer;
+      background-color: #2c2e33;
+      border-color: #2c2e33;
+    }
+    
+    .custom-switch .custom-control-label::after {
+      top: calc(0.25rem + 2px);
+      left: calc(-2.5rem + 2px);
+      width: calc(1.25rem - 4px);
+      height: calc(1.25rem - 4px);
+      border-radius: 0.625rem;
+      cursor: pointer;
+      background-color: #6c7293;
+    }
+    
+    .custom-switch .custom-control-input:checked ~ .custom-control-label::after {
+      transform: translateX(1.25rem);
+      background-color: #191c24;
+    }
+    
+    .custom-switch .custom-control-input:checked ~ .custom-control-label::before {
+      background-color: #00d25b;
+      border-color: #00d25b;
+    }
+    
+    .schedule-toggle-wrapper {
+      background-color: rgba(44, 46, 51, 0.7);
+      padding: 6px 10px;
+      border-radius: 4px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+    
+    .schedule-toggle-text {
+      font-weight: 500;
+      font-size: 0.9rem;
+      color: #e9ecef;
+    }
+    
+    /* 테이블 스타일 개선 */
+    .table {
+      color: #e9ecef;
+      background: transparent;
+    }
+    
+    .table th {
+      background-color: #191c24;
+      border-color: #2c2e33;
+      color: #e9ecef;
+      font-weight: 500;
+    }
+    
+    .table td {
+      border-color: #2c2e33;
+    }
+    
+    .table tr:hover {
+      background-color: rgba(0, 0, 0, 0.2);
+    }
+    
+    #projectorTable th, #projectorTable td {
+      padding: 0.5rem;
+      vertical-align: middle;
+    }
+    
+    #projectorTable th:nth-child(1), #projectorTable td:nth-child(1) {
+      width: 50px;
+      text-align: center;
+    }
+    
+    #projectorTable th:nth-child(2), #projectorTable td:nth-child(2) {
+      width: 18%;
+    }
+    
+    #projectorTable th:nth-child(3), #projectorTable td:nth-child(3) {
+      width: 12%;
+    }
+    
+    #projectorTable th:nth-child(4), #projectorTable td:nth-child(4) {
+      width: 10%;
+    }
+    
+    #projectorTable th:nth-child(5), #projectorTable td:nth-child(5) {
+      width: 10%;
+    }
+    
+    #projectorTable th:nth-child(6), #projectorTable td:nth-child(6) {
+      width: 10%;
+    }
+    
+    #projectorTable th:nth-child(7), #projectorTable td:nth-child(7) {
+      width: 15%;
+    }
+    
+    #projectorTable th:nth-child(8), #projectorTable td:nth-child(8) {
+      width: 15%;
+    }
+    
+    /* 버튼 크기 축소 */
+    .control-btn {
+      padding: 0.3rem 0.6rem;
+      font-size: 0.825rem;
+      margin-right: 0.2rem;
+      margin-bottom: 0.2rem;
+      min-width: 5.5rem;
+      position: relative;
+      transition: all 0.2s;
+    }
+    
+    .control-btn:disabled {
+      cursor: not-allowed;
+    }
+    
+    .control-btn:disabled::after {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0, 0, 0, 0.15);
+      border-radius: 4px;
+    }
+
+    /* 켜기 버튼 스타일 */
+    .control-btn.btn-success {
+      background-color: #00d25b;
+      border-color: #00d25b;
+      box-shadow: 0 2px 4px rgba(0, 210, 91, 0.3);
+    }
+
+    .control-btn.btn-success:hover:not(:disabled) {
+      background-color: #00ba51;
+      border-color: #00ba51;
+      box-shadow: 0 3px 6px rgba(0, 210, 91, 0.4);
+    }
+
+    .control-btn.btn-success:active:not(:disabled) {
+      background-color: #00ba51;
+      border-color: #00ba51;
+      box-shadow: inset 0 3px 5px rgba(0, 0, 0, 0.2);
+    }
+
+    /* 끄기 버튼 스타일 */
+    .control-btn.btn-danger {
+      background-color: #fc424a;
+      border-color: #fc424a;
+      box-shadow: 0 2px 4px rgba(252, 66, 74, 0.3);
+    }
+
+    .control-btn.btn-danger:hover:not(:disabled) {
+      background-color: #e33842;
+      border-color: #e33842;
+      box-shadow: 0 3px 6px rgba(252, 66, 74, 0.4);
+    }
+
+    .control-btn.btn-danger:active:not(:disabled) {
+      background-color: #e33842;
+      border-color: #e33842;
+      box-shadow: inset 0 3px 5px rgba(0, 0, 0, 0.2);
+    }
+
+    /* 관리 버튼 스타일 */
+    .control-btn.btn-info {
+      background-color: #0090e7;
+      border-color: #0090e7;
+      box-shadow: 0 2px 4px rgba(0, 144, 231, 0.3);
+    }
+
+    .control-btn.btn-info:hover:not(:disabled) {
+      background-color: #0083d3;
+      border-color: #0083d3;
+      box-shadow: 0 3px 6px rgba(0, 144, 231, 0.4);
+    }
+
+    .control-btn.btn-info:active:not(:disabled) {
+      background-color: #0083d3;
+      border-color: #0083d3;
+      box-shadow: inset 0 3px 5px rgba(0, 0, 0, 0.2);
+    }
+
+    /* 삭제 버튼 스타일 */
+    .control-btn.btn-secondary {
+      background-color: #6c7293;
+      border-color: #6c7293;
+      color: white;
+      box-shadow: 0 2px 4px rgba(108, 114, 147, 0.3);
+    }
+
+    .control-btn.btn-secondary:hover:not(:disabled) {
+      background-color: #5e6384;
+      border-color: #5e6384;
+      box-shadow: 0 3px 6px rgba(108, 114, 147, 0.4);
+    }
+
+    .control-btn.btn-secondary:active:not(:disabled) {
+      background-color: #5e6384;
+      border-color: #5e6384;
+      box-shadow: inset 0 3px 5px rgba(0, 0, 0, 0.2);
+    }
+    
+    /* 아이콘 스타일 */
+    .control-btn i {
+      margin-right: 5px;
+    }
+    
+    /* 컨트롤 버튼 컨테이너 */
+    .control-buttons, .settings-buttons {
+      display: flex;
+      justify-content: flex-start;
+      align-items: center;
+      gap: 4px;
+    }
+
+    /* 테이블 셀 너비 조정 */
+    .table th:last-child, .table td:last-child {
+      min-width: 180px;
+      width: 180px;
+    }
+
+    /* 설정 버튼 간격 조정 */
+    .settings-buttons {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 8px;
+    }
+
+    /* 버튼 사이즈 조정 */
+    .settings-buttons .control-btn {
+      min-width: 80px;
+      padding: 6px 10px;
+    }
+
+    /* 테이블 중앙 정렬 */
+    .table th, .table td {
+      text-align: center;
+      vertical-align: middle;
+    }
+
+    .table .control-buttons, 
+    .table .settings-buttons {
+      justify-content: center;
+    }
+
+    /* 간단한 토스트 메시지 스타일 */
+    .toast-message {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      background-color: rgba(0, 0, 0, 0.8);
+      color: white;
+      padding: 10px 15px;
+      border-radius: 4px;
+      z-index: 9999;
+      font-size: 14px;
+      animation: fadeInOut 2s ease forwards;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+    }
+    
+    .toast-success {
+      background-color: rgba(0, 210, 91, 0.9);
+    }
+    
+    .toast-error {
+      background-color: rgba(252, 66, 74, 0.9);
+    }
+    
+    @keyframes fadeInOut {
+      0% { opacity: 0; transform: translateY(20px); }
+      10% { opacity: 1; transform: translateY(0); }
+      90% { opacity: 1; transform: translateY(0); }
+      100% { opacity: 0; transform: translateY(-20px); }
+    }
+    
+    /* 웹뷰 로딩 메시지 숨기기 */
+    [role="progressbar"], 
+    .loading-indicator, 
+    .loading-message,
+    *[class*="loading"], 
+    *[id*="loading"],
+    .progress-bar,
+    .loading-container {
+      display: none !important;
+      visibility: hidden !important;
+      opacity: 0 !important;
+      height: 0 !important;
+      width: 0 !important;
+      position: absolute !important;
+      top: -9999px !important;
+      left: -9999px !important;
+      z-index: -9999 !important;
+    }
+    
+    /* 빔프로젝터 상태 관련 스타일 */
+    .projector-status {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      display: inline-block;
+      margin-right: 5px;
+    }
+    
+    .projector-status.on {
+      background-color: #00d25b;
+      box-shadow: 0 0 8px #00d25b;
+    }
+    
+    .projector-status.off {
+      background-color: #fc424a;
+      box-shadow: 0 0 8px #fc424a;
+    }
+    
+    .projector-status.warming {
+      background-color: #ffab00;
+      box-shadow: 0 0 8px #ffab00;
+    }
+    
+    .projector-status.cooling {
+      background-color: #0090e7;
+      box-shadow: 0 0 8px #0090e7;
+    }
+    
+    .projector-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 15px;
+    }
+    
+    .projector-info {
+      display: flex;
+      flex-direction: column;
+      margin-bottom: 15px;
+    }
+    
+    .projector-info-item {
+      display: flex;
+      align-items: center;
+      margin-bottom: 8px;
+    }
+    
+    .projector-info-label {
+      width: 120px;
+      font-weight: 600;
+      font-size: 0.875rem;
+      color: #e9ecef;
+    }
+    
+    .projector-info-value {
+      flex: 1;
+      word-break: break-word;
+      color: #6c7293;
+    }
+    
+    /* 프로젝터 목록 카드 스타일 */
+    .projector-list-card {
+      border-radius: 5px;
+      box-shadow: 0 3px 10px rgba(0,0,0,0.1) !important;
+      border: none;
+      background-color: #191c24;
+    }
+
+    .projector-list-card .card-header {
+      background-color: #191c24;
+      border-bottom: 1px solid #2c2e33;
+      padding: 15px;
+    }
+    
+    /* 빔프로젝터 상태 배지 */
+    .badge-power-on,
+    .badge-online {
+      background-color: #00d25b;
+      color: #191c24;
+      font-weight: 600;
+    }
+    
+    .badge-power-off,
+    .badge-offline {
+      background-color: #fc424a;
+      color: white;
+      font-weight: 600;
+    }
+    
+    .badge-warming,
+    .badge-warning {
+      background-color: #ffab00;
+      color: #191c24;
+      font-weight: 600;
+    }
+    
+    .badge-cooling {
+      background-color: #0090e7;
+      color: white;
+      font-weight: 600;
+    }
+
+    /* 상태 아이콘 관련 스타일 */
+    .status-indicator {
+      display: inline-block;
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      margin-right: 5px;
+    }
+
+    .status-indicator.online {
+      background-color: #00d25b;
+      box-shadow: 0 0 5px #00d25b;
+    }
+
+    .status-indicator.offline {
+      background-color: #fc424a;
+      box-shadow: 0 0 5px #fc424a;
+    }
+
+    /* 폼 요소 스타일 */
+    .form-control {
+      background-color: #2A3038;
+      border-color: #2c2e33;
+      color: #e9ecef;
+    }
+
+    .form-control:focus {
+      background-color: #2A3038;
+      border-color: #0090e7;
+      color: #e9ecef;
+      box-shadow: 0 0 0 0.2rem rgba(0, 144, 231, 0.25);
+    }
+
+    .form-label {
+      color: #e9ecef;
+      font-weight: 500;
+    }
+
+    /* 수정 버튼 스타일 */
+    .btn-primary {
+      background-color: #0090e7;
+      border-color: #0090e7;
+    }
+
+    .btn-primary:hover {
+      background-color: #0083d3;
+      border-color: #0083d3;
+    }
+
+    /* 브레드크럼 스타일 */
+    .breadcrumb {
+      background: transparent;
+      padding: 0;
+    }
+
+    .breadcrumb-item a {
+      color: #0090e7;
+    }
+
+    .breadcrumb-item.active {
+      color: #6c757d;
+    }
+    
+    /* 네비게이션 링크 스타일 */
+    .nav-link {
+      color: rgba(255,255,255,0.75);
+    }
+    
+    .nav-link:hover {
+      color: #ffffff;
+    }
+    
+    .nav-link.active {
+      background-color: #0090e7 !important;
+      color: #ffffff !important;
+    }
+
+    .custom-control-label {
+      color: #e9ecef;
+    }
+    
+    .custom-checkbox .custom-control-label::before {
+      background-color: #2A3038;
+      border-color: #2c2e33;
+    }
+    
+    .custom-checkbox .custom-control-input:checked ~ .custom-control-label::before {
+      background-color: #0090e7;
+      border-color: #0090e7;
+    }
+    
+    /* 스케줄 관련 스타일 보강 */
+    .schedule-card {
+      border-top: 3px solid #0090e7;
+      margin-bottom: 20px;
+      border: none;
+      box-shadow: 0 0 10px rgba(0,0,0,0.2);
+      background-color: #191c24;
+    }
+    
+    .schedule-card .card-body {
+      background-color: #191c24;
+    }
+    
+    .btn-action {
+      width: 100px;
+      transition: all 0.2s ease;
+    }
+    
+    .section-divider {
+      padding: 10px 0;
+      margin: 10px 0;
+      border-bottom: 1px solid #2c2e33;
+    }
+    
+    .section-divider h5 {
+      color: #e9ecef;
+      font-size: 1rem;
+      margin: 0;
+      padding-left: 5px;
+    }
+  </style>
+</head>
+<body class="hold-transition sidebar-mini layout-fixed">
+  <div class="wrapper">
+    <!-- 네비게이션 바 -->
+    <nav class="main-header navbar navbar-expand navbar-dark" style="background-color: #191c24 !important; border-bottom: 1px solid #2c2e33;">
+      <!-- 좌측 네비게이션 링크 -->
+      <ul class="navbar-nav">
+        <li class="nav-item">
+          <span class="nav-link font-weight-bold">EASYSIGN RCS</span>
+        </li>
+      </ul>
+
+      <!-- 우측 네비게이션 링크 -->
+      <ul class="navbar-nav ml-auto">
+        <div id="current-time" class="mr-3 mt-2 text-white"></div>
+      </ul>
+    </nav>
+    <!-- /.navbar -->
+
+    <!-- 메인 사이드바 -->
+    <aside class="main-sidebar sidebar-dark-primary elevation-4" style="background-color: #191c24; box-shadow: 0 0 10px rgba(0,0,0,0.2);">
+      <!-- 브랜드 로고 -->
+      <a href="index.html" class="brand-link" style="background-color: #191c24; border-bottom: 1px solid #2c2e33;">
+        <span class="brand-text font-weight-bold ml-3" style="color: #e9ecef;">RCS CONTROL</span>
+      </a>
+
+      <!-- 사이드바 -->
+      <div class="sidebar" style="background-color: #191c24;">
+        <!-- 사이드바 사용자 패널 -->
+        <div class="user-panel mt-3 pb-3 mb-3 d-flex">
+          <div class="info ml-3">
+            <a href="#" class="d-block">관리자</a>
+          </div>
+        </div>
+
+        <!-- 사이드바 메뉴 -->
+        <nav class="mt-2">
+          <ul class="nav nav-pills nav-sidebar flex-column" data-widget="treeview" role="menu" data-accordion="false">
+            <li class="nav-item">
+              <a href="javascript:void(0);" onclick="navigateToPage('dashboard.html')" class="nav-link" id="dashboard-link">
+                <i class="nav-icon fas fa-tachometer-alt"></i>
+                <p>
+                  대시보드
+                </p>
+              </a>
+            </li>
+            <li class="nav-item">
+              <a href="javascript:void(0);" onclick="navigateToPage('projector.html')" class="nav-link active" id="projector-link">
+                <i class="nav-icon fas fa-projector"></i>
+                <p>
+                  빔프로젝터관리
+                </p>
+              </a>
+            </li>
+            <li class="nav-item">
+              <a href="javascript:void(0);" onclick="navigateToPage('pc.html')" class="nav-link" id="pc-link">
+                <i class="nav-icon fas fa-desktop"></i>
+                <p>
+                  PC관리
+                </p>
+              </a>
+            </li>
+            <li class="nav-item">
+              <a href="javascript:void(0);" onclick="navigateToPage('pdu.html')" class="nav-link" id="pdu-link">
+                <i class="nav-icon fas fa-plug"></i>
+                <p>
+                  PDU관리
+                </p>
+              </a>
+            </li>
+          </ul>
+        </nav>
+      </div>
+    </aside>
+
+    <!-- 콘텐츠 래퍼. 페이지 콘텐츠 포함 -->
+    <div class="content-wrapper" style="background-color: #0c1427; padding-top: 70px; margin-left: 260px; overflow-x: hidden;">
+      <!-- 콘텐츠 헤더 (페이지 헤더) -->
+      <div class="content-header" style="border-bottom: 1px solid #2c2e33;">
+        <div class="container-fluid">
+          <div class="row mb-2">
+            <div class="col-sm-6">
+              <h1 class="m-0" style="color: #e9ecef;">프로젝터 관리</h1>
+            </div>
+            <div class="col-sm-6">
+              <ol class="breadcrumb float-sm-right">
+                <li class="breadcrumb-item"><a href="dashboard.html">홈</a></li>
+                <li class="breadcrumb-item active">프로젝터 관리</li>
+              </ol>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 프로젝터 추가 모달 -->
+      <div class="modal fade" id="addProjectorModal" tabindex="-1" role="dialog" aria-labelledby="addProjectorModalLabel" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+          <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+              <h5 class="modal-title" id="addProjectorModalLabel">프로젝터 추가</h5>
+              <button type="button" class="close text-white" onclick="closeAddProjectorModal()" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+              </button>
+            </div>
+            <div class="modal-body">
+              <form id="addProjectorForm">
+                <div class="form-group">
+                  <label for="projectorName">이름</label>
+                  <input type="text" class="form-control" id="projectorName" required>
+                </div>
+                <div class="form-group">
+                  <label for="projectorIp">IP 주소</label>
+                  <input type="text" class="form-control" id="projectorIp" required pattern="^(?:[0-9]{1,3}\.){3}[0-9]{1,3}$">
+                </div>
+                <div class="form-group">
+                  <label for="projectorModel">종류</label>
+                  <select class="form-control" id="projectorModel" required>
+                    <option value="EFUN">EFUN</option>
+                    <option value="EPSON">EPSON</option>
+                    <option value="SONY">SONY</option>
+                    <option value="PANASONIC">PANASONIC</option>
+                    <option value="BENQ">BENQ</option>
+                    <option value="OTHER">기타</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label for="projectorUsername">사용자 ID (옵션)</label>
+                  <input type="text" class="form-control" id="projectorUsername" value="admin">
+                </div>
+                <div class="form-group">
+                  <label for="projectorPassword">비밀번호 (옵션)</label>
+                  <input type="password" class="form-control" id="projectorPassword" placeholder="비밀번호가 필요 없으면 비워두세요">
+                </div>
+              </form>
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-secondary" onclick="closeAddProjectorModal()">취소</button>
+              <button type="button" class="btn btn-primary" onclick="addProjector()">추가</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 수정 모달 추가 -->
+      <div class="modal fade" id="settingsModal" tabindex="-1" role="dialog" aria-labelledby="settingsModalLabel" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+          <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+              <h5 class="modal-title" id="settingsModalLabel">프로젝터 설정</h5>
+              <button type="button" class="close text-white" onclick="closeSettingsModal()" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+              </button>
+            </div>
+            <div class="modal-body">
+              <form id="updateProjectorForm">
+                <input type="hidden" id="projectorId">
+                <div class="form-group">
+                  <label for="editProjectorName">이름</label>
+                  <input type="text" class="form-control" id="editProjectorName" required>
+                </div>
+                <div class="form-group">
+                  <label for="editProjectorIp">IP 주소</label>
+                  <input type="text" class="form-control" id="editProjectorIp" required pattern="^(?:[0-9]{1,3}\.){3}[0-9]{1,3}$">
+                </div>
+                <div class="form-group">
+                  <label for="editProjectorModel">종류</label>
+                  <select class="form-control" id="editProjectorModel" required>
+                    <option value="EFUN">EFUN</option>
+                    <option value="EPSON">EPSON</option>
+                    <option value="SONY">SONY</option>
+                    <option value="PANASONIC">PANASONIC</option>
+                    <option value="BENQ">BENQ</option>
+                    <option value="OTHER">기타</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label for="editProjectorUsername">사용자 ID (옵션)</label>
+                  <input type="text" class="form-control" id="editProjectorUsername" value="admin">
+                </div>
+                <div class="form-group">
+                  <label for="editProjectorPassword">비밀번호 (옵션)</label>
+                  <input type="password" class="form-control" id="editProjectorPassword" placeholder="기존 비밀번호 유지하려면 비워두세요">
+                </div>
+              </form>
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-secondary" onclick="closeSettingsModal()">취소</button>
+              <button type="button" class="btn btn-primary" onclick="updateProjector()">저장</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 메인 콘텐츠 -->
+      <section class="content">
+        <div class="container-fluid">
+          <!-- 프로젝터 알람 스케줄 설정 패널 -->
+          <div class="card schedule-card">
+            <div class="card-header">
+              <h4 class="card-title mb-0">
+                <i class="fas fa-clock mr-2" style="color: #0090e7;"></i>프로젝터 알람 스케줄 설정
+              </h4>
+            </div>
+            <div class="card-body">
+              <div class="row">
+                <div class="col-3">
+                  <div class="form-group mb-0">
+                    <label class="small"><i class="fas fa-play text-success mr-1"></i>시작 시간</label>
+                    <input type="time" class="form-control form-control-sm" id="start-time">
+                  </div>
+                </div>
+                <div class="col-3">
+                  <div class="form-group mb-0">
+                    <label class="small"><i class="fas fa-stop text-danger mr-1"></i>종료 시간</label>
+                    <input type="time" class="form-control form-control-sm" id="end-time">
+                  </div>
+                </div>
+                <div class="col-3">
+                  <div class="form-group mb-0">
+                    <label class="small"><i class="fas fa-calendar-alt text-primary mr-1"></i>요일</label>
+                    <div class="d-flex flex-wrap">
+                      <div class="custom-control custom-checkbox mr-1">
+                        <input type="checkbox" id="day-1" class="custom-control-input" checked>
+                        <label for="day-1" class="custom-control-label small">월</label>
+                      </div>
+                      <div class="custom-control custom-checkbox mr-1">
+                        <input type="checkbox" id="day-2" class="custom-control-input" checked>
+                        <label for="day-2" class="custom-control-label small">화</label>
+                      </div>
+                      <div class="custom-control custom-checkbox mr-1">
+                        <input type="checkbox" id="day-3" class="custom-control-input" checked>
+                        <label for="day-3" class="custom-control-label small">수</label>
+                      </div>
+                      <div class="custom-control custom-checkbox mr-1">
+                        <input type="checkbox" id="day-4" class="custom-control-input" checked>
+                        <label for="day-4" class="custom-control-label small">목</label>
+                      </div>
+                      <div class="custom-control custom-checkbox mr-1">
+                        <input type="checkbox" id="day-5" class="custom-control-input" checked>
+                        <label for="day-5" class="custom-control-label small">금</label>
+                      </div>
+                      <div class="custom-control custom-checkbox mr-1">
+                        <input type="checkbox" id="day-6" class="custom-control-input">
+                        <label for="day-6" class="custom-control-label small">토</label>
+                      </div>
+                      <div class="custom-control custom-checkbox">
+                        <input type="checkbox" id="day-7" class="custom-control-input">
+                        <label for="day-7" class="custom-control-label small">일</label>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div class="col-3">
+                  <div class="form-group mb-0">
+                    <label class="small invisible">적용</label>
+                    <div class="d-flex flex-column">
+                      <button type="button" class="btn btn-success btn-sm" onclick="saveSchedule()">
+                        <i class="fas fa-check mr-1"></i> 적용
+                      </button>
+                      <div class="custom-control custom-switch mt-2">
+                        <input type="checkbox" class="custom-control-input" id="projector-schedule-active" checked>
+                        <label class="custom-control-label" for="projector-schedule-active">활성</label>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 구분선 -->
+          <div class="section-divider">
+            <h5 style="color: #000000; text-align: center;">프로젝터 관리</h5>
+          </div>
+
+          <!-- 프로젝터 목록 -->
+          <div class="card projector-list-card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+              <div class="d-flex align-items-center">
+                <i class="fas fa-video mr-2"></i>
+                <h4 class="card-title mb-0">프로젝터 목록</h4>
+              </div>
+              <div>
+                <button class="btn btn-primary btn-add-projector">
+                  <i class="fas fa-plus"></i>
+                  프로젝터 추가
+                </button>
+              </div>
+            </div>
+            <div class="card-body p-0">
+              <div class="table-responsive">
+                <table class="table table-hover m-0" id="projectorTable">
+                  <thead>
+                    <tr>
+                      <th>순번</th>
+                      <th>이름</th>
+                      <th>IP</th>
+                      <th>종류</th>
+                      <th>NET상태</th>
+                      <th>상태</th>
+                      <th>제어</th>
+                      <th>관리</th>
+                    </tr>
+                  </thead>
+                  <tbody id="projector-list">
+                    <!-- 프로젝터 목록이 여기에 동적으로 추가됩니다 -->
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div><!-- /.container-fluid -->
+      </section>
+      <!-- /.content -->
+    </div>
+    <!-- /.content-wrapper -->
+    <footer class="main-footer d-flex justify-content-between align-items-center" style="background-color: #191c24; border-top: 1px solid #2c2e33; color: #6c757d;">
+      <div>
+        <strong>Copyright © 2025 <a href="#" style="color: #0090e7;">DIDBANK RCS CONTROL</a>.</strong> All rights reserved.
+      </div>
+      <div class="d-flex align-items-center">
+        <span class="mr-4" title="서버 상태">
+          <span class="status-indicator online" id="server-status-indicator"></span>
+          <span class="server-status-text">서버 정상</span>
+        </span>
+        <span title="네트워크 상태">
+          <span class="status-indicator online" id="network-status-indicator"></span>
+          <span class="network-status-text">네트워크 정상</span>
+        </span>
+      </div>
+    </footer>
+  </div>
+  <!-- ./wrapper -->
+
+  <!-- 문서 로드 완료 이벤트 -->
+  <script>
+    // 전역 스코프에 함수 선언
+    window.openAddProjectorModal = function() {
+      try {
+        console.log('openAddProjectorModal 함수 실행');
+        // jQuery를 사용한 Bootstrap 방식 시도
+        if (typeof $ !== 'undefined' && typeof $.fn.modal !== 'undefined') {
+          $('#addProjectorModal').modal('show');
+          console.log('jQuery 방식으로 모달 열기 성공');
+          return;
+        }
+        
+        // 순수 JavaScript로 모달 표시
+        const modal = document.getElementById('addProjectorModal');
+        if (!modal) {
+          console.error('모달 요소를 찾을 수 없습니다.');
+          return;
+        }
+        
+        // 웹뷰 호환성을 위해 간소화된 표시 방식 사용
+        modal.style.display = 'block';
+        modal.style.paddingRight = '17px';
+        document.body.classList.add('modal-open');
+        
+        // 더 간단한 방식으로 백드롭 추가
+        let backdrop = document.querySelector('.modal-backdrop');
+        if (!backdrop) {
+          backdrop = document.createElement('div');
+          backdrop.className = 'modal-backdrop fade show';
+          document.body.appendChild(backdrop);
+        }
+        
+        // 모달 자체에 show 클래스 추가
+        modal.classList.add('show');
+        console.log('순수 JavaScript 방식으로 모달 열기 성공');
+      } catch (error) {
+        console.error('모달 열기 중 오류 발생:', error);
+        alert('프로젝터 추가 창을 열 수 없습니다. 페이지를 새로고침하고 다시 시도해주세요.');
+      }
+    }
+    
+    // 프로젝터 추가 모달 닫기 함수를 전역으로 추가
+    window.closeAddProjectorModal = function() {
+      try {
+        // jQuery를 사용한 Bootstrap 방식 시도
+        if (typeof $ !== 'undefined' && typeof $.fn.modal !== 'undefined') {
+          $('#addProjectorModal').modal('hide');
+          console.log('jQuery 방식으로 모달 닫기 성공');
+          return;
+        }
+        
+        // 순수 JavaScript로 모달 숨김
+        const modal = document.getElementById('addProjectorModal');
+        if (!modal) {
+          console.error('모달 요소를 찾을 수 없습니다.');
+          return;
+        }
+        
+        // 직접 스타일 및 클래스 수정
+        modal.style.display = 'none';
+        modal.classList.remove('show');
+        document.body.classList.remove('modal-open');
+        
+        // 백드롭 제거
+        const backdrop = document.querySelector('.modal-backdrop');
+        if (backdrop) {
+          backdrop.parentNode.removeChild(backdrop);
+        }
+        
+        // 폼 초기화
+        const form = document.getElementById('addProjectorForm');
+        if (form) {
+          form.reset();
+          }
+          
+        console.log('순수 JavaScript 방식으로 모달 닫기 성공');
+      } catch (error) {
+        console.error('모달 닫기 중 오류 발생:', error);
+      }
+    }
+    
+    // 프로젝터 추가 함수를 전역으로 추가
+    window.addProjector = async function() {
+      try {
+      const name = document.getElementById('projectorName').value;
+      const ip = document.getElementById('projectorIp').value;
+      const model = document.getElementById('projectorModel').value;
+      const username = document.getElementById('projectorUsername').value || 'admin';
+      const password = document.getElementById('projectorPassword').value || '';
+      
+      // 유효성 검사
+      if (!name) {
+        if (window.flutter_inappwebview) {
+          alert('프로젝터 이름을 입력해주세요.');
+        } else {
+          alert('프로젝터 이름은 필수 입력 항목입니다.');
+        }
+        return;
+      }
+      
+      if (!ip) {
+        if (window.flutter_inappwebview) {
+          alert('IP 주소를 입력해주세요.');
+        } else {
+          alert('IP 주소는 필수 입력 항목입니다.');
+        }
+        return;
+      }
+      
+      // IP 주소 유효성 검사
+      const ipPattern = /^(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/;
+      if (!ipPattern.test(ip)) {
+        // 웹뷰용 메시지 표시
+        if (window.flutter_inappwebview) {
+          alert('유효한 IP 주소 형식으로 입력해주세요. (예: 192.168.0.100)');
+        } else {
+          alert('유효한 IP 주소를 입력하세요.');
+        }
+        return;
+      }
+
+      // 이름 길이 확인
+      if (name.length > 50) {
+        if (window.flutter_inappwebview) {
+          alert('프로젝터 이름은 50자 이내로 입력해주세요.');
+        } else {
+          alert('프로젝터 이름이 너무 깁니다.');
+        }
+        return;
+      }
+      
+      // 위치 데이터 길이 확인
+      if (location && location.length > 100) {
+        if (window.flutter_inappwebview) {
+          alert('설치 위치는 100자 이내로 입력해주세요.');
+        } else {
+          alert('설치 위치 정보가 너무 깁니다.');
+        }
+        return;
+      }
+      
+      // username 길이 확인
+      if (username && username.length > 30) {
+        if (window.flutter_inappwebview) {
+          alert('사용자 ID는 30자 이내로 입력해주세요.');
+        } else {
+          alert('사용자 ID가 너무 깁니다.');
+        }
+        return;
+      }
+      
+      // 비밀번호 길이 확인
+      if (password && password.length > 30) {
+        if (window.flutter_inappwebview) {
+          alert('비밀번호는 30자 이내로 입력해주세요.');
+        } else {
+          alert('비밀번호가 너무 깁니다.');
+        }
+        return;
+      }
+      
+      // extra 데이터를 JSON 문자열로 생성
+      const extraData = JSON.stringify({
+        model: model,
+        username: username,
+        password: password
+      });
+
+        // API 요청 데이터 준비
+        const deviceData = {
+          type: 'projector',
+          name: name,
+          ip: ip,
+        status: 'offline',
+          network_status: 'unknown',
+          extra: extraData
+        };
+
+        console.log('프로젝터 추가 요청 데이터:', deviceData);
+
+        // API 호출하여 프로젝터 추가
+        const response = await fetch('/api/projector/add', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(deviceData)
+        });
+
+        // 응답 확인
+        console.log('서버 응답 상태:', response.status, response.statusText);
+        
+        const responseText = await response.text();
+        console.log('서버 응답 원본:', responseText);
+        
+        let result;
+        try {
+          result = JSON.parse(responseText);
+          console.log('파싱된 응답:', result);
+        } catch (parseError) {
+          console.error('응답 파싱 오류:', parseError);
+          alert('서버 응답을 처리하는 중 오류가 발생했습니다.');
+          return;
+        }
+
+        if (result && result.success) {
+      // 모달 닫기
+          closeAddProjectorModal();
+      
+      // 폼 초기화
+          document.getElementById('addProjectorForm').reset();
+          
+          // 성공 메시지 표시
+          alert('프로젝터가 성공적으로 추가되었습니다. 페이지를 새로고침합니다.');
+          
+          // 페이지 새로고침하여 목록 갱신
+          window.location.reload();
+        } else {
+          alert('프로젝터 추가 실패: ' + (result.error || '알 수 없는 오류'));
+          console.error('프로젝터 추가 실패 세부 정보:', result);
+        }
+      } catch (error) {
+        alert('프로젝터 추가 중 오류 발생: ' + error.message);
+        console.error('프로젝터 추가 중 예외 발생:', error);
+      }
+    }
+    
+    // 프로젝터 목록 로드 함수를 전역으로 추가
+    window.loadProjectorList = async function() {
+      try {
+        // 데이터 로드
+        const response = await fetch('/api/projector/list');
+        const data = await response.json();
+        
+        // 프로젝터 테이블 초기화
+        const tbody = document.querySelector('#projectorTable tbody');
+        if (!tbody) {
+          console.error('프로젝터 목록 테이블을 찾을 수 없습니다.');
+          return;
+        }
+        
+        // 테이블 초기화
+        tbody.innerHTML = '';
+        
+        // 데이터 없음 처리
+        if (!data.devices || data.devices.length === 0) {
+          tbody.innerHTML = '<tr><td colspan="8" class="text-center">등록된 프로젝터가 없습니다.</td></tr>';
+          return;
+        }
+        
+        console.log('프로젝터 목록 데이터:', data);
+        
+        // 프로젝터 목록 렌더링
+        data.devices.forEach((projector, index) => {
+          const tr = document.createElement('tr');
+          tr.setAttribute('data-id', projector.id);
+          tr.setAttribute('data-ip', projector.ip);
+        
+          // extra 데이터 파싱
+          let extraData = {};
+          try {
+            if (projector.extra) {
+              extraData = JSON.parse(projector.extra);
+            }
+          } catch (e) {
+            console.warn('extra 데이터 파싱 오류:', e);
+          }
+          
+          // 네트워크 상태 배지 CSS 클래스
+          // 장비가 제어 가능한 경우 네트워크 상태를 온라인으로 표시 (버그 수정)
+          const isControlWorking = projector.status === 'online' || projector.status === 'warming' || projector.status === 'cooling';
+          // 핑 테스트가 성공했거나 제어가 가능한 경우 네트워크 상태를 '연결됨'으로 표시
+          const networkStatus = (projector.network_status === 'online' || isControlWorking) ? 'online' : 'offline';
+          const networkStatusClass = networkStatus === 'online' ? 'badge-online' : 'badge-offline';
+          const networkStatusText = networkStatus === 'online' ? '연결됨' : '끊김';
+          
+          // 장비 상태 배지 CSS 클래스
+          let statusClass = 'badge-offline';
+          let statusText = '꺼짐';
+          
+          // 네트워크 상태가 online이거나 제어가 가능한 경우 실제 장비 상태 표시
+          if (networkStatus === 'online') {
+            switch(projector.status) {
+              case 'online':
+                statusClass = 'badge-online';
+                statusText = '켜짐';
+                break;
+              case 'warming':
+                statusClass = 'badge-warning';
+                statusText = '예열중';
+                break;
+              case 'cooling':
+                statusClass = 'badge-warning';
+                statusText = '냉각중';
+                break;
+            }
+        }
+        
+          // 행 내용 구성 (순번 추가)
+          tr.innerHTML = `
+            <td>${index + 1}</td>
+            <td>${projector.name || ''}</td>
+            <td>${projector.ip || ''}</td>
+            <td>${extraData.model || ''}</td>
+            <td><span class="badge ${networkStatusClass}" title="네트워크 연결 상태">${networkStatusText}</span></td>
+            <td><span class="badge ${statusClass}" title="장비 전원 상태">${statusText}</span></td>
+            <td>
+              <div class="control-buttons">
+                <button class="btn control-btn btn-success" onclick="controlProjector('${projector.ip}', 'power_on')">
+                  <i class="fas fa-power-off"></i> 켜기
+                </button>
+                <button class="btn control-btn btn-danger" onclick="controlProjector('${projector.ip}', 'power_off')">
+                  <i class="fas fa-power-off"></i> 끄기
+                </button>
+              </div>
+            </td>
+            <td>
+              <div class="settings-buttons">
+                <button class="btn control-btn btn-info" onclick="openProjectorSettings('${projector.id}')">
+                  <i class="fas fa-cog"></i> 수정
+                </button>
+                <button class="btn control-btn btn-secondary" onclick="deleteProjector('${projector.id}')">
+                  <i class="fas fa-trash-alt"></i> 삭제
+                </button>
+              </div>
+            </td>
+          `;
+          
+          tbody.appendChild(tr);
+        });
+      } catch (error) {
+        console.error('프로젝터 목록 로딩 중 오류:', error);
+      }
+    }
+    
+    // 프로젝터 제어 함수를 전역으로 추가
+    window.controlProjector = async function(ip, command) {
+      try {
+        // API 호출
+        const response = await fetch('/api/projector/command', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            ip: ip,
+            command: command
+          })
+        });
+        
+        if (!response.ok) {
+          throw new Error(`서버 오류: ${response.status}`);
+        }
+        
+        const result = await response.json();
+        
+        if (result.success) {
+          console.log('명령 실행 성공:', result);
+          // 1초 후 상태 다시 확인 
+          setTimeout(loadProjectorList, 1000);
+        } else {
+          console.error('명령 실행 실패:', result);
+          alert('명령 실행 실패: ' + (result.error || '알 수 없는 오류'));
+        }
+      } catch (error) {
+        console.error('명령 실행 중 오류:', error);
+        alert('명령 실행 중 오류 발생: ' + error.message);
+      }
+    }
+    
+    // 프로젝터 설정 열기 함수를 전역으로 추가
+    window.openProjectorSettings = async function(id) {
+      try {
+        // 프로젝터 데이터 로드
+        const response = await fetch(`/api/projector/status/${id}`);
+        if (!response.ok) {
+          throw new Error(`서버 오류: ${response.status}`);
+        }
+        
+        const data = await response.json();
+        
+        if (!data.success || !data.projector) {
+          alert('프로젝터 정보를 불러올 수 없습니다.');
+          return;
+        }
+        
+        // 프로젝터 정보
+        const projector = data.projector;
+        
+        // ID 설정
+        document.getElementById('projectorId').value = id;
+        
+        // 기본 필드 설정
+        document.getElementById('editProjectorName').value = projector.name || '';
+        document.getElementById('editProjectorIp').value = projector.ip || '';
+        
+        // extra 데이터 파싱
+        let extraData = {};
+        try {
+          if (projector.extra) {
+            extraData = JSON.parse(projector.extra);
+          }
+        } catch (e) {
+          console.warn('extra 데이터 파싱 오류:', e);
+        }
+        
+        // 모델 선택
+        const modelSelect = document.getElementById('editProjectorModel');
+        if (modelSelect) {
+          if (extraData.model) {
+            // 옵션 중에 일치하는 항목이 있는지 확인
+            let found = false;
+        for (let i = 0; i < modelSelect.options.length; i++) {
+              if (modelSelect.options[i].value === extraData.model) {
+                modelSelect.selectedIndex = i;
+                found = true;
+            break;
+          }
+        }
+            
+            // 일치하는 항목이 없으면 기타로 설정
+            if (!found) {
+              // 기타 옵션 찾기
+          for (let i = 0; i < modelSelect.options.length; i++) {
+            if (modelSelect.options[i].value === 'OTHER') {
+                  modelSelect.selectedIndex = i;
+              break;
+            }
+          }
+        }
+          }
+        }
+        
+        // 사용자명 설정
+        if (extraData.username) {
+          document.getElementById('editProjectorUsername').value = extraData.username;
+        }
+        
+        // 비밀번호는 비워둡니다 - 수정하지 않을 경우 기존 비밀번호 유지
+        document.getElementById('editProjectorPassword').value = '';
+        
+        // jQuery가 있으면 Bootstrap 모달 사용
+        if (typeof $ !== 'undefined' && typeof $.fn.modal !== 'undefined') {
+          $('#settingsModal').modal('show');
+        } else {
+          // 일반 DOM 조작
+        const modal = document.getElementById('settingsModal');
+          if (modal) {
+        modal.style.display = 'block';
+        modal.classList.add('show');
+        document.body.classList.add('modal-open');
+        
+            // 백드롭 추가
+        const backdrop = document.createElement('div');
+        backdrop.className = 'modal-backdrop fade show';
+        document.body.appendChild(backdrop);
+          }
+        }
+      } catch (error) {
+        console.error('프로젝터 설정 불러오기 오류:', error);
+        alert('프로젝터 설정을 불러오는 중 오류가 발생했습니다: ' + error.message);
+      }
+    }
+    
+    // 프로젝터 삭제 함수를 전역으로 추가
+    window.deleteProjector = async function(id) {
+      try {
+        // 확인 대화상자
+        if (!confirm('정말로 이 프로젝터를 삭제하시겠습니까?')) {
+          return;
+        }
+        
+        // API 호출
+        const response = await fetch(`/api/projector/${id}`, {
+          method: 'DELETE'
+        });
+        
+        if (!response.ok) {
+          throw new Error(`서버 오류: ${response.status}`);
+        }
+        
+        const result = await response.json();
+        
+        if (result.success) {
+          // 목록 새로고침
+          loadProjectorList();
+          
+          // 성공 메시지 표시
+          showSimpleToast('프로젝터가 삭제되었습니다.', 'success');
+        } else {
+          alert('프로젝터 삭제 실패: ' + (result.error || '알 수 없는 오류'));
+        }
+      } catch (error) {
+        console.error('프로젝터 삭제 오류:', error);
+        alert('프로젝터 삭제 중 오류 발생: ' + error.message);
+      }
+    }
+    
+    // 설정 모달 닫기 함수를 전역으로 추가
+    window.closeSettingsModal = function() {
+      try {
+        // jQuery가 있으면 Bootstrap 모달 사용
+        if (typeof $ !== 'undefined' && typeof $.fn.modal !== 'undefined') {
+          $('#settingsModal').modal('hide');
+          console.log('jQuery 방식으로 설정 모달 닫기 성공');
+        } else {
+          // 일반 DOM 조작
+      const modal = document.getElementById('settingsModal');
+          if (modal) {
+      modal.style.display = 'none';
+      modal.classList.remove('show');
+      document.body.classList.remove('modal-open');
+      
+            // 백드롭 제거
+      const backdrop = document.querySelector('.modal-backdrop');
+      if (backdrop) {
+              backdrop.parentNode.removeChild(backdrop);
+            }
+          }
+          console.log('순수 JavaScript 방식으로 설정 모달 닫기 성공');
+        }
+      } catch (error) {
+        console.error('설정 모달 닫기 중 오류 발생:', error);
+      }
+    }
+    
+    // 프로젝터 업데이트 함수를 전역으로 추가
+    window.updateProjector = async function() {
+      try {
+        const id = document.getElementById('projectorId').value;
+        const name = document.getElementById('editProjectorName').value;
+        const ip = document.getElementById('editProjectorIp').value;
+        const model = document.getElementById('editProjectorModel').value;
+        const username = document.getElementById('editProjectorUsername').value || 'admin';
+        const password = document.getElementById('editProjectorPassword').value;
+        
+        // 유효성 검사
+        if (!name || !ip) {
+          alert('프로젝터 이름과 IP 주소는 필수 입력 항목입니다.');
+          return;
+        }
+        
+        // IP 주소 유효성 검사
+        const ipPattern = /^(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/;
+        if (!ipPattern.test(ip)) {
+          alert('유효한 IP 주소를 입력하세요.');
+          return;
+        }
+        
+        // extra 데이터 준비
+        const extraData = {
+          model: model,
+          username: username
+        };
+        
+        // 비밀번호가 입력된 경우에만 변경
+        if (password) {
+          extraData.password = password;
+        }
+        
+        // 업데이트 데이터 준비
+        const updateData = {
+          id: id,
+          name: name,
+          ip: ip,
+          extra: JSON.stringify(extraData)
+        };
+        
+        console.log('프로젝터 업데이트 요청 데이터:', updateData);
+        
+        // API 호출
+        const response = await fetch(`/api/projector/update/${id}`, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(updateData)
+        });
+        
+        if (!response.ok) {
+          throw new Error(`서버 오류: ${response.status}`);
+        }
+        
+        const result = await response.json();
+        console.log('프로젝터 업데이트 응답:', result);
+        
+        if (result.success) {
+          // 목록 새로고침
+          alert('프로젝터 정보가 성공적으로 업데이트되었습니다. 페이지를 새로고침합니다.');
+          
+          // 모달 닫기
+          closeSettingsModal();
+          
+          // 페이지 새로고침
+          window.location.reload();
+        } else {
+          alert('프로젝터 업데이트 실패: ' + (result.error || '알 수 없는 오류'));
+        }
+      } catch (error) {
+        console.error('프로젝터 업데이트 오류:', error);
+        alert('프로젝터 업데이트 중 오류 발생: ' + error.message);
+      }
+    }
+    
+    // 간단한 토스트 메시지 표시 함수를 전역으로 추가
+    window.showSimpleToast = function(message, type = 'info') {
+      try {
+        // 기존 토스트 제거
+        const existingToasts = document.querySelectorAll('.toast-message');
+        existingToasts.forEach(toast => {
+          if (toast.dataset.autoRemove === 'true') {
+            toast.remove();
+        }
+        });
+        
+        // 토스트 컨테이너 확인/생성
+        let toastContainer = document.querySelector('.toast-container');
+        if (!toastContainer) {
+          toastContainer = document.createElement('div');
+          toastContainer.className = 'toast-container';
+          document.body.appendChild(toastContainer);
+        }
+        
+        // 토스트 메시지 생성
+        const toast = document.createElement('div');
+        toast.className = `toast-message toast-${type}`;
+        toast.textContent = message;
+        toast.dataset.autoRemove = 'true';
+        
+        // 토스트 컨테이너에 추가
+        toastContainer.appendChild(toast);
+        
+        // 일정 시간 후 자동 제거
+        setTimeout(() => {
+          toast.classList.add('hiding');
+          setTimeout(() => {
+            if (toast.parentNode) {
+              toast.parentNode.removeChild(toast);
+            }
+          }, 500);
+        }, 3000);
+        
+        console.log('토스트 메시지 표시:', message, type);
+      } catch (error) {
+        console.error('토스트 메시지 표시 오류:', error);
+      }
+    }
+
+    // 프로젝터 페이지 초기화 함수를 전역으로 추가
+    window.initProjectorPage = function() {
+      console.log('프로젝터 페이지 초기화 시작');
+      
+      try {
+        // 프로젝터 목록 로드
+        window.loadProjectorList();
+        
+        // 프로젝터 스케줄 로드
+        if (typeof loadSchedule === 'function') {
+          loadSchedule();
+        } else {
+          console.log('loadSchedule 함수가 없습니다. 스케줄 로드를 건너뜁니다.');
+        }
+        
+        // 스케줄 활성화 토글 이벤트 리스너 등록
+          const scheduleActiveCheckbox = document.getElementById('projector-schedule-active');
+        if (scheduleActiveCheckbox) {
+          scheduleActiveCheckbox.addEventListener('change', function() {
+            if (typeof toggleScheduleActive === 'function') {
+              toggleScheduleActive();
+        } else {
+              console.log('toggleScheduleActive 함수가 없습니다.');
+        }
+          });
+        }
+        
+        console.log('프로젝터 페이지 초기화 완료');
+      } catch (error) {
+        console.error('초기화 중 오류:', error);
+        }
+      }
+    
+    $(document).ready(function() {
+      console.log('문서 로드 완료');
+        
+      // 프로젝터 추가 버튼에 클릭 이벤트 직접 추가
+      $('.btn-add-projector').on('click', function(e) {
+        e.preventDefault();
+        window.openAddProjectorModal();
+        return false;
+      });
+      
+      // 프로젝터 페이지 초기화 직접 호출
+      window.initProjectorPage();
+      });
+  </script>
+  
+  <!-- 인라인 초기화 스크립트 추가 -->
+  <script>
+    // 페이지 로드 완료 시 프로젝터 목록 로드
+    document.addEventListener('DOMContentLoaded', function() {
+      console.log('DOMContentLoaded 이벤트 발생');
+      // 웹뷰에서의 추가 초기화
+      setTimeout(function() {
+        if (typeof loadProjectorList === 'function') {
+          console.log('페이지 로드 완료 후 프로젝터 목록 로드 시도');
+          loadProjectorList();
+        }
+      }, 500);
+    });
+  </script>
+</body>
+</html>

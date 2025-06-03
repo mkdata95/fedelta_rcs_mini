@@ -1,0 +1,1994 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>PDU 관리 - RCS 컨트롤 시스템</title>
+  <link rel="icon" href="favicon.png" type="image/png">
+  <!-- 폰트어썸 아이콘 프리로드 -->
+  <link rel="preload" href="assets/fonts/fa-solid-900.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="assets/fonts/fa-regular-400.woff2" as="font" type="font/woff2" crossorigin>
+  <!-- CSS 파일 -->
+  <link rel="stylesheet" href="assets/css/bootstrap.min.css">
+  <link rel="stylesheet" href="assets/css/fontawesome.min.css">
+  <link rel="stylesheet" href="assets/css/adminlte.min.css">
+  <link rel="stylesheet" href="assets/css/common.css">
+  <link rel="stylesheet" href="assets/css/icons.css">
+  <link rel="stylesheet" href="assets/css/styles.css">
+  <link rel="stylesheet" href="assets/css/components.css">
+  <link rel="stylesheet" href="assets/css/pdu.css">
+  <!-- jQuery 및 JavaScript 파일 -->
+  <script src="assets/js/jquery-3.6.0.min.js"></script>
+  <script src="assets/js/bootstrap.bundle.min.js"></script>
+  <script src="assets/js/common.js"></script>
+  <!-- 자바스크립트 파일 -->
+  <script>
+    // 웹뷰 메시지 완전히 제거하기 위한 즉시 실행 스크립트
+    (function() {
+      // 웹뷰 상단 메시지 제거를 위한 스타일 즉시 적용
+      var style = document.createElement('style');
+      style.textContent = `
+        /* 웹뷰 헤더 강제 제거 */
+    body::before, 
+    body::after, 
+        body > *:not(.wrapper):not(script):not(style):not(.js-modal):not(.js-notification):not(.modal):not(.modal-backdrop),
+        body > div:not(.wrapper):not(.js-modal):not(.js-notification):not(.modal):not(.modal-backdrop),
+    #app-header, .app-header, #status-bar, .status-bar, #title-bar, .title-bar,
+    #server-status, .server-status,
+        div[style*="position: fixed"][style*="top: 0"]:not(.js-modal):not(.js-modal-dialog):not(.js-notification):not(.modal):not(.modal-backdrop),
+        div[style*="position:fixed"][style*="top:0"]:not(.js-modal):not(.js-modal-dialog):not(.js-notification):not(.modal):not(.modal-backdrop),
+        div[style*="background-color"][style*="fixed"]:not(.js-modal):not(.js-modal-dialog):not(.js-notification):not(.modal):not(.modal-backdrop),
+        div[style*="z-index: 9"]:not(.js-modal):not(.js-modal-dialog):not(.js-notification):not(.modal):not(.modal-backdrop),
+        div[style*="z-index:9"]:not(.js-modal):not(.js-modal-dialog):not(.js-notification):not(.modal):not(.modal-backdrop) {
+      display: none !important;
+      height: 0 !important;
+      visibility: hidden !important;
+      opacity: 0 !important;
+      position: absolute !important;
+      z-index: -9999 !important;
+    }
+    
+    /* 문서와 콘텐츠 상단 여백 제거 */
+    html, body, .wrapper {
+      margin-top: 0 !important;
+      padding-top: 0 !important;
+        }
+        
+        /* 모달은 제외할 수 있도록 추가 */
+        .modal {
+          display: none;
+        }
+        .modal.show {
+          display: block !important;
+          visibility: visible !important;
+          opacity: 1 !important;
+          z-index: 1050 !important;
+        }
+      `;
+      document.head.appendChild(style);
+      
+      // DOM 변경 감지하여 웹뷰 요소 제거
+      var observer = new MutationObserver(function(mutations) {
+        const selectors = [
+          '.webview-message', '.webview-title', '.webview-status', '.server-status',
+          '.status-bar', '.app-title-bar', '.app-header-original', '[id*="title-container"]',
+          '[class*="title-container"]', '[id*="server-status"]', '[class*="server-status"]',
+          '[id*="app-header"]', '[class*="app-header"]', '.offline-remote-header',
+          '#offline-remote-header', '.server-status-container', '#server-status-container'
+        ];
+        
+        selectors.forEach(selector => {
+          document.querySelectorAll(selector).forEach(el => {
+            if(el && el.parentNode) {
+              el.parentNode.removeChild(el);
+            }
+          });
+        });
+      });
+      
+      // document.body가 존재할 때만 observer 시작
+      if (document.body) {
+        observer.observe(document.body, { childList: true, subtree: true });
+        // 3초 동안만 감시
+        setTimeout(() => observer.disconnect(), 3000);
+      }
+    })();
+
+    // 문서 로드 시 타이틀 강제 변경
+    document.addEventListener('DOMContentLoaded', function() {
+      document.title = "PDU 관리 - RCS 컨트롤 시스템";
+    });
+  </script>
+  <style>
+    /* 활성 버튼 커스텀 스타일 - 밝은 녹색(켜짐) / 밝은 빨간색(꺼짐) */
+    .custom-switch .custom-control-input:checked ~ .custom-control-label::before {
+      background-color: #28a745 !important; /* 밝은 녹색 */
+      border-color: #28a745 !important;
+    }
+    
+    .custom-switch .custom-control-input:not(:checked) ~ .custom-control-label::before {
+      background-color: #dc3545 !important; /* 밝은 빨간색 */
+      border-color: #dc3545 !important;
+    }
+    
+    .custom-switch .custom-control-input:checked ~ .custom-control-label::after {
+      background-color: #fff !important;
+      transform: translateX(0.75rem) !important;
+    }
+    
+    .custom-switch .custom-control-input:not(:checked) ~ .custom-control-label::after {
+      background-color: #fff !important;
+      transform: translateX(0) !important;
+    }
+    
+    .custom-switch .custom-control-input:focus ~ .custom-control-label::before {
+      box-shadow: 0 0 0 0.2rem rgba(40, 167, 69, 0.25) !important;
+    }
+    
+    .custom-switch .custom-control-input:not(:checked):focus ~ .custom-control-label::before {
+      box-shadow: 0 0 0 0.2rem rgba(220, 53, 69, 0.25) !important;
+    }
+
+    /* 카드, 스케줄 카드, 목록 카드 어두운 배경 및 통일 스타일 */
+    .card,
+    .schedule-card,
+    .pdu-list-card {
+      background: #191c24 !important;
+      border: none !important;
+      border-radius: 5px !important;
+      box-shadow: 0 0 10px rgba(0,0,0,0.2) !important;
+      color: #e9ecef !important;
+    }
+    .card-header, .schedule-card .card-header, .pdu-list-card .card-header {
+      background: #191c24 !important;
+      border-bottom: 1px solid #2c2e33 !important;
+      color: #e9ecef !important;
+    }
+    .card-title {
+      color: #e9ecef !important;
+    }
+    .card table thead th,
+    .pdu-list-card table thead th {
+      background: #191c24 !important;
+      color: #e9ecef !important;
+      border-color: #2c2e33 !important;
+    }
+    
+    /* 새로운 요일 선택 스타일 */
+    .weekday-selector {
+      display: flex;
+      gap: 8px;
+      margin-top: 5px;
+    }
+    
+    .weekday-selector label {
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    
+    .weekday-selector input[type="checkbox"] {
+      display: none;
+    }
+    
+    .circle-day {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      background: #2A3038;
+      border: 2px solid #2c2e33;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 500;
+      color: #e9ecef;
+      transition: all 0.2s ease;
+    }
+    
+    .weekday-selector input[type="checkbox"]:checked + .circle-day {
+      background: #1976d2;
+      color: #fff;
+      border: 2px solid #1976d2;
+      box-shadow: 0 0 10px rgba(25, 118, 210, 0.3);
+    }
+    
+    .weekday-selector label:hover .circle-day {
+      border: 2px solid #1976d2;
+      transform: scale(1.05);
+    }
+    
+    .weekday-selector input[type="checkbox"]:checked + .circle-day:hover {
+      background: #1565c0;
+    }
+
+    /* 모달 스타일 */
+    .modal {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.5);
+      display: none;
+      z-index: 9999;
+      padding: 20px;
+      box-sizing: border-box;
+    }
+    
+    .modal.show {
+      display: block !important;
+      visibility: visible !important;
+      opacity: 1 !important;
+    }
+    
+    .modal-dialog {
+      margin: 30px auto;
+      max-width: 500px;
+      position: relative;
+      transform: translate(0, 0);
+      transition: transform 0.3s ease-out;
+    }
+    
+    .modal.show .modal-dialog {
+      transform: translate(0, 30px);
+    }
+    
+    .modal-content {
+      background-color: #191c24;
+      color: #e9ecef;
+      border-radius: 5px;
+      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.5);
+      position: relative;
+      border: 1px solid #2c2e33;
+    }
+    
+    .modal-header {
+      padding: 15px;
+      background-color: #0d6efd;
+      color: white;
+      border-top-left-radius: 5px;
+      border-top-right-radius: 5px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid #2c2e33;
+    }
+    
+    .modal-title {
+      margin: 0;
+      font-size: 1.25rem;
+      font-weight: 500;
+      color: #ffffff;
+    }
+    
+    .close {
+      background: none;
+      border: none;
+      color: white;
+      font-size: 1.5rem;
+      cursor: pointer;
+      opacity: 0.8;
+      padding: 0;
+      margin: 0;
+      line-height: 1;
+    }
+    
+    .close:hover {
+      opacity: 1;
+    }
+    
+    .modal-body {
+      padding: 15px;
+      background-color: #191c24;
+    }
+    
+    .modal-footer {
+      padding: 15px;
+      border-top: 1px solid #2c2e33;
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+      background-color: #191c24;
+    }
+    
+    .modal-backdrop {
+      display: none !important;
+    }
+    
+    body.modal-open {
+      overflow: hidden;
+      padding-right: 17px;
+    }
+
+    /* 모달 내 폼 스타일 */
+    .modal .form-control {
+      background-color: #2A3038;
+      border: 1px solid #2c2e33;
+      color: #e9ecef;
+    }
+
+    .modal .form-control:focus {
+      background-color: #2A3038;
+      border-color: #0d6efd;
+      color: #e9ecef;
+      box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.25);
+    }
+
+    .modal label {
+      color: #e9ecef;
+      margin-bottom: 0.5rem;
+    }
+
+    /* PDU 테이블 중앙 정렬 */
+    #pduTable td {
+      text-align: center !important;
+      vertical-align: middle !important;
+    }
+
+    /* PDU 테이블 모든 셀 중앙 정렬 강제 적용 */
+    #pduTable tbody td {
+      text-align: center !important;
+      vertical-align: middle !important;
+    }
+
+    #pduTable tbody tr td {
+      text-align: center !important;
+      vertical-align: middle !important;
+    }
+
+    /* NET상태 밝은 녹색 톤 */
+    .text-success {
+      color: #00ff88 !important;
+    }
+
+    .text-danger {
+      color: #ff4757 !important;
+    }
+
+    .text-warning {
+      color: #ffa502 !important;
+    }
+
+    /* 버튼 그룹 스타일 통일 */
+    .control-buttons, .settings-buttons {
+      display: flex;
+      gap: 5px;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .control-btn {
+      padding: 4px 8px !important;
+      font-size: 0.875rem !important;
+    }
+
+    .btn-group .btn {
+      padding: 4px 8px !important;
+      font-size: 0.875rem !important;
+    }
+
+    /* 네비게이션 바 시간 표시 스타일 */
+    #current-time {
+      background: none !important;
+      border: none !important;
+      box-shadow: none !important;
+      padding: 0 !important;
+      margin: 0 !important;
+    }
+
+  </style>
+</head>
+<body class="hold-transition sidebar-mini layout-fixed">
+<div class="wrapper">
+  <!-- 네비게이션 바 -->
+  <nav class="main-header navbar navbar-expand navbar-dark" style="background-color: #191c24 !important; border-bottom: 1px solid #2c2e33;">
+    <!-- 좌측 네비게이션 링크 -->
+    <ul class="navbar-nav">
+      <li class="nav-item">
+        <span class="nav-link font-weight-bold">SMART RCS</span>
+      </li>
+    </ul>
+
+    <!-- 우측 네비게이션 링크 -->
+    <ul class="navbar-nav ml-auto">
+      <div id="current-time" class="mr-3 mt-2 text-white"></div>
+    </ul>
+  </nav>
+  <!-- /.navbar -->
+
+  <!-- 메인 사이드바 -->
+  <aside class="main-sidebar sidebar-dark-primary elevation-4" style="background-color: #191c24; box-shadow: none;">
+    <!-- 브랜드 로고 -->
+    <a href="index.html" class="brand-link" style="background-color: #191c24; border-bottom: 1px solid #2c2e33;">
+      <span class="brand-text font-weight-bold ml-3">RCS CONTROL</span>
+    </a>
+
+    <!-- 사이드바 -->
+    <div class="sidebar" style="background-color: #191c24;">
+      <!-- 사이드바 메뉴 -->
+      <nav class="mt-3">
+        <ul class="nav nav-pills nav-sidebar flex-column" data-widget="treeview" role="menu" data-accordion="false">
+          <li class="nav-item mb-2">
+            <a href="javascript:void(0);" onclick="navigateToPage('dashboard.html')" class="nav-link" id="dashboard-link">
+              <i class="nav-icon fas fa-tachometer-alt"></i>
+              <p>
+                대시보드
+              </p>
+            </a>
+          </li>
+          <li class="nav-item mb-2">
+            <a href="javascript:void(0);" onclick="navigateToPage('projector.html')" class="nav-link" id="projector-link">
+              <i class="nav-icon fas fa-projector"></i>
+              <p>
+                빔프로젝터관리
+              </p>
+            </a>
+          </li>
+          <li class="nav-item mb-2">
+            <a href="javascript:void(0);" onclick="navigateToPage('pc.html')" class="nav-link" id="pc-link">
+              <i class="nav-icon fas fa-desktop"></i>
+              <p>
+                PC관리
+              </p>
+            </a>
+          </li>
+          <li class="nav-item mb-2">
+            <a href="javascript:void(0);" onclick="navigateToPage('pdu.html')" class="nav-link active" id="pdu-link">
+              <i class="nav-icon fas fa-plug"></i>
+              <p>
+                PDU관리
+              </p>
+            </a>
+          </li>
+          <!-- 그룹원격제어 메뉴 숨김 -->
+          <!--
+          <li class="nav-item mb-2">
+            <a href="javascript:void(0);" onclick="navigateToPage('group-control.html')" class="nav-link" id="group-control-link">
+              <i class="nav-icon fas fa-users"></i>
+              <p>
+                그룹원격제어
+              </p>
+            </a>
+          </li>
+          -->
+          <!-- 설정 메뉴 숨김 -->
+          <!--
+          <li class="nav-item mb-2">
+            <a href="javascript:void(0);" onclick="navigateToPage('settings.html')" class="nav-link" id="settings-link">
+              <i class="nav-icon fas fa-cog"></i>
+              <p>
+                설정
+              </p>
+            </a>
+          </li>
+          -->
+        </ul>
+      </nav>
+    </div>
+  </aside>
+
+  <!-- 메인 콘텐츠 -->
+  <div class="content-wrapper" style="background-color: #0c1427; padding-top: 70px; margin-left: 260px;">
+    <!-- 콘텐츠 헤더 (페이지 헤더) -->
+    <div class="content-header">
+      <div class="container-fluid">
+        <div class="row mb-2">
+          <div class="col-sm-6">
+            <h1 class="m-0">PDU 관리</h1>
+          </div>
+          <div class="col-sm-6">
+            <ol class="breadcrumb float-sm-right">
+              <li class="breadcrumb-item"><a href="dashboard.html">홈</a></li>
+              <li class="breadcrumb-item active">PDU 관리</li>
+            </ol>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <section class="content">
+      <div class="container-fluid">
+        <!-- PDU 알람 스케줄 설정 패널 -->
+        <div class="card schedule-card mb-4">
+          <div class="card-header">
+            <h4 class="card-title mb-0">
+              <i class="fas fa-clock mr-2" style="color: #0090e7;"></i>스케줄 관리
+            </h4>
+          </div>
+          <div class="card-body">
+            <div class="row">
+              <div class="col-3">
+                <div class="form-group mb-0">
+                  <label class="small" style="color: #e9ecef;"><i class="fas fa-play text-success mr-1"></i>켜기 시간</label>
+                  <input type="time" class="form-control form-control-sm schedule-time-input" id="start-time" value="08:00" style="background-color: #2A3038; border: 1px solid #2c2e33; color: #e9ecef;">
+                </div>
+              </div>
+              <div class="col-3">
+                <div class="form-group mb-0">
+                  <label class="small" style="color: #e9ecef;"><i class="fas fa-stop text-danger mr-1"></i>끄기 시간</label>
+                  <input type="time" class="form-control form-control-sm schedule-time-input" id="end-time" value="18:00" style="background-color: #2A3038; border: 1px solid #2c2e33; color: #e9ecef;">
+                </div>
+              </div>
+              <div class="col-3">
+                <div class="form-group mb-0">
+                  <label class="small" style="color: #e9ecef;"><i class="fas fa-calendar-alt text-primary mr-1"></i>요일</label>
+                  <div class="weekday-selector">
+                    <label>
+                      <input type="checkbox" class="day-checkbox" value="1" checked>
+                      <span class="circle-day">월</span>
+                    </label>
+                    <label>
+                      <input type="checkbox" class="day-checkbox" value="2" checked>
+                      <span class="circle-day">화</span>
+                    </label>
+                    <label>
+                      <input type="checkbox" class="day-checkbox" value="3" checked>
+                      <span class="circle-day">수</span>
+                    </label>
+                    <label>
+                      <input type="checkbox" class="day-checkbox" value="4" checked>
+                      <span class="circle-day">목</span>
+                    </label>
+                    <label>
+                      <input type="checkbox" class="day-checkbox" value="5" checked>
+                      <span class="circle-day">금</span>
+                    </label>
+                    <label>
+                      <input type="checkbox" class="day-checkbox" value="6">
+                      <span class="circle-day">토</span>
+                    </label>
+                    <label>
+                      <input type="checkbox" class="day-checkbox" value="0">
+                      <span class="circle-day">일</span>
+                    </label>
+                    </div>
+                </div>
+              </div>
+              <div class="col-3">
+                <div class="form-group mb-0">
+                  <label class="small invisible" style="color: #e9ecef;">적용</label>
+                  <div class="d-flex flex-column">
+                    <button type="button" class="btn btn-success btn-sm" id="save-schedule-btn" onclick="saveSchedule()">
+                      <i class="fas fa-check mr-1"></i> 적용
+                    </button>
+                                          <div class="custom-control custom-switch mt-2">
+                      <input type="checkbox" class="custom-control-input" id="schedule-active">
+                      <label class="custom-control-label" for="schedule-active" style="color: #e9ecef;">활성</label>
+                      </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 구분선 -->
+        <div class="section-divider mb-4">
+          <h5 style="color: #000000; text-align: center;">PDU 관리</h5>
+        </div>
+
+        <!-- PDU 목록 테이블 -->
+        <div class="card pdu-list-card">
+          <div class="card-header d-flex justify-content-between align-items-center">
+            <div class="d-flex align-items-center">
+              <i class="fas fa-plug mr-2"></i>
+              <h4 class="card-title mb-0">PDU 목록</h4>
+            </div>
+            <div>
+              <button id="add-pdu-btn" class="btn btn-primary" onclick="showModal('addPDUModal')">
+              <i class="fas fa-plus mr-1"></i>PDU 추가
+            </button>
+          </div>
+          </div>
+          <div class="card-body p-0">
+            <div class="table-responsive">
+              <table class="table table-hover m-0" id="pduTable">
+                <thead>
+                  <tr>
+                    <th style="text-align: center;">No.</th>
+                    <th style="text-align: center;">이름</th>
+                    <th style="text-align: center;">IP 주소</th>
+                    <th style="text-align: center;">NET상태</th>
+                    <th style="text-align: center;">아웃렛</th>
+                    <th style="text-align: center;">상태</th>
+                    <th style="text-align: center;">제어</th>
+                    <th style="text-align: center;">설정</th>
+                  </tr>
+                </thead>
+                <tbody id="pduList">
+                  <!-- PDU 목록이 여기에 동적으로 추가됩니다 -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <!-- 푸터 -->
+  <footer class="main-footer d-flex justify-content-between align-items-center" style="background-color: #191c24; border-top: 1px solid #2c2e33; color: #6c757d;">
+    <div>
+      <strong>Copyright © 2025 <a href="#" style="color: #0090e7;">FEDELTA SMART RCS</a>.</strong> All rights reserved.
+    </div>
+    <div class="d-flex align-items-center">
+      <span class="mr-4" title="서버 상태">
+        <span class="status-indicator online" id="server-status-indicator"></span>
+        <span class="server-status-text">서버 정상</span>
+      </span>
+      <span title="네트워크 상태">
+        <span class="status-indicator online" id="network-status-indicator"></span>
+        <span class="network-status-text">네트워크 정상</span>
+      </span>
+    </div>
+  </footer>
+</div>
+
+<!-- 로딩 스피너 -->
+<div id="pduSpinner" class="loading-spinner">
+  <div class="spinner"></div>
+  <p>로딩 중...</p>
+    </div>
+
+<!-- PDU 추가 모달 -->
+<div class="modal" id="addPDUModal" tabindex="-1" role="dialog" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">
+          <i class="fas fa-plug mr-2"></i>PDU 추가
+        </h5>
+        <button type="button" class="close" onclick="closeAddPDUModal()">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <!-- 안내 메시지 -->
+        <div class="alert alert-info" style="background-color: #1f4e79; border-color: #2563eb; color: #bfdbfe; border-radius: 4px; padding: 12px; margin-bottom: 20px;">
+          <i class="fas fa-info-circle mr-2"></i>
+          <strong>PDU 등록 가이드</strong><br>
+          원격으로 제어할 PDU(전력 분배 장치)의 정보를 등록합니다. 각 아웃렛을 개별적으로 제어할 수 있습니다.
+        </div>
+        
+        <form id="pduForm">
+          <div class="form-group">
+            <label for="pdu-name" class="d-flex align-items-center">
+              <i class="fas fa-tag mr-2 text-primary"></i>
+              <span>PDU 이름</span>
+              <span class="text-danger ml-1">*</span>
+            </label>
+            <input type="text" 
+                   class="form-control" 
+                   id="pdu-name" 
+                   placeholder="예: 강의실1번-PDU, 서버실-전력분배기" 
+                   style="background-color: #2A3038; border: 1px solid #2c2e33; color: #e9ecef;" 
+                   required>
+            <small class="form-text" style="color: #6c757d;">
+              <i class="fas fa-lightbulb mr-1"></i>PDU를 쉽게 구분할 수 있는 이름을 입력하세요.
+            </small>
+          </div>
+          
+          <div class="form-group">
+            <label for="pdu-ip" class="d-flex align-items-center">
+              <i class="fas fa-network-wired mr-2 text-primary"></i>
+              <span>IP 주소</span>
+              <span class="text-danger ml-1">*</span>
+            </label>
+            <input type="text" 
+                   class="form-control" 
+                   id="pdu-ip" 
+                   placeholder="예: 192.168.1.200" 
+                   style="background-color: #2A3038; border: 1px solid #2c2e33; color: #e9ecef;" 
+                   required 
+                   pattern="^(?:[0-9]{1,3}\.){3}[0-9]{1,3}$">
+            <small class="form-text" style="color: #6c757d;">
+              <i class="fas fa-lightbulb mr-1"></i>PDU의 고정 IP 주소를 입력하세요. (형식: 000.000.000.000)
+            </small>
+          </div>
+          
+          <div class="form-group">
+            <label for="pdu-port" class="d-flex align-items-center">
+              <i class="fas fa-ethernet mr-2 text-success"></i>
+              <span>포트</span>
+              <span class="text-muted ml-1">(기본값: 80)</span>
+            </label>
+            <input type="number" 
+                   class="form-control" 
+                   id="pdu-port" 
+                   placeholder="80" 
+                   value="80" 
+                   min="1" 
+                   max="65535" 
+                   style="background-color: #2A3038; border: 1px solid #2c2e33; color: #e9ecef;" 
+                   required>
+            <small class="form-text" style="color: #6c757d;">
+              <i class="fas fa-lightbulb mr-1"></i>PDU 웹 인터페이스 접속 포트 (일반적으로 80 또는 443)
+            </small>
+          </div>
+          
+          <div class="form-group">
+            <label for="pdu-model" class="d-flex align-items-center">
+              <i class="fas fa-cogs mr-2 text-warning"></i>
+              <span>PDU 모델</span>
+              <span class="text-muted ml-1">(권장: ATEN PE6108)</span>
+            </label>
+            <select class="form-control" 
+                    id="pdu-model" 
+                    style="background-color: #2A3038; border: 1px solid #2c2e33; color: #e9ecef;" 
+                    required>
+              <option value="ATEN PE6108" selected>ATEN PE6108 (8포트 PDU - 권장)</option>
+              <option value="ATEN PE8208">ATEN PE8208 (8포트 고급형)</option>
+              <option value="ATEN PE7208">ATEN PE7208 (8포트 표준형)</option>
+              <option value="APC AP7920">APC AP7920 (APC 브랜드)</option>
+              <option value="OTHER">기타 (직접 설정)</option>
+            </select>
+            <small class="form-text" style="color: #6c757d;">
+              <i class="fas fa-lightbulb mr-1"></i>PDU 제조사와 모델에 따라 통신 프로토콜이 다를 수 있습니다.
+            </small>
+          </div>
+          
+          <div class="form-group">
+            <label for="pdu-username" class="d-flex align-items-center">
+              <i class="fas fa-user mr-2 text-info"></i>
+              <span>로그인 ID</span>
+              <span class="text-muted ml-1">(기본값: administrator)</span>
+            </label>
+            <input type="text" 
+                   class="form-control" 
+                   id="pdu-username" 
+                   placeholder="administrator" 
+                   value="administrator" 
+                   style="background-color: #2A3038; border: 1px solid #2c2e33; color: #e9ecef;">
+            <small class="form-text" style="color: #6c757d;">
+              <i class="fas fa-lightbulb mr-1"></i>PDU 웹 관리 인터페이스 로그인 사용자명
+            </small>
+          </div>
+          
+          <div class="form-group">
+            <label for="pdu-password" class="d-flex align-items-center">
+              <i class="fas fa-key mr-2 text-info"></i>
+              <span>비밀번호</span>
+              <span class="text-muted ml-1">(기본값: password)</span>
+            </label>
+            <input type="password" 
+                   class="form-control" 
+                   id="pdu-password" 
+                   placeholder="password" 
+                   value="password" 
+                   style="background-color: #2A3038; border: 1px solid #2c2e33; color: #e9ecef;">
+            <small class="form-text" style="color: #6c757d;">
+              <i class="fas fa-lightbulb mr-1"></i>PDU 웹 관리 인터페이스 로그인 비밀번호
+            </small>
+          </div>
+          
+          <!-- PDU 접속 정보 안내 -->
+          <div class="alert alert-light" style="background-color: #2A3038; border-color: #495057; color: #adb5bd; border-radius: 4px; padding: 10px; margin-top: 15px;">
+            <i class="fas fa-question-circle mr-2"></i>
+            <strong>PDU 접속 정보 확인 방법:</strong><br>
+            <small>
+              • PDU 본체 라벨에서 기본 IP 주소 확인<br>
+              • 웹브라우저에서 <code style="background-color: #495057; padding: 2px 4px; border-radius: 2px;">http://PDU_IP주소</code> 접속 테스트<br>
+              • 기본 로그인: administrator / password (모델별로 다를 수 있음)<br>
+              • ATEN PDU: 일반적으로 192.168.0.100 (기본값)
+            </small>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" onclick="closeAddPDUModal()">
+          <i class="fas fa-times mr-1"></i>취소
+        </button>
+        <button type="button" class="btn btn-primary" onclick="addPDU()">
+          <i class="fas fa-plus mr-1"></i>PDU 추가
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- PDU 설정 모달 -->
+<div class="modal" id="editPDUModal" tabindex="-1" role="dialog" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">
+          <i class="fas fa-cog mr-2"></i>PDU 설정
+        </h5>
+        <button type="button" class="close" onclick="closeEditPDUModal()">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <!-- 안내 메시지 -->
+        <div class="alert alert-warning" style="background-color: #854d0e; border-color: #f59e0b; color: #fed7aa; border-radius: 4px; padding: 12px; margin-bottom: 20px;">
+          <i class="fas fa-edit mr-2"></i>
+          <strong>PDU 정보 수정</strong><br>
+          등록된 PDU의 정보를 수정합니다. IP 주소나 로그인 정보 변경 시 PDU와의 연결이 일시적으로 끊어질 수 있습니다.
+        </div>
+        
+        <form id="updatePDUForm">
+          <input type="hidden" id="edit-pdu-id">
+          <input type="hidden" id="edit-pdu-uuid">
+          
+          <div class="form-group">
+            <label for="edit-pdu-name" class="d-flex align-items-center">
+              <i class="fas fa-tag mr-2 text-primary"></i>
+              <span>PDU 이름</span>
+              <span class="text-danger ml-1">*</span>
+            </label>
+            <input type="text" 
+                   class="form-control" 
+                   id="edit-pdu-name" 
+                   placeholder="예: 강의실1번-PDU, 서버실-전력분배기" 
+                   style="background-color: #2A3038; border: 1px solid #2c2e33; color: #e9ecef;" 
+                   required>
+            <small class="form-text" style="color: #6c757d;">
+              <i class="fas fa-lightbulb mr-1"></i>PDU를 쉽게 구분할 수 있는 이름을 입력하세요.
+            </small>
+          </div>
+          
+          <div class="form-group">
+            <label for="edit-pdu-ip" class="d-flex align-items-center">
+              <i class="fas fa-network-wired mr-2 text-primary"></i>
+              <span>IP 주소</span>
+              <span class="text-danger ml-1">*</span>
+            </label>
+            <input type="text" 
+                   class="form-control" 
+                   id="edit-pdu-ip" 
+                   placeholder="예: 192.168.1.200" 
+                   style="background-color: #2A3038; border: 1px solid #2c2e33; color: #e9ecef;" 
+                   required 
+                   pattern="^(?:[0-9]{1,3}\.){3}[0-9]{1,3}$">
+            <small class="form-text" style="color: #6c757d;">
+              <i class="fas fa-lightbulb mr-1"></i>PDU의 고정 IP 주소를 입력하세요. (형식: 000.000.000.000)
+            </small>
+          </div>
+          
+          <div class="form-group">
+            <label for="edit-pdu-port" class="d-flex align-items-center">
+              <i class="fas fa-ethernet mr-2 text-success"></i>
+              <span>포트</span>
+              <span class="text-muted ml-1">(기본값: 80)</span>
+            </label>
+            <input type="number" 
+                   class="form-control" 
+                   id="edit-pdu-port" 
+                   value="80" 
+                   min="1" 
+                   max="65535" 
+                   style="background-color: #2A3038; border: 1px solid #2c2e33; color: #e9ecef;">
+            <small class="form-text" style="color: #6c757d;">
+              <i class="fas fa-lightbulb mr-1"></i>PDU 웹 인터페이스 접속 포트 (일반적으로 80 또는 443)
+            </small>
+          </div>
+          
+          <div class="form-group">
+            <label for="edit-pdu-model" class="d-flex align-items-center">
+              <i class="fas fa-cogs mr-2 text-warning"></i>
+              <span>PDU 모델</span>
+              <span class="text-muted ml-1">(선택사항)</span>
+            </label>
+            <input type="text" 
+                   class="form-control" 
+                   id="edit-pdu-model" 
+                   placeholder="예: ATEN PE6108" 
+                   value="ATEN PE6108" 
+                   style="background-color: #2A3038; border: 1px solid #2c2e33; color: #e9ecef;">
+            <small class="form-text" style="color: #6c757d;">
+              <i class="fas fa-lightbulb mr-1"></i>PDU 제조사와 모델명을 정확히 입력하세요.
+            </small>
+          </div>
+          
+          <div class="form-group">
+            <label for="edit-pdu-username" class="d-flex align-items-center">
+              <i class="fas fa-user mr-2 text-info"></i>
+              <span>로그인 ID</span>
+              <span class="text-muted ml-1">(기본값: administrator)</span>
+            </label>
+            <input type="text" 
+                   class="form-control" 
+                   id="edit-pdu-username" 
+                   placeholder="administrator" 
+                   value="administrator" 
+                   style="background-color: #2A3038; border: 1px solid #2c2e33; color: #e9ecef;">
+            <small class="form-text" style="color: #6c757d;">
+              <i class="fas fa-lightbulb mr-1"></i>PDU 웹 관리 인터페이스 로그인 사용자명
+            </small>
+          </div>
+          
+          <div class="form-group">
+            <label for="edit-pdu-password" class="d-flex align-items-center">
+              <i class="fas fa-key mr-2 text-info"></i>
+              <span>비밀번호</span>
+              <span class="text-muted ml-1">(변경 시에만 입력)</span>
+            </label>
+            <input type="password" 
+                   class="form-control" 
+                   id="edit-pdu-password" 
+                   placeholder="변경하지 않으려면 비워두세요" 
+                   style="background-color: #2A3038; border: 1px solid #2c2e33; color: #e9ecef;">
+            <small class="form-text" style="color: #6c757d;">
+              <i class="fas fa-lightbulb mr-1"></i>비밀번호를 변경하지 않으려면 이 필드를 비워두세요.
+            </small>
+          </div>
+          
+          <div class="form-group">
+            <label for="edit-pdu-outlet-count" class="d-flex align-items-center">
+              <i class="fas fa-plug mr-2 text-warning"></i>
+              <span>아웃렛 수</span>
+              <span class="text-muted ml-1">(일반적으로 8개)</span>
+            </label>
+            <input type="number" 
+                   class="form-control" 
+                   id="edit-pdu-outlet-count" 
+                   value="8" 
+                   min="1" 
+                   max="32" 
+                   style="background-color: #2A3038; border: 1px solid #2c2e33; color: #e9ecef;">
+            <small class="form-text" style="color: #6c757d;">
+              <i class="fas fa-lightbulb mr-1"></i>PDU에 있는 총 아웃렛(콘센트) 개수를 입력하세요.
+            </small>
+          </div>
+          
+          <!-- 참고사항 안내 -->
+          <div class="alert alert-light" style="background-color: #2A3038; border-color: #495057; color: #adb5bd; border-radius: 4px; padding: 10px; margin-top: 15px;">
+            <i class="fas fa-info-circle mr-2"></i>
+            <strong>참고사항:</strong><br>
+            <small>
+              • IP 주소 변경 시 해당 PDU와의 연결 상태가 변경될 수 있습니다.<br>
+              • 로그인 정보 변경 시 PDU 인증이 실패할 수 있으니 정확히 입력하세요.<br>
+              • 아웃렛 수는 PDU 모델에 따라 다르며, 일반적으로 8개입니다.<br>
+              • 변경사항은 즉시 적용되며, PDU 목록에서 확인 가능합니다.
+            </small>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" onclick="closeEditPDUModal()">
+          <i class="fas fa-times mr-1"></i>취소
+        </button>
+        <button type="button" class="btn btn-primary" onclick="saveEditPDU()">
+          <i class="fas fa-save mr-1"></i>저장
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+
+<script>
+// 여기서부터 자바스크립트 코드는 기존 코드를 유지하며 필요한 부분만 업데이트합니다.
+// 디버깅을 위한 콘솔 로그 추가
+console.log('PDU 관리 페이지 스크립트 로드됨');
+
+/**
+ * 스케줄 설정 저장
+ */
+async function saveSchedule() {
+  try {
+    // 로딩 표시
+    const loadingSpinner = document.getElementById('pduSpinner');
+    if (loadingSpinner) {
+      loadingSpinner.style.display = 'flex';
+    }
+    
+    console.log('스케줄 저장 시작');
+    
+    // 스케줄 데이터 수집
+    const startTime = document.getElementById('start-time').value || '08:00';
+    const endTime = document.getElementById('end-time').value || '18:00';
+    
+    // 요일 체크박스 값 수집
+    const dayCheckboxes = document.querySelectorAll('.day-checkbox');
+    const selectedDays = [];
+    
+    dayCheckboxes.forEach(checkbox => {
+      if (checkbox.checked) {
+        selectedDays.push(checkbox.value);
+      }
+    });
+    
+    // 활성화 상태 체크
+    const checkbox = document.getElementById('schedule-active');
+    const isActive = checkbox ? checkbox.checked : false;
+    
+    console.log('활성화 체크박스 상태:', isActive, '체크박스 존재:', !!checkbox);
+    
+    // API 요청 데이터 구성
+    const scheduleData = {
+        pdu_id: 'common',
+      power_on_time: startTime,
+      power_off_time: endTime,
+      days: selectedDays.join(','),
+      is_active: isActive ? 1 : 0
+    };
+    
+    console.log('저장할 스케줄 데이터:', scheduleData);
+    
+    // API 호출
+    const response = await fetch('/api/pdu/schedule/add', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(scheduleData)
+    });
+    
+    const data = await response.json();
+    console.log('PDU 스케줄 저장 API 응답:', data);
+    
+    if (response.ok) {
+      alert('PDU 스케줄이 성공적으로 저장되었습니다.');
+    } else {
+      console.error('PDU 스케줄 저장 실패:', data);
+      alert('PDU 스케줄 저장에 실패했습니다: ' + (data.message || data.error || '알 수 없는 오류'));
+    }
+  } catch (error) {
+    console.error('스케줄 저장 중 오류 발생:', error);
+    alert('스케줄 저장 중 오류가 발생했습니다.');
+  } finally {
+    // 로딩 표시 숨기기
+    const loadingSpinner = document.getElementById('pduSpinner');
+    if (loadingSpinner) {
+      loadingSpinner.style.display = 'none';
+    }
+  }
+}
+
+/**
+ * 현재 설정된 스케줄 가져오기
+ */
+async function loadSchedule() {
+  try {
+    console.log('PDU 스케줄 로드 시작');
+    
+    // API 호출
+    const response = await fetch('/api/pdu/schedule/list/common');
+    
+    if (!response.ok) {
+      console.warn('PDU 스케줄 API 응답 실패:', response.status);
+      return;
+    }
+    
+    const data = await response.json();
+    console.log('PDU 스케줄 API 응답:', data);
+    
+    // 데이터가 없거나 빈 객체인 경우
+    if (!data || Object.keys(data).length === 0) {
+      console.warn('PDU 스케줄 데이터 없음');
+      return;
+    }
+    
+    // PDU API는 schedule 객체 또는 직접 데이터를 반환할 수 있음
+    const schedule = data.schedule || data;
+    console.log('PDU 스케줄 데이터:', schedule);
+    
+    // 시간 설정
+    document.getElementById('start-time').value = schedule.power_on_time || '08:00';
+    document.getElementById('end-time').value = schedule.power_off_time || '18:00';
+    
+    // 요일 설정
+    const days = schedule.days ? schedule.days.split(',').map(d => parseInt(d, 10)) : [1, 2, 3, 4, 5];
+    const dayCheckboxes = document.querySelectorAll('.day-checkbox');
+    
+    dayCheckboxes.forEach(checkbox => {
+      checkbox.checked = days.includes(parseInt(checkbox.value, 10));
+    });
+    
+    // 활성화 상태 설정 - API에서 받은 실제 값으로 설정
+    console.log('서버에서 받은 is_active 원본 값:', schedule.is_active, '타입:', typeof schedule.is_active);
+    const isActive = schedule.is_active === 1 || schedule.is_active === '1' || schedule.is_active === true || schedule.is_active === 'true';
+    console.log('변환된 활성화 상태:', isActive);
+    
+    const checkbox = document.getElementById('schedule-active');
+    if (checkbox) {
+      checkbox.checked = isActive;
+      console.log('체크박스 상태 설정 완료:', checkbox.checked);
+    } else {
+      console.error('schedule-active 체크박스를 찾을 수 없습니다.');
+    }
+    
+    console.log('PDU 스케줄 로드 완료 - 활성화 상태:', isActive);
+    
+  } catch (error) {
+    console.error('PDU 스케줄 로드 중 오류 발생:', error);
+  }
+}
+
+/**
+ * 스케줄 활성화 상태 즉시 토글
+ */
+async function toggleScheduleActive() {
+  try {
+    const isActive = document.getElementById('schedule-active').checked;
+    
+    console.log('PDU 스케줄 활성화 상태 변경 시도:', isActive);
+    
+    // 로딩 표시
+    const loadingSpinner = document.getElementById('pduSpinner');
+    if (loadingSpinner) {
+      loadingSpinner.style.display = 'flex';
+    }
+    
+    // API 호출하여 스케줄 활성화 상태만 변경
+    const response = await fetch('/api/pdu/schedule/toggle', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        is_active: isActive
+      })
+    });
+    
+    const data = await response.json();
+    
+    if (data.success) {
+      console.log(`PDU 스케줄이 ${isActive ? '활성화' : '비활성화'}되었습니다.`);
+      alert(`PDU 스케줄이 ${isActive ? '활성화' : '비활성화'}되었습니다.`);
+    } else {
+      console.error('PDU 스케줄 활성화 상태 변경 실패:', data.message);
+      alert('PDU 스케줄 활성화 상태 변경에 실패했습니다: ' + (data.message || '알 수 없는 오류'));
+      // 실패 시 체크박스 상태 원복
+      document.getElementById('schedule-active').checked = !isActive;
+    }
+  } catch (error) {
+    console.error('PDU 스케줄 활성화 상태 변경 중 오류:', error);
+    alert('PDU 스케줄 활성화 상태 변경 중 오류가 발생했습니다.');
+    // 오류 시 체크박스 상태 원복
+    const checkbox = document.getElementById('schedule-active');
+    if (checkbox) {
+      checkbox.checked = !checkbox.checked;
+    }
+  } finally {
+    // 로딩 표시 숨기기
+    const loadingSpinner = document.getElementById('pduSpinner');
+    if (loadingSpinner) {
+      loadingSpinner.style.display = 'none';
+    }
+  }
+}
+
+// 페이지 로드 시 초기화
+document.addEventListener('DOMContentLoaded', function() {
+  console.log('DOM Content Loaded - 페이지 초기화 시작');
+  
+  // 스케줄 로드
+  loadSchedule();
+  
+  // PDU 목록 로드
+  loadPDUList();
+  
+  // 30초마다 PDU 목록 자동 새로고침
+  setInterval(function() {
+    console.log('PDU 목록 자동 새로고침');
+    loadPDUList();
+  }, 30000);
+  
+  // 현재 시간 표시 시작
+  updateCurrentTime();
+  setInterval(updateCurrentTime, 1000);
+  
+  // 스케줄 활성화 체크박스 이벤트 리스너 등록
+  const scheduleActiveCheckbox = document.getElementById('schedule-active');
+  if (scheduleActiveCheckbox) {
+    scheduleActiveCheckbox.addEventListener('change', function() {
+      console.log('PDU 스케줄 활성화 체크박스 변경됨:', this.checked);
+      toggleScheduleActive();
+    });
+    console.log('PDU 스케줄 활성화 체크박스 이벤트 리스너 등록 완료');
+  } else {
+    console.warn('PDU 스케줄 활성화 체크박스를 찾을 수 없습니다.');
+  }
+  
+  try {
+    // PDU 추가 버튼은 이미 onclick 속성으로 처리되므로 이벤트 리스너 제거
+    console.log('PDU 추가 버튼은 onclick 속성으로 처리됨');
+    
+    // PDU 추가 모달의 추가 버튼도 onclick 속성으로 처리되므로 이벤트 리스너 제거
+    console.log('PDU 추가 모달 버튼은 onclick 속성으로 처리됨');
+    
+    // 모달 닫기 버튼은 onclick 속성으로 처리되므로 이벤트 리스너 제거
+    console.log('모달 닫기 버튼들은 onclick 속성으로 처리됨');
+    
+    // ESC 키로 모달 닫기
+    document.addEventListener('keydown', function(event) {
+      if (event.key === 'Escape') {
+        const visibleModal = document.querySelector('.modal.show');
+        if (visibleModal) {
+          hideModal(visibleModal.id);
+        }
+    }
+  });
+  
+    // 모달 외부 클릭으로 닫기
+    document.querySelectorAll('.modal').forEach(modal => {
+      modal.addEventListener('click', function(event) {
+        if (event.target === this) {
+          hideModal(this.id);
+        }
+      });
+      
+      // 모달 내부 클릭은 전파 중단
+      const modalDialog = modal.querySelector('.modal-dialog');
+      if (modalDialog) {
+        modalDialog.addEventListener('click', function(e) {
+          e.stopPropagation();
+        });
+      }
+    });
+    
+    console.log('모달 초기화 성공');
+  } catch (error) {
+    console.error('초기화 중 오류 발생:', error);
+  }
+  });
+  
+// 모달 관련 함수들
+function showModal(modalId) {
+  console.log('모달 열기 시도:', modalId);
+  const modal = document.getElementById(modalId);
+  if (!modal) {
+    console.error('모달을 찾을 수 없음:', modalId);
+    return;
+  }
+  
+  // 모달 표시
+  modal.style.display = 'block';
+  modal.classList.add('show');
+  document.body.classList.add('modal-open');
+  
+  // 첫 번째 입력 필드에 포커스
+  const firstInput = modal.querySelector('input:not([type="hidden"])');
+  if (firstInput) {
+    setTimeout(() => firstInput.focus(), 100);
+  }
+}
+
+function hideModal(modalId) {
+  console.log('모달 닫기 시도:', modalId);
+  const modal = document.getElementById(modalId);
+  if (!modal) {
+    console.error('모달을 찾을 수 없음:', modalId);
+    return;
+  }
+  
+  // 모달 숨기기
+  modal.style.display = 'none';
+  modal.classList.remove('show');
+  document.body.classList.remove('modal-open');
+  
+  // 폼 초기화
+  const form = modal.querySelector('form');
+  if (form) {
+    form.reset();
+    
+    // PDU 추가 모달의 기본값 복원
+    if (modalId === 'addPDUModal') {
+      document.getElementById('pdu-port').value = '80';
+      document.getElementById('pdu-model').value = 'ATEN PE6108';
+      document.getElementById('pdu-username').value = 'administrator';
+      document.getElementById('pdu-password').value = 'password';
+    }
+  }
+}
+
+// PDU 추가 모달 닫기
+function closeAddPDUModal() {
+  hideModal('addPDUModal');
+}
+
+// PDU 설정 모달 닫기
+function closeEditPDUModal() {
+  hideModal('editPDUModal');
+}
+
+// PDU 추가
+async function addPDU() {
+  // 중복 실행 방지
+  if (window.addPDUInProgress) {
+    console.log('PDU 추가가 이미 진행 중입니다.');
+    return;
+  }
+  window.addPDUInProgress = true;
+  
+  try {
+    // 현재 등록된 PDU 수량 확인 (3개 제한)
+    const listResponse = await fetch('/api/pdu/list');
+    const listData = await listResponse.json();
+    
+    if (listData.pdus) {
+      const currentCount = listData.pdus.length;
+      if (currentCount >= 3) {
+        alert('PDU는 최대 3개까지만 등록할 수 있습니다.\n현재 등록된 PDU: ' + currentCount + '개');
+        return;
+      }
+      console.log(`현재 등록된 PDU: ${currentCount}개 (최대 3개)`);
+    }
+    
+    const name = document.getElementById('pdu-name').value.trim();
+    const ip = document.getElementById('pdu-ip').value.trim();
+    const port = document.getElementById('pdu-port').value || '80';
+    const model = document.getElementById('pdu-model').value || 'ATEN PE6108';
+    const username = document.getElementById('pdu-username').value.trim() || 'administrator';
+    const password = document.getElementById('pdu-password').value || 'password';
+    
+    if (!name || !ip) {
+      alert('이름과 IP 주소는 필수 입력 항목입니다.');
+      return;
+    }
+    
+    // IP 주소 유효성 검사
+    const ipPattern = /^(?:[0-9]{1,3}\.){3}[0-9]{1,3}$/;
+    if (!ipPattern.test(ip)) {
+      alert('유효한 IP 주소 형식이 아닙니다.');
+      return;
+    }
+    
+    // IP 중복 검사
+    const isDuplicate = await checkIPDuplicate(ip);
+    if (isDuplicate) {
+      alert(`IP 주소 "${ip}"는 이미 다른 장비에서 사용 중입니다.\n다른 IP 주소를 입력해주세요.`);
+      document.getElementById('pdu-ip').focus();
+      return;
+    }
+    
+    // 로딩 표시
+    document.getElementById('pduSpinner').style.display = 'flex';
+    
+    const pduData = {
+      name: name,
+      ip: ip,
+      port: parseInt(port),
+      model: model,
+      username: username,
+      password: password
+    };
+    
+    console.log('PDU 추가 요청:', pduData);
+    
+    const response = await fetch('/api/pdu/add', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(pduData)
+    });
+    
+    const result = await response.json();
+    console.log('PDU 추가 API 응답:', result);
+    
+    if (response.ok) {
+      alert('PDU가 성공적으로 추가되었습니다.');
+      hideModal('addPDUModal');
+      loadPDUList(); // 목록 새로고침
+    } else {
+      console.error('PDU 추가 실패:', result);
+      alert('PDU 추가 실패: ' + (result.message || result.error || '알 수 없는 오류'));
+    }
+  } catch (error) {
+    console.error('PDU 추가 중 오류 발생:', error);
+    alert('PDU 추가 중 오류가 발생했습니다.');
+  } finally {
+    document.getElementById('pduSpinner').style.display = 'none';
+    window.addPDUInProgress = false; // 플래그 해제
+  }
+}
+
+/**
+ * 모든 장비의 IP 주소 중복 검사
+ * @param {string} ipAddress - 검사할 IP 주소
+ * @returns {boolean} - 중복 여부 (true: 중복됨, false: 중복되지 않음)
+ */
+async function checkIPDuplicate(ipAddress) {
+  try {
+    console.log('IP 중복 검사 시작:', ipAddress);
+    
+    const allDevices = [];
+    
+    // 1. 프로젝터 목록 조회
+    try {
+      const projectorResponse = await fetch('/api/projector/list');
+      const projectorData = await projectorResponse.json();
+      if (projectorData.success && projectorData.devices) {
+        projectorData.devices.forEach(device => {
+          allDevices.push({ type: '프로젝터', name: device.name, ip: device.ip });
+        });
+      }
+    } catch (e) {
+      console.warn('프로젝터 목록 조회 실패:', e);
+    }
+    
+    // 2. PC 목록 조회
+    try {
+      const pcResponse = await fetch('/api/pc/list');
+      const pcData = await pcResponse.json();
+      if (pcData.success && pcData.pc_list) {
+        pcData.pc_list.forEach(device => {
+          allDevices.push({ type: 'PC', name: device.name, ip: device.ip });
+        });
+      }
+    } catch (e) {
+      console.warn('PC 목록 조회 실패:', e);
+    }
+    
+    // 3. PDU 목록 조회
+    try {
+      const pduResponse = await fetch('/api/pdu/list');
+      const pduData = await pduResponse.json();
+      if (pduData.pdus) {
+        pduData.pdus.forEach(device => {
+          allDevices.push({ type: 'PDU', name: device.name, ip: device.ip });
+        });
+      }
+    } catch (e) {
+      console.warn('PDU 목록 조회 실패:', e);
+    }
+    
+    // 중복 검사
+    const duplicateDevice = allDevices.find(device => device.ip === ipAddress);
+    
+    if (duplicateDevice) {
+      console.log('IP 중복 발견:', duplicateDevice);
+      return true;
+    }
+    
+    console.log('IP 중복 없음');
+    return false;
+    
+  } catch (error) {
+    console.error('IP 중복 검사 중 오류:', error);
+    // 오류가 발생해도 추가를 막지 않도록 false 반환
+    return false;
+  }
+}
+
+/**
+ * PDU 목록 로드
+ */
+async function loadPDUList() {
+  try {
+    // 로딩 표시
+    document.getElementById('pduSpinner').style.display = 'flex';
+    
+    console.log('PDU 목록 로드 시작');
+    
+    // API 호출
+    const response = await fetch('/api/pdu/list');
+    const data = await response.json();
+    
+    console.log('PDU API 응답:', data);
+    
+    // PDU API는 success 필드 없이 pdus 배열로 응답
+    const pduList = data.pdus || [];
+    console.log('PDU 목록 로드 성공:', pduList);
+    
+    // 각 PDU의 상세 정보 로그
+    pduList.forEach((pdu, index) => {
+      console.log(`PDU ${index + 1} (${pdu.name}) 상세 정보:`, {
+        id: pdu.id,
+        name: pdu.name,
+        ip: pdu.ip,
+        is_online: pdu.is_online,
+        ping_status: pdu.ping_status,
+        connection_status: pdu.connection_status,
+        status: pdu.status,
+        outlets: pdu.outlets,
+        전체_객체: pdu
+      });
+    });
+    
+    if (pduList.length === 0) {
+      document.getElementById('pduList').innerHTML = '<tr><td colspan="8" class="text-center">등록된 PDU가 없습니다</td></tr>';
+      return;
+    }
+    
+    // PDU 목록 렌더링
+    let html = '';
+    pduList.forEach((pdu, index) => {
+      // PDU 필드 확인 (간단히)
+      console.log(`PDU ${pdu.name} 주요 상태:`, {
+        network_status: pdu.network_status,
+        power_status: pdu.power_status,
+        status: pdu.status
+      });
+      
+             // NET상태 판단 - network_status 필드 사용
+       const isPingOnline = pdu.network_status === 'online' || pdu.network_status === 1 || pdu.network_status === true;
+       
+       const netStatusClass = isPingOnline ? 'text-success' : 'text-danger';
+       const netStatusText = isPingOnline ? '연결됨' : '끊김';
+       const outletCount = pdu.outlet_count || 8;
+       
+       console.log(`PDU ${pdu.name} NET상태 (network_status: ${pdu.network_status}) 최종 판단:`, isPingOnline);
+      
+      html += `
+        <tr data-pdu-id="${pdu.id}" data-pdu-uuid="${pdu.uuid || ''}">
+          <td>${index + 1}</td>
+          <td>${pdu.name}</td>
+          <td>${pdu.ip}</td>
+          <td><span class="${netStatusClass}"><i class="fas fa-circle mr-1"></i>${netStatusText}</span></td>
+          <td>${outletCount}개</td>
+          <td id="pdu-status-${pdu.id}">${getPDUStatusHTML(pdu)}</td>
+                    <td>
+            <div class="control-buttons">
+              <button class="btn control-btn btn-success" onclick="controlPDU(${pdu.id}, 'on')" title="순차적으로 모든 아웃렛 켜기">
+                <i class="fas fa-power-off"></i> 켜기
+              </button>
+              <button class="btn control-btn btn-danger" onclick="controlPDU(${pdu.id}, 'off')" title="순차적으로 모든 아웃렛 끄기">
+                <i class="fas fa-power-off"></i> 끄기
+              </button>
+            </div>
+          </td>
+          <td>
+            <div class="settings-buttons">
+              <button class="btn control-btn btn-info" onclick="openEditPDU(${pdu.id})">
+                <i class="fas fa-cog"></i> 설정
+              </button>
+              <button class="btn control-btn btn-secondary" onclick="deletePDU(${pdu.id})">
+                <i class="fas fa-trash"></i> 삭제
+              </button>
+            </div>
+          </td>
+        </tr>
+      `;
+    });
+    
+    document.getElementById('pduList').innerHTML = html;
+    
+  } catch (error) {
+    console.error('PDU 목록 로드 중 오류 발생:', error);
+    document.getElementById('pduList').innerHTML = '<tr><td colspan="8" class="text-center">PDU 목록을 불러오는 중 오류가 발생했습니다</td></tr>';
+  } finally {
+    // 로딩 표시 숨기기
+    document.getElementById('pduSpinner').style.display = 'none';
+  }
+}
+
+/**
+ * PDU 상태 HTML 생성
+ */
+function getPDUStatusHTML(pdu) {
+  console.log(`PDU ${pdu.name} 상태 확인:`, pdu);
+  
+  // PDU 연결 상태 확인 - power_status와 network_status 모두 확인
+  const isPowerOn = pdu.power_status === 'on' || pdu.power_status === 1 || pdu.power_status === true;
+  const isNetworkOnline = pdu.network_status === 'online' || pdu.network_status === 1 || pdu.network_status === true;
+  const isConnected = isPowerOn && isNetworkOnline;
+  
+  console.log(`PDU ${pdu.name} 상태 판단:`, {
+    power_status: pdu.power_status,
+    network_status: pdu.network_status,
+    isPowerOn: isPowerOn,
+    isNetworkOnline: isNetworkOnline,
+    최종연결상태: isConnected
+  });
+  
+  if (!isConnected) {
+    return '<span class="text-danger"><i class="fas fa-circle mr-1"></i>꺼짐</span>';
+  }
+  
+  // 아웃렛 상태 정보가 있는 경우 (배열)
+  if (pdu.outlets && Array.isArray(pdu.outlets) && pdu.outlets.length > 0) {
+    const onCount = pdu.outlets.filter(outlet => 
+      outlet.status === 'on' || outlet.status === 1 || outlet.status === true ||
+      outlet.state === 'on' || outlet.state === 1 || outlet.state === true
+    ).length;
+    const totalCount = pdu.outlets.length;
+    
+    console.log(`PDU ${pdu.name} 아웃렛 배열 상태:`, {
+      outlets: pdu.outlets,
+      onCount: onCount,
+      totalCount: totalCount
+    });
+    
+    if (onCount === 0) {
+      return '<span class="text-danger"><i class="fas fa-circle mr-1"></i>꺼짐</span>';
+    } else {
+      return '<span class="text-success"><i class="fas fa-circle mr-1"></i>작동중</span>';
+    }
+  }
+  
+  // 아웃렛 상태 정보가 객체인 경우
+  if (pdu.outlets && typeof pdu.outlets === 'object' && !Array.isArray(pdu.outlets)) {
+    const outletKeys = Object.keys(pdu.outlets);
+    if (outletKeys.length > 0) {
+      const onCount = outletKeys.filter(key => 
+        pdu.outlets[key] === 'on' || pdu.outlets[key] === 1 || pdu.outlets[key] === true
+      ).length;
+      const totalCount = outletKeys.length;
+      
+          console.log(`PDU ${pdu.name} 아웃렛 객체 상태:`, {
+      outlets: pdu.outlets,
+      onCount: onCount,
+      totalCount: totalCount
+    });
+    
+    if (onCount === 0) {
+      return '<span class="text-danger"><i class="fas fa-circle mr-1"></i>꺼짐</span>';
+    } else {
+      return '<span class="text-success"><i class="fas fa-circle mr-1"></i>작동중</span>';
+    }
+    }
+  }
+  
+  // outlet_status 필드 확인
+  if (pdu.outlet_status && typeof pdu.outlet_status === 'object') {
+    const statusKeys = Object.keys(pdu.outlet_status);
+    const onCount = statusKeys.filter(key => 
+      pdu.outlet_status[key] === 'on' || pdu.outlet_status[key] === 1 || pdu.outlet_status[key] === true
+    ).length;
+    const totalCount = statusKeys.length;
+    
+    console.log(`PDU ${pdu.name} outlet_status:`, {
+      outlet_status: pdu.outlet_status,
+      onCount: onCount,
+      totalCount: totalCount
+    });
+    
+    if (totalCount > 0) {
+      if (onCount === 0) {
+        return '<span class="text-danger"><i class="fas fa-circle mr-1"></i>꺼짐</span>';
+      } else {
+        return '<span class="text-success"><i class="fas fa-circle mr-1"></i>작동중</span>';
+      }
+    }
+  }
+  
+  // status 필드에 아웃렛 정보가 있는 경우
+  if (pdu.status && typeof pdu.status === 'object' && pdu.status !== 'online' && pdu.status !== 'connected') {
+    const statusKeys = Object.keys(pdu.status);
+    const onCount = statusKeys.filter(key => 
+      pdu.status[key] === 'on' || pdu.status[key] === 1 || pdu.status[key] === true
+    ).length;
+    const totalCount = statusKeys.length;
+    
+    console.log(`PDU ${pdu.name} status 객체:`, {
+      status: pdu.status,
+      onCount: onCount,
+      totalCount: totalCount
+    });
+    
+    if (totalCount > 0) {
+      if (onCount === 0) {
+        return '<span class="text-danger"><i class="fas fa-circle mr-1"></i>꺼짐</span>';
+      } else {
+        return '<span class="text-success"><i class="fas fa-circle mr-1"></i>작동중</span>';
+      }
+    }
+  }
+  
+  // 아웃렛 상태 정보가 없는 경우 power_status 기반으로 표시
+  if (isPowerOn) {
+    return '<span class="text-success"><i class="fas fa-circle mr-1"></i>작동중</span>';
+  } else {
+    return '<span class="text-danger"><i class="fas fa-circle mr-1"></i>꺼짐</span>';
+  }
+}
+
+/**
+ * PDU 수정 모달 열기
+ */
+async function openEditPDU(pduId) {
+  try {
+    // 로딩 표시
+    document.getElementById('pduSpinner').style.display = 'flex';
+    
+    // PDU 목록에서 해당 PDU 찾기
+    const response = await fetch('/api/pdu/list');
+    const data = await response.json();
+    console.log('PDU 목록 API 응답:', data);
+    
+    if (!response.ok || !data.pdus) {
+      console.error('PDU 목록 로드 실패:', data);
+      alert('PDU 정보를 불러올 수 없습니다.');
+      return;
+    }
+    
+    // 해당 PDU 찾기
+    const pdu = data.pdus.find(p => p.id === parseInt(pduId));
+    if (!pdu) {
+      console.error('PDU를 찾을 수 없습니다:', pduId);
+      alert('PDU를 찾을 수 없습니다.');
+      return;
+    }
+    
+    // 폼 필드에 데이터 설정
+    document.getElementById('edit-pdu-id').value = pdu.id;
+    document.getElementById('edit-pdu-uuid').value = pdu.uuid || '';
+    document.getElementById('edit-pdu-name').value = pdu.name;
+    document.getElementById('edit-pdu-ip').value = pdu.ip;
+    document.getElementById('edit-pdu-port').value = pdu.port || 80;
+    document.getElementById('edit-pdu-model').value = pdu.model || 'ATEN PE6108';
+    document.getElementById('edit-pdu-username').value = pdu.username || 'administrator';
+    document.getElementById('edit-pdu-outlet-count').value = pdu.outlet_count || 8;
+    
+    // 비밀번호는 보안 상 비워두기
+    document.getElementById('edit-pdu-password').value = '';
+    
+    // 모달 열기
+    showModal('editPDUModal');
+    
+  } catch (error) {
+    console.error('PDU 정보 로드 중 오류 발생:', error);
+    alert('PDU 정보를 불러오는 중 오류가 발생했습니다.');
+  } finally {
+    // 로딩 표시 숨기기
+    document.getElementById('pduSpinner').style.display = 'none';
+  }
+}
+
+/**
+ * PDU 수정 취소
+ */
+function cancelEditPDU() {
+  hideModal('editPDUModal');
+}
+
+/**
+ * PDU 수정 저장
+ */
+async function saveEditPDU() {
+  try {
+    // 폼 데이터 수집
+    const id = document.getElementById('edit-pdu-id').value;
+    const uuid = document.getElementById('edit-pdu-uuid').value;
+    const name = document.getElementById('edit-pdu-name').value;
+    const ip = document.getElementById('edit-pdu-ip').value;
+    const port = document.getElementById('edit-pdu-port').value;
+    const model = document.getElementById('edit-pdu-model').value;
+    const username = document.getElementById('edit-pdu-username').value;
+    const password = document.getElementById('edit-pdu-password').value;
+    const outletCount = document.getElementById('edit-pdu-outlet-count').value;
+    
+    if (!name || !ip) {
+      alert('이름과 IP 주소는 필수 입력 항목입니다.');
+      return;
+    }
+    
+    // 로딩 표시
+    document.getElementById('pduSpinner').style.display = 'flex';
+    
+    // API 요청 데이터
+    const pduData = {
+      id: id,
+      uuid: uuid,
+      name: name,
+      ip: ip,
+      port: port || 80,
+      model: model,
+      username: username,
+      outlet_count: outletCount || 8
+    };
+    
+    // 비밀번호가 입력된 경우에만 포함
+    if (password) {
+      pduData.password = password;
+    }
+    
+    console.log('수정할 PDU 데이터:', pduData);
+    
+    // API 호출
+    const response = await fetch('/api/pdu/edit', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(pduData)
+    });
+    
+    const data = await response.json();
+    console.log('PDU 수정 API 응답:', data);
+    
+    if (response.ok) {
+      alert('PDU가 성공적으로 수정되었습니다.');
+      hideModal('editPDUModal');
+      
+      // PDU 목록 다시 로드
+      loadPDUList();
+    } else {
+      console.error('PDU 수정 실패:', data);
+      alert('PDU 수정에 실패했습니다: ' + (data.message || data.error || '알 수 없는 오류'));
+    }
+  } catch (error) {
+    console.error('PDU 수정 중 오류 발생:', error);
+    alert('PDU 수정 중 오류가 발생했습니다.');
+  } finally {
+    // 로딩 표시 숨기기
+    document.getElementById('pduSpinner').style.display = 'none';
+  }
+}
+
+/**
+ * PDU 삭제
+ */
+async function deletePDU(pduId) {
+  // 중복 실행 방지
+  if (window.deletePDUInProgress) {
+    console.log('PDU 삭제가 이미 진행 중입니다.');
+    return;
+  }
+  
+  if (!confirm('정말 이 PDU를 삭제하시겠습니까?')) {
+    return;
+  }
+  
+  window.deletePDUInProgress = true;
+  
+  try {
+    // 로딩 표시
+    document.getElementById('pduSpinner').style.display = 'flex';
+    
+    // API 호출 - PC와 동일한 방식으로 수정
+    const response = await fetch('/api/pdu/delete', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ id: pduId })
+    });
+    
+    const data = await response.json();
+    console.log('PDU 삭제 API 응답:', data);
+    
+    // PDU API 응답 구조에 따라 성공 판단
+    if (response.ok && (!data.error || data.success)) {
+      console.log('PDU 삭제 완료:', pduId);
+      
+      // PDU 목록 다시 로드
+      loadPDUList();
+    } else {
+      console.error('PDU 삭제 실패:', data);
+      alert('PDU 삭제에 실패했습니다: ' + (data.message || data.error || '알 수 없는 오류'));
+    }
+  } catch (error) {
+    console.error('PDU 삭제 중 오류 발생:', error);
+    alert('PDU 삭제 중 오류가 발생했습니다.');
+  } finally {
+    // 로딩 표시 숨기기
+    document.getElementById('pduSpinner').style.display = 'none';
+    window.deletePDUInProgress = false; // 플래그 해제
+  }
+}
+
+/**
+ * PDU 제어 (백엔드 순차 제어 사용)
+ */
+async function controlPDU(pduId, action) {
+  try {
+    // 로딩 표시
+    document.getElementById('pduSpinner').style.display = 'flex';
+    
+    console.log(`PDU ${pduId} 순차 ${action} 제어 시작`);
+    
+    // PDU 정보 가져오기 - 목록에서 찾기
+    let pdu = null;
+    
+    try {
+      // 먼저 목록에서 PDU 정보 찾기
+      const listResponse = await fetch('/api/pdu/list');
+      const listData = await listResponse.json();
+      const pduList = listData.pdus || [];
+      pdu = pduList.find(p => p.id === parseInt(pduId));
+      
+      if (!pdu) {
+        throw new Error('PDU를 찾을 수 없습니다.');
+      }
+    } catch (error) {
+      console.error('PDU 정보 조회 실패:', error);
+      alert('PDU 정보를 가져올 수 없습니다.');
+      return;
+    }
+    
+    // 순차 제어 시작 알림
+    if (confirm(`PDU ${pdu.name}의 모든 아웃렛을 순차적으로 ${action === 'on' ? '켜기' : '끄기'} 하시겠습니까?\n(${action === 'on' ? '1번부터 8번까지' : '8번부터 1번까지'} 순서로 진행됩니다)`)) {
+      
+      console.log(`PDU ${pduId} 전체 순차 ${action} 제어 요청`);
+      
+      const username = pdu.username || 'administrator';
+      const password = pdu.password || 'password';
+      
+      // 백엔드의 순차 제어 기능 사용 (outletNum을 null로 설정하면 전체 순차 제어)
+      const requestData = {
+        pdu_id: parseInt(pduId),
+        ip: pdu.ip,
+        port: pdu.port || 80,
+        username: username,
+        password: password,
+        method: action
+        // outlet을 설정하지 않으면 백엔드에서 순차 제어 수행
+      };
+      
+      console.log(`전체 순차 제어 요청 데이터:`, requestData);
+      
+      // 백엔드 API 호출
+      const response = await fetch('/api/pdu/control', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(requestData)
+      });
+      
+      console.log(`전체 순차 제어 응답 상태:`, response.status, response.statusText);
+      
+      let result;
+      try {
+        result = await response.json();
+        console.log(`전체 순차 제어 응답 데이터:`, result);
+      } catch (e) {
+        const responseText = await response.text();
+        console.log(`전체 순차 제어 응답 텍스트:`, responseText);
+        result = { message: responseText, success: response.ok };
+      }
+      
+      if (response.ok && result.success) {
+        console.log(`✅ PDU ${pduId} 전체 순차 ${action} 성공`);
+        alert(`PDU ${pdu.name} 순차 ${action === 'on' ? '켜기' : '끄기'} 완료`);
+      } else {
+        console.error(`❌ PDU ${pduId} 전체 순차 ${action} 실패:`, result);
+        alert(`PDU ${pdu.name} 순차 ${action === 'on' ? '켜기' : '끄기'} 실패: ${result.error || '알 수 없는 오류'}`);
+      }
+    }
+    
+    // PDU 목록 새로고침
+    setTimeout(() => loadPDUList(), 1000);
+    
+  } catch (error) {
+    console.error('PDU 제어 중 오류 발생:', error);
+    alert('PDU 제어 중 오류가 발생했습니다.');
+  } finally {
+    // 로딩 표시 숨기기
+    document.getElementById('pduSpinner').style.display = 'none';
+  }
+}
+
+
+
+
+
+
+/**
+ * 페이지 간 이동 함수
+ */
+function navigateToPage(url) {
+  window.location.href = url;
+}
+
+// 현재 시간 업데이트 (네비게이션 바용)
+function updateCurrentTime() {
+  const now = new Date();
+  
+  // 년.월.요일 부분
+  const year = now.getFullYear();
+  const month = String(now.getMonth() + 1).padStart(2, '0');
+  const weekdays = ['일', '월', '화', '수', '목', '금', '토'];
+  const weekday = weekdays[now.getDay()];
+  
+  // 12시간 표시 시간 부분
+  let hours = now.getHours();
+  const minutes = String(now.getMinutes()).padStart(2, '0');
+  const seconds = String(now.getSeconds()).padStart(2, '0');
+  const ampm = hours >= 12 ? '오후' : '오전';
+  
+  // 12시간제로 변환
+  hours = hours % 12;
+  hours = hours ? hours : 12; // 0시는 12시로 표시
+  hours = String(hours).padStart(2, '0');
+  
+  const timeString = `${year}.${month}.${weekday} ${ampm} ${hours}:${minutes}:${seconds}`;
+  
+  const timeElement = document.getElementById('current-time');
+  if (timeElement) {
+    timeElement.textContent = timeString;
+  }
+}
+</script>
+</body>
+</html>
+

@@ -1,0 +1,460 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>원격 제어 앱 MAC 주소 기반 인증 코드 생성기</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f7f9fc;
+        }
+        .container {
+            background-color: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+        }
+        h1 {
+            color: #2c3e50;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        h2 {
+            color: #34495e;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 5px;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: #34495e;
+        }
+        input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 16px;
+            box-sizing: border-box;
+        }
+        button {
+            background-color: #3498db;
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            width: 100%;
+            transition: background-color 0.2s;
+            margin-bottom: 10px;
+        }
+        button:hover {
+            background-color: #2980b9;
+        }
+        button.secondary {
+            background-color: #2ecc71;
+        }
+        button.secondary:hover {
+            background-color: #27ae60;
+        }
+        .result {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #ecf0f1;
+            border-radius: 4px;
+            border-left: 4px solid #3498db;
+        }
+        .auth-code {
+            font-size: 24px;
+            font-weight: bold;
+            color: #e74c3c;
+            text-align: center;
+            margin: 10px 0;
+        }
+        .mac-display {
+            font-size: 18px;
+            font-weight: bold;
+            color: #2ecc71;
+            text-align: center;
+            margin: 10px 0;
+            font-family: 'Courier New', monospace;
+        }
+        .activation-display {
+            font-size: 20px;
+            font-weight: bold;
+            color: #9b59b6;
+            text-align: center;
+            margin: 10px 0;
+        }
+        .instructions {
+            background-color: #f8f9fa;
+            padding: 15px;
+            border-radius: 4px;
+            margin-bottom: 20px;
+            border-left: 4px solid #2ecc71;
+        }
+        .error {
+            color: #e74c3c;
+            margin-top: 5px;
+        }
+        .success {
+            background-color: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+            padding: 15px;
+            border-radius: 4px;
+            margin-top: 10px;
+        }
+        .process-flow {
+            background-color: #fff3cd;
+            border: 1px solid #ffeaa7;
+            padding: 15px;
+            border-radius: 4px;
+            margin-bottom: 20px;
+        }
+        .step {
+            margin: 10px 0;
+            padding: 8px;
+            background-color: #f8f9fa;
+            border-radius: 4px;
+            border-left: 3px solid #6c757d;
+        }
+        .tabs {
+            display: flex;
+            margin-bottom: 20px;
+        }
+        .tab {
+            flex: 1;
+            padding: 10px;
+            text-align: center;
+            background-color: #e9ecef;
+            border: 1px solid #ddd;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        .tab.active {
+            background-color: #3498db;
+            color: white;
+        }
+        .tab-content {
+            display: none;
+        }
+        .tab-content.active {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>MAC 주소 기반 인증 시스템</h1>
+        
+        <div class="process-flow">
+            <h3>인증 프로세스 흐름</h3>
+            <div class="step">1️⃣ 안드로이드보드에서 실제 MAC 주소 추출</div>
+            <div class="step">2️⃣ MAC 주소 → 8자리 활성화 코드 생성</div>
+            <div class="step">3️⃣ 활성화 코드 → 4자리 인증 코드 해독</div>
+            <div class="step">4️⃣ 인증 코드 입력으로 최종 인증 완료</div>
+        </div>
+
+        <div class="tabs">
+            <div class="tab active" onclick="showTab('decode')">활성화 코드 해독</div>
+            <div class="tab" onclick="showTab('generate')">MAC에서 전체 생성</div>
+            <div class="tab" onclick="showTab('verify')">전체 프로세스 검증</div>
+        </div>
+
+        <!-- 활성화 코드 해독 탭 -->
+        <div id="decode" class="tab-content active">
+            <div class="instructions">
+                <p><strong>📱 앱에서 받은 활성화 코드를 해독하여 인증 코드를 생성합니다.</strong></p>
+                <p>1. 원격 제어 앱에 표시된 활성화 코드를 입력하세요.</p>
+                <p>2. 생성된 인증 코드를 앱에 입력하면 인증이 완료됩니다.</p>
+            </div>
+            
+            <div class="form-group">
+                <label for="appCode">📋 활성화 코드:</label>
+                <input type="text" id="appCode" placeholder="예: 7057-1149 또는 70571149" maxlength="9">
+                <div class="error" id="codeError"></div>
+            </div>
+            
+            <button onclick="generateAuthCode()">🔓 인증 코드 생성</button>
+            
+            <div class="result" id="resultArea" style="display: none;">
+                <p>앱에 입력할 인증 코드:</p>
+                <div class="auth-code" id="authCode"></div>
+                <p>이 4자리 숫자를 원격 제어 앱에 입력하면 인증이 완료됩니다.</p>
+            </div>
+        </div>
+
+        <!-- MAC에서 전체 생성 탭 -->
+        <div id="generate" class="tab-content">
+            <div class="instructions">
+                <p><strong>🔧 MAC 주소로부터 활성화 코드와 인증 코드를 모두 생성합니다.</strong></p>
+                <p>테스트나 검증을 위해 전체 프로세스를 시뮬레이션할 수 있습니다.</p>
+            </div>
+            
+            <div class="form-group">
+                <label for="macAddress">🌐 MAC 주소:</label>
+                <input type="text" id="macAddress" placeholder="예: aa:bb:cc:dd:ee:ff 또는 aabbccddeeff" maxlength="17">
+                <div class="error" id="macError"></div>
+            </div>
+            
+            <button class="secondary" onclick="generateFromMac()">🔄 활성화 코드 및 인증 코드 생성</button>
+            
+            <div class="result" id="macResultArea" style="display: none;">
+                <p>MAC 주소:</p>
+                <div class="mac-display" id="displayMac"></div>
+                <p>생성된 활성화 코드:</p>
+                <div class="activation-display" id="activationCode"></div>
+                <p>해독된 인증 코드:</p>
+                <div class="auth-code" id="finalAuthCode"></div>
+            </div>
+        </div>
+
+        <!-- 전체 프로세스 검증 탭 -->
+        <div id="verify" class="tab-content">
+            <div class="instructions">
+                <p><strong>✅ 전체 인증 프로세스를 검증합니다.</strong></p>
+                <p>MAC 주소, 활성화 코드, 인증 코드가 모두 올바르게 연결되는지 확인할 수 있습니다.</p>
+            </div>
+            
+            <div class="form-group">
+                <label for="verifyMac">🌐 MAC 주소:</label>
+                <input type="text" id="verifyMac" placeholder="예: aa:bb:cc:dd:ee:ff">
+            </div>
+            
+            <div class="form-group">
+                <label for="verifyActivation">📋 활성화 코드:</label>
+                <input type="text" id="verifyActivation" placeholder="예: 7057-1149">
+            </div>
+            
+            <div class="form-group">
+                <label for="verifyAuth">🔑 인증 코드:</label>
+                <input type="text" id="verifyAuth" placeholder="예: 1234">
+            </div>
+            
+            <button onclick="verifyProcess()">🔍 전체 프로세스 검증</button>
+            
+            <div id="verifyResult" style="display: none;"></div>
+        </div>
+    </div>
+
+    <script>
+        // 탭 전환 함수
+        function showTab(tabName) {
+            // 모든 탭과 콘텐츠 비활성화
+            document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+            
+            // 선택된 탭과 콘텐츠 활성화
+            event.target.classList.add('active');
+            document.getElementById(tabName).classList.add('active');
+        }
+
+        // MAC 주소로부터 활성화 코드 생성 (Flutter 앱과 동일한 로직)
+        function generateActivationCodeFromMac(macAddress) {
+            const cleanMac = macAddress.replace(/[^a-fA-F0-9]/g, '').toUpperCase();
+            
+            // 각 문자를 아스키 코드로 변환하고 위치 가중치 적용하여 합산
+            let sumVal = 0;
+            for (let i = 0; i < cleanMac.length; i++) {
+                sumVal += cleanMac.charCodeAt(i) * (i + 1);
+            }
+            
+            // 장치별 고유성 보장을 위한 시드값 생성
+            const seed = (cleanMac.charCodeAt(0) + cleanMac.charCodeAt(cleanMac.length - 1)) % 9000 + 1000;
+            
+            // 8자리 숫자 코드 생성
+            const code = ((sumVal % 9000 + 1000) * 10000 + seed);
+            
+            // 4-4 형식으로 표시
+            const formattedCode = Math.floor(code / 10000).toString().padStart(4, '0') + '-' + (code % 10000).toString().padStart(4, '0');
+            
+            return {
+                formattedCode: formattedCode,
+                numericCode: code.toString(),
+                codeValue: code
+            };
+        }
+
+        // 활성화 코드로부터 인증 코드를 생성하는 함수
+        function generateAuthCodeFromActivation(activationCode) {
+            let cleanCode;
+            
+            if (typeof activationCode === 'string') {
+                // 숫자만 추출 (하이픈 제거)
+                cleanCode = activationCode.replace(/[^0-9]/g, '');
+            } else {
+                cleanCode = activationCode.toString();
+            }
+            
+            // 입력 형식 확인 (8자리 숫자)
+            if (cleanCode.length !== 8) {
+                throw new Error("활성화 코드는 8자리 숫자여야 합니다.");
+            }
+            
+            const codeNumber = parseInt(cleanCode, 10);
+            
+            // 앞 4자리와 뒤 4자리 분리
+            const firstPart = Math.floor(codeNumber / 10000);
+            const secondPart = codeNumber % 10000;
+            
+            // XOR 연산 및 모듈로 연산으로 인증 코드 생성
+            const authCode = ((firstPart ^ secondPart) + (firstPart % secondPart)) % 9000 + 1000;
+            
+            return authCode;
+        }
+
+        // 활성화 코드 해독 (기존 기능)
+        function generateAuthCode() {
+            const appCodeInput = document.getElementById('appCode').value.trim();
+            const errorElement = document.getElementById('codeError');
+            const resultArea = document.getElementById('resultArea');
+            const authCodeElement = document.getElementById('authCode');
+            
+            // 입력값 검증
+            if (!appCodeInput) {
+                errorElement.textContent = "활성화 코드를 입력해주세요.";
+                resultArea.style.display = "none";
+                return;
+            }
+            
+            try {
+                const authCode = generateAuthCodeFromActivation(appCodeInput);
+                
+                // 오류 메시지 초기화
+                errorElement.textContent = "";
+                
+                // 결과 표시
+                authCodeElement.textContent = authCode;
+                resultArea.style.display = "block";
+            } catch (error) {
+                errorElement.textContent = error.message;
+                resultArea.style.display = "none";
+            }
+        }
+
+        // MAC 주소로부터 전체 생성
+        function generateFromMac() {
+            const macInput = document.getElementById('macAddress').value.trim();
+            const errorElement = document.getElementById('macError');
+            const resultArea = document.getElementById('macResultArea');
+            
+            if (!macInput) {
+                errorElement.textContent = "MAC 주소를 입력해주세요.";
+                resultArea.style.display = "none";
+                return;
+            }
+            
+            // MAC 주소 형식 검증
+            const macPattern = /^([0-9A-Fa-f]{2}[:-]?){5}([0-9A-Fa-f]{2})$/;
+            if (!macPattern.test(macInput.replace(/\s/g, ''))) {
+                errorElement.textContent = "올바른 MAC 주소 형식이 아닙니다.";
+                resultArea.style.display = "none";
+                return;
+            }
+            
+            try {
+                // 활성화 코드 생성
+                const activationResult = generateActivationCodeFromMac(macInput);
+                
+                // 인증 코드 생성
+                const authCode = generateAuthCodeFromActivation(activationResult.codeValue);
+                
+                // 결과 표시
+                document.getElementById('displayMac').textContent = macInput.toUpperCase();
+                document.getElementById('activationCode').textContent = activationResult.formattedCode;
+                document.getElementById('finalAuthCode').textContent = authCode;
+                
+                errorElement.textContent = "";
+                resultArea.style.display = "block";
+            } catch (error) {
+                errorElement.textContent = error.message;
+                resultArea.style.display = "none";
+            }
+        }
+
+        // 전체 프로세스 검증
+        function verifyProcess() {
+            const macInput = document.getElementById('verifyMac').value.trim();
+            const activationInput = document.getElementById('verifyActivation').value.trim();
+            const authInput = document.getElementById('verifyAuth').value.trim();
+            const resultDiv = document.getElementById('verifyResult');
+            
+            if (!macInput || !activationInput || !authInput) {
+                resultDiv.innerHTML = '<div class="error">모든 필드를 입력해주세요.</div>';
+                resultDiv.style.display = "block";
+                return;
+            }
+            
+            try {
+                // 1. MAC 주소에서 활성화 코드 생성
+                const expectedActivation = generateActivationCodeFromMac(macInput);
+                
+                // 2. 활성화 코드에서 인증 코드 생성
+                const expectedAuth = generateAuthCodeFromActivation(activationInput);
+                
+                // 3. 검증
+                const activationMatch = expectedActivation.formattedCode === activationInput || 
+                                      expectedActivation.numericCode === activationInput.replace(/[^0-9]/g, '');
+                const authMatch = expectedAuth.toString() === authInput;
+                
+                let resultHtml = '<h3>검증 결과</h3>';
+                
+                if (activationMatch && authMatch) {
+                    resultHtml += '<div class="success">✅ 전체 프로세스가 올바릅니다! 모든 코드가 정확히 연결되어 있습니다.</div>';
+                } else {
+                    resultHtml += '<div class="error">❌ 프로세스에 오류가 있습니다.</div>';
+                }
+                
+                resultHtml += `
+                    <div class="result">
+                        <p><strong>MAC 주소:</strong> ${macInput}</p>
+                        <p><strong>예상 활성화 코드:</strong> ${expectedActivation.formattedCode}</p>
+                        <p><strong>입력된 활성화 코드:</strong> ${activationInput} ${activationMatch ? '✅' : '❌'}</p>
+                        <p><strong>예상 인증 코드:</strong> ${expectedAuth}</p>
+                        <p><strong>입력된 인증 코드:</strong> ${authInput} ${authMatch ? '✅' : '❌'}</p>
+                    </div>
+                `;
+                
+                resultDiv.innerHTML = resultHtml;
+                resultDiv.style.display = "block";
+            } catch (error) {
+                resultDiv.innerHTML = `<div class="error">검증 중 오류: ${error.message}</div>`;
+                resultDiv.style.display = "block";
+            }
+        }
+        
+        // 입력 필드에서 엔터 키 감지
+        document.getElementById('appCode').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                generateAuthCode();
+            }
+        });
+        
+        document.getElementById('macAddress').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                generateFromMac();
+            }
+        });
+        
+        // 입력 시 오류 메시지 지우기
+        document.getElementById('appCode').addEventListener('input', function() {
+            document.getElementById('codeError').textContent = "";
+        });
+        
+        document.getElementById('macAddress').addEventListener('input', function() {
+            document.getElementById('macError').textContent = "";
+        });
+    </script>
+</body>
+</html>

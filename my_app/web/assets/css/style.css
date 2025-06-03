@@ -1,0 +1,81 @@
+/* 기존 모달 스타일 확장 */
+#settingsModal .modal-content {
+  max-width: 500px;
+}
+
+#settingsModal .form-group {
+  margin-bottom: 15px;
+}
+
+#settingsModal input[type="hidden"] {
+  display: none;
+}
+
+#settingsModal label {
+  display: block;
+  margin-bottom: 5px;
+  font-weight: bold;
+}
+
+#settingsModal .btn-primary {
+  background-color: #007bff;
+  color: white;
+}
+
+#settingsModal .btn-secondary {
+  background-color: #6c757d;
+  color: white;
+}
+
+/* 프로젝터 관리 페이지 스타일 */
+.projector-list-card {
+  margin-bottom: 30px;
+}
+
+.btn-action {
+  padding: 5px 10px;
+  margin: 0 2px;
+  font-size: 12px;
+}
+
+.btn-action-power-on {
+  background-color: #28a745;
+  color: white;
+}
+
+.btn-action-power-off {
+  background-color: #dc3545;
+  color: white;
+}
+
+.btn-action-settings, .btn-action-delete {
+  background-color: #6c757d;
+  color: white;
+}
+
+.btn-action-refresh {
+  background-color: #17a2b8;
+  color: white;
+}
+
+/* 배지 스타일 */
+.badge {
+  padding: 5px 10px;
+  border-radius: 4px;
+  font-weight: 500;
+}
+
+.badge-online {
+  background-color: #28a745;
+  color: white;
+}
+
+.badge-offline {
+  background-color: #dc3545;
+  color: white;
+}
+
+.badge-warning {
+  background-color: #ffc107;
+  color: #343a40;
+} 

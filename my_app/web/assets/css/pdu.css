@@ -1,0 +1,399 @@
+/* PDU 관리 페이지 CSS */
+
+/* 레이아웃 스타일 */
+.wrapper {
+  padding: 0;
+  margin: 0;
+  min-height: 100vh;
+}
+
+.content-wrapper {
+  background: #f0f3f4;
+  margin-left: 220px;
+  padding: 20px;
+  padding-top: 70px;
+  min-height: calc(100vh - 56px);
+  padding-bottom: 60px; /* 푸터 영역을 위한 하단 패딩 추가 */
+}
+
+/* 헤더 스타일 */
+.main-header {
+  background: #2d353c;
+  border-bottom: none;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.08);
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 1030;
+  height: 56px;
+}
+
+/* 카드 스타일 */
+.card {
+  border-radius: 3px;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+  border: none;
+  margin-bottom: 20px;
+  background: #fff;
+}
+
+/* PDU 목록 카드 */
+.pdu-list-card {
+  margin-bottom: 2rem;
+  border: none;
+  box-shadow: 0 0 15px rgba(0,0,0,0.1);
+}
+
+.pdu-list-card .card-header {
+  background: linear-gradient(to right, #30cfd0, #330867);
+  color: white;
+  padding: 1rem;
+  border-radius: 10px 10px 0 0;
+}
+
+.pdu-list-card .card-title {
+  font-size: 1.2rem;
+  margin-bottom: 0;
+}
+
+/* PDU 상태 뱃지 */
+.badge-active {
+  background: #32c787;
+  color: #fff;
+}
+
+.badge-inactive {
+  background: #f25656;
+  color: #fff;
+}
+
+/* 테이블 스타일 */
+.table {
+  width: 100%;
+  margin-bottom: 0;
+}
+
+.table th {
+  font-weight: 500;
+  background: #f5f7f9;
+  color: #555;
+  border-bottom: 1px solid #eaeaea;
+  vertical-align: middle;
+  padding: 12px 15px;
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.table td {
+  border-color: #f0f0f0;
+  padding: 10px 8px;
+  vertical-align: middle;
+}
+
+.table-hover tbody tr:hover {
+  background-color: #f9fafb;
+}
+
+/* PDU 포트 상태 표시기 */
+.pdu-port {
+  width: 30px;
+  height: 30px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  margin: 0 2px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #fff;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.pdu-port-on {
+  background: #32c787;
+  box-shadow: 0 0 5px rgba(50, 199, 135, 0.5);
+}
+
+.pdu-port-off {
+  background: #f25656;
+  box-shadow: 0 0 5px rgba(242, 86, 86, 0.5);
+}
+
+.pdu-port:hover {
+  transform: scale(1.1);
+}
+
+/* PDU 포트 그룹 */
+.pdu-port-group {
+  margin-bottom: 15px;
+  padding: 10px;
+  border: 1px solid #eee;
+  border-radius: 5px;
+  background: #f8f9fa;
+}
+
+.pdu-port-group-title {
+  font-size: 14px;
+  font-weight: 600;
+  margin-bottom: 10px;
+}
+
+/* PDU 제어 버튼 */
+.btn-action {
+  padding: 6px 10px;
+  margin: 0 2px;
+  background: #fff;
+  border: 1px solid #e0e0e0;
+  color: #555;
+  border-radius: 3px;
+  transition: all 0.2s;
+}
+
+.btn-action:hover {
+  background: #f5f5f5;
+}
+
+.btn-action-port-on {
+  color: #32c787;
+  border-color: #32c787;
+}
+
+.btn-action-port-on:hover {
+  background: #32c787;
+  color: #fff;
+}
+
+.btn-action-port-off {
+  color: #f25656;
+  border-color: #f25656;
+}
+
+.btn-action-port-off:hover {
+  background: #f25656;
+  color: #fff;
+}
+
+.btn-action-port-reboot {
+  color: #f2a654;
+  border-color: #f2a654;
+}
+
+.btn-action-port-reboot:hover {
+  background: #f2a654;
+  color: #fff;
+}
+
+/* PDU 포트 라벨 */
+.pdu-port-label {
+  font-size: 12px;
+  font-weight: 500;
+  margin-top: 5px;
+  max-width: 60px;
+  text-align: center;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* 포트 컨트롤 영역 */
+.port-controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 15px;
+}
+
+.port-control-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 60px;
+}
+
+/* 섹션 구분 */
+.section-divider {
+  position: relative;
+  height: 60px;
+  margin: 30px 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.section-divider:before {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 50%;
+  height: 1px;
+  background: #ddd;
+  z-index: 1;
+}
+
+.section-divider h5 {
+  position: relative;
+  z-index: 2;
+  background: #f0f3f4;
+  padding: 0 20px;
+  margin: 0;
+  color: #777;
+  font-weight: 500;
+}
+
+/* 카드 타이틀 아이콘 */
+.card-title-icon {
+  display: inline-flex;
+  width: 32px;
+  height: 32px;
+  background-color: rgba(255, 255, 255, 0.2);
+  border-radius: 50%;
+  margin-right: 10px;
+  align-items: center;
+  justify-content: center;
+}
+
+/* 로그 컨테이너 스타일 */
+.log-container {
+  height: 300px;
+  overflow-y: auto;
+  background-color: #f8f9fa;
+  border: 1px solid #e9ecef;
+  border-radius: 4px;
+  padding: 15px;
+  font-family: monospace;
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+/* 예약 작업 설정 패널 */
+.schedule-card {
+  margin-bottom: 1.5rem;
+  border: none;
+  box-shadow: 0 0 10px rgba(0,0,0,0.08);
+}
+
+/* PDU 관련 CSS 스타일 */
+
+/* PDU 상태 배지 스타일 */
+.badge {
+  font-size: 11px;
+  font-weight: 400;
+  padding: 4px 8px;
+  border-radius: 10px;
+}
+
+/* 네트워크 상태 배지 */
+.badge-online {
+  background-color: #28a745;
+  color: white;
+}
+
+.badge-offline {
+  background-color: #dc3545;
+  color: white;
+}
+
+/* 전원 상태 배지 */
+.badge-success {
+  background-color: #32c787;
+  color: white;
+}
+
+.badge-secondary {
+  background-color: #6c757d;
+  color: white;
+}
+
+/* 상태 변경 애니메이션 */
+@keyframes status-change {
+  0% { transform: scale(1); opacity: 0.7; }
+  50% { transform: scale(1.1); opacity: 1; }
+  100% { transform: scale(1); opacity: 0.7; }
+}
+
+.status-changed {
+  animation: status-change 0.5s ease-in-out;
+}
+
+/* PDU 행 스타일 */
+#pduList tr.network-online {
+  border-left: 4px solid #28a745;
+}
+
+#pduList tr.network-offline {
+  border-left: 4px solid #dc3545;
+}
+
+/* 제어 버튼 스타일 */
+.control-btn {
+  position: relative;
+  transition: all 0.3s ease;
+  margin: 0 3px;
+  border-radius: 4px;
+  font-size: 0.85rem;
+}
+
+.control-btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+/* 켜기 버튼 */
+.control-btn.btn-success {
+  background-color: #32c787;
+  border-color: #32c787;
+}
+
+/* 끄기 버튼 */
+.control-btn.btn-danger {
+  background-color: #dc3545;
+  border-color: #dc3545;
+}
+
+/* PDU 관리 버튼 컨테이너 */
+.control-buttons, .settings-buttons {
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+  gap: 4px;
+}
+
+/* PDU 관리 페이지 특화 스타일 */
+#pduList tr {
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+#pduList tr:hover {
+  background-color: rgba(0, 123, 255, 0.1);
+}
+
+#pduList tr.selected {
+  background-color: rgba(0, 123, 255, 0.2);
+  font-weight: 500;
+}
+
+/* 알림 관련 스타일 */
+.js-notification {
+  z-index: 1060 !important;
+}
+
+/* 상태 변경시 애니메이션 효과 */
+@keyframes status-change {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.1); }
+  100% { transform: scale(1); }
+}
+
+#pduList span[id^="pdu-status-"].status-changed,
+#pduList span[id^="pdu-network-"].status-changed {
+  animation: status-change 0.5s ease-in-out;
+}
+
+#pduList tr[data-pdu-unique-id] {
+  transition: background-color 0.3s ease;
+} 

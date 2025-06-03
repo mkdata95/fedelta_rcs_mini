@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>RCS 컨트롤 시스템</title>
+  <meta http-equiv="refresh" content="0; url=dashboard.html">
+  <style>
+    /* 웹뷰 상단 메시지 숨기기 - 확장된 규칙 */
+    .webview-message, 
+    .webview-title, 
+    .webview-status,
+    div[class*="webview-"],
+    div[id*="webview-"],
+    .system-message,
+    .system-status,
+    .server-status,
+    .app-header-original,
+    .status-bar,
+    .app-title-bar,
+    [id*="title-container"],
+    [class*="title-container"],
+    [id*="server-status"],
+    [class*="server-status"],
+    [id*="app-header"],
+    [class*="app-header"],
+    [id*="_header"],
+    [class*="_header"],
+    [id*="status_bar"],
+    [class*="status_bar"],
+    [id*="statusBar"],
+    [class*="statusBar"],
+    .webview-header,
+    .webview-container > *:first-child,
+    .webview-container > div:first-of-type,
+    div[style*="position: fixed"][style*="top: 0"],
+    div[style*="position:fixed"][style*="top:0"],
+    .header-container,
+    #header-container,
+    #appHeader,
+    .appHeader,
+    .status-container,
+    #status-container,
+    .title-bar,
+    #title-bar,
+    div:not(.wrapper) > div[style*="height:"][style*="px"],
+    div[style*="background"][style*="fixed"],
+    div[style*="z-index: 9"],
+    div[style*="z-index:9"],
+    .offline-remote-header,
+    #offline-remote-header,
+    .server-status-container,
+    #server-status-container,
+    body::before, 
+    body::after, 
+    body > *:not(script):not(style),
+    body > div:not(.redirect-message) {
+      display: none !important;
+      height: 0 !important;
+      max-height: 0 !important;
+      min-height: 0 !important;
+      visibility: hidden !important;
+      opacity: 0 !important;
+      position: absolute !important;
+      z-index: -9999 !important;
+      overflow: hidden !important;
+      pointer-events: none !important;
+      margin: 0 !important;
+      padding: 0 !important;
+      border: none !important;
+      transform: translateY(-999px) !important;
+      clip: rect(0, 0, 0, 0) !important;
+      clip-path: inset(50%) !important;
+    }
+    
+    /* 문서 전체에 중요 스타일 적용 */
+    html, body {
+      margin-top: 0 !important;
+      padding-top: 0 !important;
+      overflow: hidden;
+    }
+    
+    /* 리디렉션 메시지만 표시 */
+    .redirect-message {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      text-align: center;
+      font-family: Arial, sans-serif;
+      width: 100%;
+      max-width: 300px;
+      padding: 20px;
+      background: white;
+      border-radius: 5px;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+      z-index: 9999;
+    }
+  </style>
+  <script>
+    // 웹뷰 메시지 완전히 제거하기 위한 즉시 실행 스크립트
+    (function() {
+      // DOM이 변경될 때마다 웹뷰 메시지 요소를 찾아 제거
+      var observer = new MutationObserver(function(mutations) {
+        var selectors = [
+          '.webview-message', 
+          '.webview-title', 
+          '.webview-status',
+          '.server-status',
+          '.status-bar',
+          '.app-title-bar',
+          '.app-header-original',
+          '[id*="title-container"]',
+          '[class*="title-container"]',
+          '[id*="server-status"]',
+          '[class*="server-status"]',
+          '[id*="app-header"]',
+          '[class*="app-header"]',
+          '.offline-remote-header',
+          '#offline-remote-header',
+          '.server-status-container',
+          '#server-status-container'
+        ];
+        
+        selectors.forEach(function(selector) {
+          var elements = document.querySelectorAll(selector);
+          elements.forEach(function(el) {
+            if(el && el.parentNode) {
+              el.parentNode.removeChild(el);
+            }
+          });
+        });
+      });
+      
+      // 페이지 로드 즉시 관찰 시작
+      document.addEventListener('DOMContentLoaded', function() {
+        observer.observe(document.body, { childList: true, subtree: true });
+        
+        // 처음 로드 시 강제 제거
+        observer.takeRecords();
+        
+        // 반복 실행
+        var interval = setInterval(function() {
+          observer.takeRecords();
+        }, 100);
+        
+        // 3초 후 interval 정지 (리디렉션이 이미 수행됨)
+        setTimeout(function() {
+          clearInterval(interval);
+        }, 3000);
+      });
+    })();
+    
+    // 즉시 대시보드로 리디렉션
+    window.location.href = 'dashboard.html';
+    
+    // 웹뷰 상단 메시지 숨기기
+    document.addEventListener('DOMContentLoaded', function() {
+      hideWebViewHeader();
+    });
+    
+    function hideWebViewHeader() {
+      // Android WebView
+      if (window.AndroidChannel) {
+        try {
+          window.AndroidChannel.postMessage('hideHeader:true');
+          window.AndroidChannel.postMessage('hideStatusBar:true');
+          window.AndroidChannel.postMessage('fullscreen:true');
+          window.AndroidChannel.postMessage('hideSystemUI:true');
+        } catch (e) {
+          console.error('Android WebView 통신 오류:', e);
+        }
+      }
+      
+      // iOS WKWebView
+      try {
+        window.webkit.messageHandlers.hideHeader.postMessage(true);
+        window.webkit.messageHandlers.hideStatusBar.postMessage(true);
+        window.webkit.messageHandlers.fullscreen.postMessage(true);
+        window.webkit.messageHandlers.hideSystemUI.postMessage(true);
+      } catch (e) {
+        // iOS 핸들러가 없는 경우 무시
+      }
+    }
+  </script>
+</head>
+<body>
+  <div class="redirect-message">자동으로 <a href="dashboard.html">대시보드</a>로 이동합니다...</div>
+  <!-- 푸터 -->
+  <footer class="main-footer">
+    <strong>Copyright © 2025 <a href="#" class="text-primary">DIDBANK RCS CONTROL</a>.</strong> All rights reserved.
+  </footer>
+</body>
+</html>

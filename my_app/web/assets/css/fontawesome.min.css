@@ -1,0 +1,43 @@
+/*!
+ * Font Awesome Free 5.15.4
+ * License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License)
+ */
+.fa,.fab,.fad,.fal,.far,.fas{-moz-osx-font-smoothing:grayscale;-webkit-font-smoothing:antialiased;display:inline-block;font-style:normal;font-variant:normal;text-rendering:auto;line-height:1}
+.fa-bars:before{content:"\f0c9"}
+.fa-bell:before{content:"\f0f3"}
+.fa-cog:before{content:"\f013"}
+.fa-cogs:before{content:"\f085"}
+.fa-desktop:before{content:"\f108"}
+.fa-download:before{content:"\f019"}
+.fa-envelope:before{content:"\f0e0"}
+.fa-file:before{content:"\f15b"}
+.fa-minus:before{content:"\f068"}
+.fa-plug:before{content:"\f1e6"}
+.fa-power-off:before{content:"\f011"}
+.fa-projector:before{content:"\f8d6"}
+.fa-sync:before{content:"\f021"}
+.fa-tachometer-alt:before{content:"\f3fd"}
+.fa-th:before{content:"\f00a"}
+.fa-times:before{content:"\f00d"}
+.fa-users:before{content:"\f0c0"}
+.fa-wifi:before{content:"\f1eb"}
+.fa-arrow-down:before{content:"\f063"}
+.fa-arrow-up:before{content:"\f062"}
+.fa-angle-left:before{content:"\f104"}
+.fa-comments:before{content:"\f086"}
+.fa-circle:before{content:"\f111"}
+.fa-chart-pie:before{content:"\f200"}
+.fas{font-family:"Font Awesome 5 Free";font-weight:900}
+.far{font-family:"Font Awesome 5 Free";font-weight:400}
+@font-face{font-family:"Font Awesome 5 Free";font-style:normal;font-weight:900;font-display:block;src:url(../fonts/fa-solid-900.woff2) format("woff2"),url(../fonts/fa-solid-900.ttf) format("truetype")}
+@font-face{font-family:"Font Awesome 5 Free";font-style:normal;font-weight:400;font-display:block;src:url(../fonts/fa-regular-400.woff2) format("woff2"),url(../fonts/fa-regular-400.ttf) format("truetype")}
+
+/* 간소화된 Font Awesome 대체 CSS */
+.fas, .far {
+  display: inline-block;
+  font-style: normal;
+  font-variant: normal;
+  text-rendering: auto;
+  line-height: 1;
+  margin-right: 0.2em;
+} 

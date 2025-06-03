@@ -1,0 +1,462 @@
+/* 대시보드 페이지 CSS */
+
+/* 대시보드 카드 스타일 */
+.dashboard-card {
+  height: 150px; /* 높이 증가 */
+  border-radius: 12px;
+  color: #e9ecef;
+  margin-bottom: 20px;
+  display: flex;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 6px 18px rgba(0,0,0,0.15);
+  transition: all 0.3s ease-in-out;
+  background: linear-gradient(135deg, #1f222b 0%, #191c24 100%);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.dashboard-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 25px rgba(0,0,0,0.25);
+}
+
+.dashboard-card-content {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  padding: 1.5rem 1.5rem; /* 패딩 증가 */
+}
+
+.dashboard-card-left {
+  display: flex;
+  flex-direction: row; /* 가로 방향으로 배치 */
+  justify-content: flex-start;
+  align-items: center;
+  gap: 20px; /* 간격 늘림 */
+  width: 70%; /* 너비 지정 */
+}
+
+.dashboard-card-icon {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 60px; /* 아이콘 크기 증가 */
+  height: 60px; /* 아이콘 크기 증가 */
+  border-radius: 12px;
+  font-size: 1.75rem; /* 아이콘 크기 증가 */
+  color: #fff;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+  flex-shrink: 0;
+}
+
+.dashboard-card-text {
+  display: flex;
+  flex-direction: column;
+  min-width: 0; /* 텍스트 영역 최소 너비 설정 */
+  flex: 1; /* 남은 공간 차지 */
+}
+
+.dashboard-card .title {
+  font-size: 16px; /* 글자 크기 증가 */
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.7);
+  letter-spacing: 0.5px;
+  margin-bottom: 8px; /* 마진 증가 */
+  white-space: nowrap; /* 텍스트가 한 줄로 표시되도록 설정 */
+  overflow: hidden; /* 넘치는 텍스트 숨김 */
+  text-overflow: ellipsis; /* 넘치는 텍스트에 ... 표시 */
+}
+
+.dashboard-card .number {
+  font-size: 32px; /* 글자 크기 증가 */
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  line-height: 1.2; /* 줄 간격 조정 */
+  color: #ffffff;
+}
+
+.dashboard-card-right {
+  display: flex;
+  align-items: center;
+  width: 30%; /* 너비 지정 */
+  justify-content: flex-end; /* 오른쪽 정렬 */
+}
+
+.more-btn {
+  background-color: rgba(255, 255, 255, 0.1);
+  padding: 8px 12px;
+  border-radius: 8px;
+  font-size: 12px;
+  transition: all 0.2s;
+}
+
+.more-btn a {
+  color: rgba(255, 255, 255, 0.85);
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+  font-weight: 600;
+  gap: 5px;
+}
+
+.more-btn:hover {
+  background-color: rgba(255, 255, 255, 0.18);
+}
+
+.time-display {
+  font-size: 24px;
+  font-weight: 700;
+  color: #ffffff;
+  text-align: center;
+  letter-spacing: 1px;
+}
+
+/* 수정된 카드 콘텐츠 레이아웃 */
+.dashboard-card.red .dashboard-card-content {
+  justify-content: flex-start; /* 왼쪽 정렬로 변경 */
+}
+
+/* 시간 표시 카드 특별 설정 */
+.dashboard-card.red .dashboard-card-left {
+  width: 100%; /* 너비 100%로 설정 */
+}
+
+/* 모바일 반응형 스타일 */
+@media (max-width: 767px) {
+  .dashboard-card {
+    height: auto; /* 모바일에서는 자동 높이 */
+    min-height: 160px; /* 최소 높이 설정 */
+  }
+  
+  .dashboard-card-content {
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 1.25rem;
+  }
+  
+  .dashboard-card-left, 
+  .dashboard-card-right {
+    width: 100%;
+  }
+  
+  .dashboard-card-right {
+    margin-top: 15px;
+    justify-content: flex-start;
+  }
+  
+  .dashboard-card .number {
+    font-size: 28px;
+  }
+  
+  .dashboard-card-icon {
+    width: 50px;
+    height: 50px;
+    font-size: 1.5rem;
+  }
+}
+
+/* 카드 색상 스타일 */
+.dashboard-card.blue {
+  border-left: 4px solid #0090e7;
+}
+
+.dashboard-card.blue::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: radial-gradient(circle at top right, rgba(0, 144, 231, 0.2), transparent 70%);
+  z-index: 1;
+}
+
+.dashboard-card.green {
+  border-left: 4px solid #00d25b;
+}
+
+.dashboard-card.green::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: radial-gradient(circle at top right, rgba(0, 210, 91, 0.2), transparent 70%);
+  z-index: 1;
+}
+
+.dashboard-card.yellow {
+  border-left: 4px solid #ffab00;
+}
+
+.dashboard-card.yellow::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: radial-gradient(circle at top right, rgba(255, 171, 0, 0.2), transparent 70%);
+  z-index: 1;
+}
+
+.dashboard-card.red {
+  border-left: 4px solid #fc424a;
+}
+
+.dashboard-card.red::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: radial-gradient(circle at top right, rgba(252, 66, 74, 0.2), transparent 70%);
+  z-index: 1;
+}
+
+/* 요약 카드 */
+.summary-card {
+  border-radius: 5px; /* 이전 3px에서 수정 */
+  box-shadow: 0 0 10px rgba(0,0,0,0.2); /* 더 강한 그림자 */
+  border: none;
+  height: 100%;
+  background: #191c24;
+  transition: all 0.3s;
+}
+
+.summary-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+}
+
+.summary-card .card-body {
+  padding: 20px; /* 이전 15px에서 수정 */
+  position: relative;
+}
+
+.summary-card .icon-bg {
+  position: absolute;
+  top: 15px; /* 이전 15px에서 유지 */
+  right: 15px; /* 이전 15px에서 유지 */
+  font-size: 3rem; /* 이전 3rem에서 유지 */
+  opacity: 0.1;
+  color: #e9ecef;
+}
+
+.summary-card .summary-title {
+  font-size: 14px !important; /* 통일된 14px로 수정 */
+  text-transform: none; /* 대문자 제거 */
+  letter-spacing: normal; /* 자간 정상화 */
+  color: #6c757d;
+  margin-bottom: 10px; /* 이전 8px에서 수정 */
+  font-weight: 500;
+}
+
+.summary-card .summary-value {
+  font-size: 24px; /* 이전 20px에서 수정 */
+  font-weight: 600;
+  color: #e9ecef;
+  margin-bottom: 5px;
+}
+
+.summary-card .summary-description {
+  font-size: 12px; /* 이전 12px에서 유지 */
+  color: #6c757d;
+}
+
+.summary-card.bg-projector {
+  background: #191c24;
+  border-left: 4px solid #0090e7; /* 이전 3px에서 수정 */
+}
+
+.summary-card.bg-pc {
+  background: #191c24;
+  border-left: 4px solid #00d25b; /* 이전 3px에서 수정 */
+}
+
+.summary-card.bg-pdu {
+  background: #191c24;
+  border-left: 4px solid #ffab00; /* 이전 3px에서 수정 */
+}
+
+.summary-card.bg-alert {
+  background: #191c24;
+  border-left: 4px solid #fc424a; /* 이전 3px에서 수정 */
+}
+
+/* 차트 카드 */
+.chart-card {
+  border-radius: 5px; /* 이전 3px에서 수정 */
+  box-shadow: 0 0 10px rgba(0,0,0,0.2); /* 더 강한 그림자 */
+  border: none;
+  margin-bottom: 20px;
+  background: #191c24;
+}
+
+.chart-card .card-header {
+  background: #191c24;
+  border-bottom: 1px solid #2c2e33;
+  padding: 15px 20px; /* 이전 12px 15px에서 수정 */
+  color: #e9ecef;
+}
+
+.chart-card .card-body {
+  padding: 20px; /* 이전 15px에서 수정 */
+}
+
+/* 알림 목록 카드 */
+.notification-card {
+  border-radius: 5px; /* 이전 3px에서 수정 */
+  box-shadow: 0 0 10px rgba(0,0,0,0.2); /* 더 강한 그림자 */
+  border: none;
+  margin-bottom: 20px;
+  background: #191c24;
+}
+
+.notification-card .card-header {
+  background: #191c24;
+  border-bottom: 1px solid #2c2e33;
+  padding: 15px 20px; /* 이전 12px 15px에서 수정 */
+  color: #e9ecef;
+}
+
+.notification-card .card-body {
+  padding: 0;
+}
+
+.notification-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.notification-item {
+  padding: 15px 20px; /* 이전 12px 15px에서 수정 */
+  border-bottom: 1px solid #2c2e33;
+  display: flex;
+  align-items: flex-start;
+  transition: all 0.3s;
+}
+
+.notification-item:hover {
+  background: rgba(255,255,255,0.05);
+}
+
+.notification-item:last-child {
+  border-bottom: none;
+}
+
+.notification-icon {
+  width: 32px; /* 이전 30px에서 수정 */
+  height: 32px; /* 이전 30px에서 수정 */
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 15px; /* 이전 12px에서 수정 */
+  flex-shrink: 0;
+}
+
+.notification-icon.info {
+  background-color: rgba(0, 144, 231, 0.2);
+  color: #0090e7;
+}
+
+.notification-icon.warning {
+  background-color: rgba(255, 171, 0, 0.2);
+  color: #ffab00;
+}
+
+.notification-icon.danger {
+  background-color: rgba(252, 66, 74, 0.2);
+  color: #fc424a;
+}
+
+.notification-icon.success {
+  background-color: rgba(0, 210, 91, 0.2);
+  color: #00d25b;
+}
+
+.notification-content {
+  flex: 1;
+}
+
+.notification-title {
+  font-size: 14px;
+  font-weight: 500;
+  color: #e9ecef;
+  margin-bottom: 5px; /* 이전 3px에서 수정 */
+}
+
+.notification-desc {
+  font-size: 12px; /* 이전 12px에서 유지 */
+  color: #6c757d;
+  margin-bottom: 5px; /* 이전 4px에서 수정 */
+}
+
+.notification-time {
+  font-size: 11px; /* 이전 11px에서 유지 */
+  color: #6c757d;
+}
+
+/* 정보 박스 스타일 */
+.info-box {
+  border-radius: 5px;
+  box-shadow: 0 0 10px rgba(0,0,0,0.2);
+  margin-bottom: 20px;
+  background: #191c24;
+  transition: all 0.3s;
+}
+
+.info-box:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+}
+
+.info-box-content {
+  padding: 10px 15px;
+  color: #e9ecef;
+}
+
+.info-box-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 70px;
+  border-radius: 5px 0 0 5px;
+  font-size: 24px;
+  padding: 15px;
+}
+
+.info-box-icon.bg-info {
+  background: #0090e7;
+}
+
+.info-box-icon.bg-success {
+  background: #00d25b;
+}
+
+.info-box-icon.bg-warning {
+  background: #ffab00;
+}
+
+.info-box-icon.bg-danger {
+  background: #fc424a;
+}
+
+.info-box-text {
+  font-size: 14px;
+  font-weight: 500;
+  margin-bottom: 5px;
+}
+
+.info-box-number {
+  font-size: 20px;
+  font-weight: 600;
+} 

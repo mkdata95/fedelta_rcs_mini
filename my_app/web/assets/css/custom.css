@@ -1,0 +1,143 @@
+/* 커스텀 스타일 */
+.log-container {
+  max-height: 300px;
+  overflow-y: auto;
+  background-color: #f4f6f9;
+  padding: 10px;
+  border-radius: 5px;
+}
+.log-entry {
+  padding: 5px 0;
+  border-bottom: 1px solid #ddd;
+  font-family: monospace;
+  font-size: 0.9em;
+}
+.sidebar-mini .main-sidebar {
+  width: 250px;
+}
+.sidebar-mini.sidebar-collapse .main-sidebar {
+  width: 4.6rem;
+}
+
+/* 아이콘 폴백 스타일 */
+.fas.fa-desktop:before { content: "💻"; }
+.fas.fa-video:before { content: "📽️"; }
+.fas.fa-tv:before { content: "📺"; }
+.fas.fa-film:before { content: "🎬"; }
+.fas.fa-projector:before { content: "📽️"; }
+.fas.fa-plug:before { content: "🔌"; }
+.fas.fa-wifi:before { content: "📶"; }
+.fas.fa-power-off:before { content: "⏻"; }
+.fas.fa-sync:before { content: "🔄"; }
+.fas.fa-sync-alt:before { content: "🔄"; }
+.fas.fa-cogs:before { content: "⚙️"; }
+.fas.fa-cog:before { content: "⚙️"; }
+.fas.fa-tachometer-alt:before { content: "🏁"; }
+.fas.fa-th:before { content: "▦"; }
+.far.fa-circle:before { content: "○"; }
+.fas.fa-chart-pie:before { content: "📊"; }
+.fas.fa-plus:before { content: "➕"; }
+.fas.fa-minus:before { content: "➖"; }
+.fas.fa-times:before { content: "❌"; }
+.fas.fa-eye:before { content: "👁️"; }
+.fas.fa-trash:before { content: "🗑️"; }
+.fas.fa-bars:before { content: "≡"; }
+.far.fa-clock:before { content: "🕒"; }
+.fas.fa-arrow-circle-right:before { content: "➡️"; }
+.fas.fa-info-circle:before { content: "ℹ️"; }
+
+/* PNG 이미지로 아이콘 대체 - 파일 경로 방식 */
+.fas.fa-video:before,
+.fas.fa-video::before,
+i.fas.fa-video:before,
+i.fas.fa-video::before {
+  content: "" !important; /* 기본 폰트 아이콘 제거 */
+  display: none !important;
+}
+
+.fas.fa-video,
+i.fas.fa-video {
+  background-image: url('assets/icons/icons8-video-projector-100.png') !important;
+  background-size: contain !important;
+  background-repeat: no-repeat !important;
+  background-position: center !important;
+  width: 1.2em !important;
+  height: 1.2em !important;
+  display: inline-block !important;
+  vertical-align: middle !important;
+  font-size: inherit !important;
+  /* 폰트 아이콘 완전 제거 */
+  font-family: inherit !important;
+  text-rendering: auto !important;
+}
+
+/* 경로 폴백들 - 다양한 경로에서 로드 시도 */
+.fas.fa-video:not([style*="background-image"]),
+i.fas.fa-video:not([style*="background-image"]) {
+  background-image: url('../icons/icons8-video-projector-100.png') !important;
+}
+
+.fas.fa-video:empty,
+i.fas.fa-video:empty {
+  background-image: url('./assets/icons/icons8-video-projector-100.png') !important;
+}
+
+/* 네비게이션 아이콘 전용 */
+.nav-icon.fas.fa-video,
+i.nav-icon.fas.fa-video {
+  width: 1.2em !important;
+  height: 1.2em !important;
+  background-size: contain !important;
+}
+
+/* 대시보드 카드에서 더 큰 아이콘 (흰색) */
+.dashboard-card .fas.fa-video,
+.dashboard-card i.fas.fa-video {
+  width: 1.5em !important;
+  height: 1.5em !important;
+  background-size: contain !important;
+  filter: brightness(0) invert(1) !important; /* 흰색으로 변환 */
+}
+
+/* 사이드바 네비게이션에서 기본 색상 */
+.nav-sidebar .fas.fa-video,
+.nav-sidebar i.fas.fa-video {
+  filter: none !important; /* 원본 색상 유지 */
+}
+
+/* 활성화된 사이드바 메뉴에서 흰색 */
+.nav-sidebar .nav-link.active .fas.fa-video,
+.nav-sidebar .nav-link.active i.fas.fa-video {
+  filter: brightness(0) invert(1) !important; /* 흰색으로 변환 */
+}
+
+/* 큰 아이콘 클래스 */
+.fas.fa-video.fa-lg,
+i.fas.fa-video.fa-lg {
+  width: 1.8em !important;
+  height: 1.8em !important;
+}
+
+/* 카드 헤더에서 흰색 */
+.card-header .fas.fa-video,
+.card-header i.fas.fa-video {
+  filter: brightness(0) invert(1) !important; /* 흰색으로 변환 */
+}
+
+/* 웹뷰 전용 최적화 */
+.webview .fas.fa-video,
+.webview i.fas.fa-video,
+[data-platform="android"] .fas.fa-video,
+[data-platform="android"] i.fas.fa-video,
+[data-platform="ios"] .fas.fa-video,
+[data-platform="ios"] i.fas.fa-video {
+  background-size: contain !important;
+  background-repeat: no-repeat !important;
+  background-position: center !important;
+}
+
+/* 브라우저에서 fallback 경로 */
+html:not(.webview) .fas.fa-video,
+html:not(.webview) i.fas.fa-video {
+  background-image: url('../icons/icons8-video-projector-100.png') !important;
+} 

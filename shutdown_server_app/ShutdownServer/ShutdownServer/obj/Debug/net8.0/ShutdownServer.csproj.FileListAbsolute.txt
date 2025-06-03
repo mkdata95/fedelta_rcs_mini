@@ -1,0 +1,14 @@
+F:\shutdown_server_app\ShutdownServer\ShutdownServer\bin\Debug\net8.0\ShutdownServer.exe
+F:\shutdown_server_app\ShutdownServer\ShutdownServer\bin\Debug\net8.0\ShutdownServer.deps.json
+F:\shutdown_server_app\ShutdownServer\ShutdownServer\bin\Debug\net8.0\ShutdownServer.runtimeconfig.json
+F:\shutdown_server_app\ShutdownServer\ShutdownServer\bin\Debug\net8.0\ShutdownServer.dll
+F:\shutdown_server_app\ShutdownServer\ShutdownServer\bin\Debug\net8.0\ShutdownServer.pdb
+F:\shutdown_server_app\ShutdownServer\ShutdownServer\obj\Debug\net8.0\ShutdownServer.GeneratedMSBuildEditorConfig.editorconfig
+F:\shutdown_server_app\ShutdownServer\ShutdownServer\obj\Debug\net8.0\ShutdownServer.AssemblyInfoInputs.cache
+F:\shutdown_server_app\ShutdownServer\ShutdownServer\obj\Debug\net8.0\ShutdownServer.AssemblyInfo.cs
+F:\shutdown_server_app\ShutdownServer\ShutdownServer\obj\Debug\net8.0\ShutdownServer.csproj.CoreCompileInputs.cache
+F:\shutdown_server_app\ShutdownServer\ShutdownServer\obj\Debug\net8.0\ShutdownServer.dll
+F:\shutdown_server_app\ShutdownServer\ShutdownServer\obj\Debug\net8.0\refint\ShutdownServer.dll
+F:\shutdown_server_app\ShutdownServer\ShutdownServer\obj\Debug\net8.0\ShutdownServer.pdb
+F:\shutdown_server_app\ShutdownServer\ShutdownServer\obj\Debug\net8.0\ShutdownServer.genruntimeconfig.cache
+F:\shutdown_server_app\ShutdownServer\ShutdownServer\obj\Debug\net8.0\ref\ShutdownServer.dll
