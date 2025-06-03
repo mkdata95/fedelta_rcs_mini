@@ -30,9 +30,9 @@
     
     .dashboard-card-wrapper {
       flex: 1;
-      min-width: calc(16% - 10px); /* 6개 카드를 1줄로 배치하기 위해 18%에서 16%로 변경 */
-      max-width: calc(16% - 10px);
-      padding: 5px; /* 패딩도 원래대로 */
+      min-width: calc(20% - 15px); /* 5개씩 배치 */
+      max-width: calc(20% - 15px);
+      padding: 7.5px; /* gap 대신 padding 사용 */
       box-sizing: border-box;
     }
     
@@ -40,8 +40,8 @@
     .webview .dashboard-card-wrapper,
     [data-platform="android"] .dashboard-card-wrapper,
     [data-platform="ios"] .dashboard-card-wrapper {
-      min-width: calc(16.666% - 15px); /* 웹뷰에서도 6개씩 배치 */
-      max-width: calc(16.666% - 15px);
+      min-width: calc(20% - 15px); /* 웹뷰에서도 5개씩 배치 */
+      max-width: calc(20% - 15px);
       padding: 7.5px; /* 패딩도 원래대로 */
     }
     
@@ -193,206 +193,6 @@
     
     .dashboard-card.purple {
       background: linear-gradient(135deg, #667eea, #764ba2);
-    }
-    
-    /* 정사각형 카드 전용 스타일 */
-    .dashboard-card-wrapper.square-card {
-      min-width: 120px !important;
-      max-width: 120px !important;
-      flex: none !important;
-    }
-    
-    .dashboard-card.square {
-      width: 120px;
-      height: 120px;
-      aspect-ratio: 1;
-    }
-    
-    .dashboard-card.square .dashboard-card-content {
-      flex-direction: column;
-      text-align: center;
-      justify-content: center;
-      padding: 1rem;
-    }
-    
-    .dashboard-card.square .dashboard-card-left {
-      flex-direction: column;
-      gap: 8px;
-      align-items: center;
-      width: 100%;
-    }
-    
-    .dashboard-card.square .dashboard-card-icon {
-      width: 35px;
-      height: 35px;
-      margin-right: 0;
-      margin-bottom: 5px;
-    }
-    
-    .dashboard-card.square .dashboard-card-text {
-      align-items: center;
-      text-align: center;
-      margin-left: 0;
-      min-width: auto;
-      width: 100%;
-    }
-    
-    .dashboard-card.square .dashboard-card-title {
-      font-size: 0.75rem;
-      text-align: center;
-      margin-bottom: 2px;
-    }
-    
-    .dashboard-card.square .dashboard-card-number {
-      font-size: 1.1rem;
-      text-align: center;
-    }
-    
-    /* 시간 카드 전용 스타일 */
-    .dashboard-card.time-card .dashboard-card-content {
-      flex-direction: column;
-      text-align: center;
-      justify-content: center;
-      padding: 0.8rem;
-    }
-    
-    .dashboard-card.time-card .dashboard-card-left {
-      flex-direction: column;
-      gap: 8px;
-      align-items: center;
-      width: 100%;
-    }
-    
-    .dashboard-card.time-card .dashboard-card-icon {
-      display: none !important; /* 아이콘 완전히 숨김 */
-    }
-    
-    .dashboard-card.time-card .dashboard-card-text {
-      align-items: center;
-      text-align: center;
-      margin-left: 0;
-      min-width: auto;
-      width: 100%;
-      gap: 4px;
-    }
-    
-    .dashboard-card.time-card .dashboard-card-title {
-      font-size: 0.8rem;
-      text-align: center;
-      margin-bottom: 6px;
-      font-weight: 600;
-    }
-    
-    .dashboard-card.time-card .dashboard-card-number {
-      font-size: 1rem;
-      text-align: center;
-      line-height: 1.2;
-      display: flex;
-      flex-direction: column;
-      gap: 3px;
-    }
-    
-    .dashboard-card.time-card .time-period {
-      font-size: 0.8rem;
-      font-weight: 500;
-      opacity: 0.95;
-      margin-bottom: 2px;
-    }
-    
-    .dashboard-card.time-card .time-digits {
-      font-size: 1.1rem;
-      font-weight: bold;
-    }
-    
-    /* 정사각형 카드 반응형 */
-    @media (max-width: 1199px) {
-      .dashboard-card-wrapper.square-card {
-        min-width: 110px !important;
-        max-width: 110px !important;
-      }
-      
-      .dashboard-card.square {
-        width: 110px;
-        height: 110px;
-      }
-      
-      .dashboard-card.square .dashboard-card-icon {
-        width: 32px;
-        height: 32px;
-      }
-      
-      .dashboard-card.square .dashboard-card-title {
-        font-size: 0.7rem;
-      }
-      
-      .dashboard-card.square .dashboard-card-number {
-        font-size: 1rem;
-      }
-      
-      /* 시간 카드 반응형 - 1199px 이하 */
-      .dashboard-card.time-card .dashboard-card-icon {
-        display: none !important; /* 아이콘 숨김 */
-      }
-      
-      .dashboard-card.time-card .dashboard-card-title {
-        font-size: 0.75rem;
-        font-weight: 600;
-      }
-      
-      .dashboard-card.time-card .time-period {
-        font-size: 0.75rem;
-        font-weight: 500;
-      }
-      
-      .dashboard-card.time-card .time-digits {
-        font-size: 1.3rem;
-        font-weight: bold;
-      }
-    }
-    
-    @media (max-width: 991px) {
-      .dashboard-card-wrapper.square-card {
-        min-width: 100px !important;
-        max-width: 100px !important;
-      }
-      
-      .dashboard-card.square {
-        width: 100px;
-        height: 100px;
-      }
-      
-      .dashboard-card.square .dashboard-card-icon {
-        width: 30px;
-        height: 30px;
-      }
-      
-      .dashboard-card.square .dashboard-card-title {
-        font-size: 0.65rem;
-      }
-      
-      .dashboard-card.square .dashboard-card-number {
-        font-size: 0.9rem;
-      }
-      
-      /* 시간 카드 반응형 - 991px 이하 */
-      .dashboard-card.time-card .dashboard-card-icon {
-        display: none !important; /* 아이콘 숨김 */
-      }
-      
-      .dashboard-card.time-card .dashboard-card-title {
-        font-size: 0.7rem;
-        font-weight: 600;
-      }
-      
-      .dashboard-card.time-card .time-period {
-        font-size: 0.7rem;
-        font-weight: 500;
-      }
-      
-      .dashboard-card.time-card .time-digits {
-        font-size: 1.15rem;
-        font-weight: bold;
-      }
     }
     
     /* 모바일 반응형 */
@@ -722,33 +522,10 @@
       padding: 3px 6px;
       font-size: 0.6rem;
     }
-    
-    /* 카운트다운 펄스 애니메이션 */
-    @keyframes pulse {
-      0% {
-        transform: scale(1);
-        opacity: 1;
-      }
-      50% {
-        transform: scale(1.1);
-        opacity: 0.7;
-      }
-      100% {
-        transform: scale(1);
-        opacity: 1;
-      }
-    }
   </style>
   <script>
     // 웹뷰 메시지 완전히 제거하기 위한 즉시 실행 스크립트
     (function() {
-      // console 완전 무력화 - 모든 로그 차단
-      console.log = function() {};
-      console.error = function() {};
-      console.warn = function() {};
-      console.info = function() {};
-      console.debug = function() {};
-      
       // 웹뷰 상단 메시지 제거를 위한 스타일 즉시 적용
       var style = document.createElement('style');
       style.textContent = `
@@ -876,57 +653,6 @@
       
       // 웹뷰 상단 메시지 숨기기
       hideWebViewHeader();
-      
-      // 현재 시간 표시
-      updateCurrentTime();
-      updateTimeDisplay();
-      
-      // 시간 카드 즉시 강제 업데이트
-      forceUpdateTimeCard();
-      
-      // 시간 카드 즉시 업데이트
-      setTimeout(function() {
-        updateTimeDisplay();
-        // console.log('시간 카드 초기화 완료');
-      }, 100);
-      
-      // 1초마다 시간 갱신
-      setInterval(updateCurrentTime, 1000);
-      // setInterval(updateTimeDisplay, 1000);
-      // setInterval(forceUpdateTimeCard, 1000); // 강제 업데이트도 1초마다 실행
-      
-      // 장치 수량 가져오기
-      fetchDeviceCounts();
-      
-      // 룸 개수 가져오기
-      fetchRoomCount();
-      
-      // 모든 장치 목록 가져오기
-      loadDashboardProjectorList();
-      loadDashboardPCList();
-      loadDashboardPDUList();
-      
-      // 시스템 상태 가져오기
-      fetchSystemStatus();
-      
-      // 20초마다 장치 목록 자동 새로고침
-      setInterval(loadDashboardProjectorList, 20000);
-      setInterval(loadDashboardPCList, 20000);
-      setInterval(loadDashboardPDUList, 20000);
-      
-      // 모든 링크에 이벤트 추가
-      setupNavigation();
-      
-      // 현재 URL에 맞는 메뉴 활성화
-      const currentPath = window.location.pathname;
-      const pageName = currentPath.split('/').pop() || 'dashboard.html';
-      
-      activateMenu(pageName);
-      
-      // 브라우저 히스토리 상태 설정
-      if (history.replaceState) {
-        history.replaceState({ page: pageName }, '', pageName);
-      }
     });
     
     // 웹뷰 플랫폼 감지 및 스타일 적용 함수
@@ -938,24 +664,24 @@
       if (/android/i.test(userAgent) && /wv\)/i.test(userAgent)) {
         body.classList.add('webview');
         body.setAttribute('data-platform', 'android');
-        // console.log('Android WebView 감지됨 - 웹뷰 스타일 적용');
+        console.log('Android WebView 감지됨 - 웹뷰 스타일 적용');
       }
       // iOS WebView 감지 (WKWebView)
       else if (/iPhone|iPad|iPod/i.test(userAgent) && window.webkit && window.webkit.messageHandlers) {
         body.classList.add('webview');
         body.setAttribute('data-platform', 'ios');
-        // console.log('iOS WebView 감지됨 - 웹뷰 스타일 적용');
+        console.log('iOS WebView 감지됨 - 웹뷰 스타일 적용');
       }
       // 일반적인 WebView 감지 (추가 체크)
       else if (window.AndroidChannel || window.webkit) {
         body.classList.add('webview');
         body.setAttribute('data-platform', 'webview');
-        // console.log('WebView 환경 감지됨 - 웹뷰 스타일 적용');
+        console.log('WebView 환경 감지됨 - 웹뷰 스타일 적용');
       }
       // 데스크톱 브라우저
       else {
         body.setAttribute('data-platform', 'browser');
-        // console.log('일반 브라우저 환경');
+        console.log('일반 브라우저 환경');
       }
     }
     
@@ -1084,13 +810,8 @@
       </ul>
 
       <!-- 우측 네비게이션 링크 -->
-      <ul class="navbar-nav ml-auto" style="margin-right: 30px !important;">
-        <!-- 카운트다운 표시 영역 (전체 제어 중에만 표시) -->
-        <div id="navbar-countdown" class="mr-4 d-flex align-items-center text-warning" style="display: none !important; font-size: 1.2rem; font-weight: bold;">
-          <i class="fas fa-clock mr-2"></i>
-          <span id="countdown-text"></span>
-        </div>
-        <div id="navbar-time" class="mr-3 d-flex align-items-center text-white" style="font-size: 1.2rem; font-weight: bold;"></div>
+      <ul class="navbar-nav ml-auto">
+        <div id="navbar-time" class="mr-3 mt-2 text-white"></div>
       </ul>
     </nav>
     <!-- /.navbar -->
@@ -1139,8 +860,22 @@
                 </p>
               </a>
             </li>
-            <!-- 그룹원격제어 메뉴 삭제됨 -->
-            <!-- 설정 메뉴 삭제됨 -->
+            <li class="nav-item mb-2">
+              <a href="javascript:void(0);" onclick="navigateToPage('group-control.html')" class="nav-link" id="group-control-link" style="border-radius: 5px; margin: 0 10px; transition: all 0.3s;">
+                <i class="nav-icon fas fa-users"></i>
+                <p>
+                  전체 수동 원격제어
+                </p>
+              </a>
+            </li>
+            <li class="nav-item mb-2">
+              <a href="javascript:void(0);" onclick="navigateToPage('settings.html')" class="nav-link" id="settings-link" style="border-radius: 5px; margin: 0 10px; transition: all 0.3s;">
+                <i class="nav-icon fas fa-cog"></i>
+                <p>
+                  설정
+                </p>
+              </a>
+            </li>
           </ul>
         </nav>
       </div>
@@ -1242,52 +977,45 @@
               </div>
             </div>
             
+            <!-- 그룹원격제어 카드 -->
+            <div class="dashboard-card-wrapper">
+              <div class="dashboard-card purple">
+                <div class="dashboard-card-content">
+                  <div class="dashboard-card-left">
+                    <div class="dashboard-card-icon">
+                      <i class="fas fa-users fa-lg"></i>
+                      <!-- 그룹 백업 SVG 아이콘 -->
+                      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 512" width="24" height="24" fill="white" style="display:none; position:absolute; top:50%; left:50%; transform:translate(-50%, -50%);" class="svg-fallback-group">
+                        <path d="M96 224c35.3 0 64-28.7 64-64s-28.7-64-64-64-64 28.7-64 64 28.7 64 64 64zm448 0c35.3 0 64-28.7 64-64s-28.7-64-64-64-64 28.7-64 64 28.7 64 64 64zm32 32h-64c-17.6 0-33.5 7.1-45.1 18.6 40.3 22.1 68.9 62 75.1 109.4h66c17.7 0 32-14.3 32-32v-32c0-35.3-28.7-64-64-64zm-256 0c61.9 0 112-50.1 112-112S381.9 32 320 32 208 82.1 208 144s50.1 112 112 112zm76.8 32h-8.3c-20.8 10-43.9 16-68.5 16s-47.6-6-68.5-16h-8.3C179.6 288 128 339.6 128 403.2V432c0 26.5 21.5 48 48 48h288c26.5 0 48-21.5 48-48v-28.8c0-63.6-51.6-115.2-115.2-115.2zm-223.7-13.4C161.5 263.1 145.6 256 128 256H64c-35.3 0-64 28.7-64 64v32c0 17.7 14.3 32 32 32h65.9c6.3-47.4 34.9-87.3 75.2-109.4z"/>
+                      </svg>
+                    </div>
+                    <div class="dashboard-card-text">
+                      <div class="dashboard-card-title"> 수동원격제어</div>
+                      <div class="dashboard-card-number" id="room-count">30</div>
+                    </div>
+                  </div>
+                  <div class="dashboard-card-right">
+                    <a href="group-control.html" class="btn-more">더보기</a>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
             <!-- 현재 시간 카드 -->
             <div class="dashboard-card-wrapper">
-              <div class="dashboard-card red time-card">
+              <div class="dashboard-card red">
                 <div class="dashboard-card-content">
                   <div class="dashboard-card-left">
-                    <!-- 아이콘 영역 제거 -->
+                    <div class="dashboard-card-icon">
+                      <i class="fas fa-clock"></i>
+                      <!-- 시계 백업 SVG 아이콘 -->
+                      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="24" height="24" fill="white" style="display:none; position:absolute; top:50%; left:50%; transform:translate(-50%, -50%);" class="svg-fallback-clock">
+                        <path d="M256 8C119 8 8 119 8 256s111 248 248 248 248-111 248-248S393 8 256 8zm0 448c-110.5 0-200-89.5-200-200S145.5 56 256 56s200 89.5 200 200-89.5 200-200 200zm61.8-104.4l-84.9-61.7c-3.1-2.3-4.9-5.9-4.9-9.7V116c0-6.6 5.4-12 12-12h32c6.6 0 12 5.4 12 12v141.7l66.8 48.6c5.4 3.9 6.5 11.4 2.6 16.8L334.6 349c-3.9 5.3-11.4 6.5-16.8 2.6z"/>
+                      </svg>
+                    </div>
                     <div class="dashboard-card-text">
                       <div class="dashboard-card-title">현재 시간</div>
-                      <div class="dashboard-card-number" id="time-card-display">
-                        <span class="time-period">로딩중...</span>
-                        <span class="time-digits"></span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-            
-            <!-- 전체 켜기 카드 -->
-            <div class="dashboard-card-wrapper square-card" style="margin-left: auto;">
-              <div class="dashboard-card square" style="background: linear-gradient(135deg, #28a745, #20c997); cursor: pointer;" onclick="showBulkOnConfirm()">
-                <div class="dashboard-card-content">
-                  <div class="dashboard-card-left">
-                    <div class="dashboard-card-icon">
-                      <i class="fas fa-power-off fa-lg"></i>
-                    </div>
-                    <div class="dashboard-card-text">
-                      <div class="dashboard-card-title">전체 켜기</div>
-                      <div class="dashboard-card-number">ON</div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-            
-            <!-- 전체 끄기 카드 -->
-            <div class="dashboard-card-wrapper square-card" style="margin-left: 20px;">
-              <div class="dashboard-card square" style="background: linear-gradient(135deg, #dc143c, #8b0000); cursor: pointer;" onclick="showBulkOffConfirm()">
-                <div class="dashboard-card-content">
-                  <div class="dashboard-card-left">
-                    <div class="dashboard-card-icon">
-                      <i class="fas fa-power-off fa-lg"></i>
-                    </div>
-                    <div class="dashboard-card-text">
-                      <div class="dashboard-card-title">전체 끄기</div>
-                      <div class="dashboard-card-number">OFF</div>
+                      <div class="dashboard-card-number" id="current-time">00:00:00</div>
                     </div>
                   </div>
                 </div>
@@ -1459,148 +1187,251 @@
   </div>
   <!-- ./wrapper -->
 
-  <!-- 전체 제어 모달 -->
-  <div class="modal fade" id="bulkControlModal" tabindex="-1" role="dialog" aria-labelledby="bulkControlModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-lg" role="document">
-      <div class="modal-content" style="background-color: #191c24; border: 1px solid #2c2e33;">
-        <div class="modal-header" style="border-bottom: 1px solid #2c2e33;">
-          <h4 class="modal-title" id="bulkControlTitle" style="color: #e9ecef;">전체 제어</h4>
-          <button type="button" class="close" data-dismiss="modal" aria-label="Close" style="color: #e9ecef;">
-            <span aria-hidden="true">&times;</span>
-          </button>
-        </div>
-        <div class="modal-body" style="color: #e9ecef;">
-          <div class="text-center mb-4">
-            <div class="spinner-border text-primary" role="status" id="bulkControlSpinner">
-              <span class="sr-only">처리 중...</span>
-            </div>
-          </div>
-          
-          <div class="progress mb-3" style="height: 10px;">
-            <div class="progress-bar bg-success" role="progressbar" id="bulkControlProgress" style="width: 0%"></div>
-          </div>
-          <div id="bulkControlMessage" class="text-center">
-            준비 중...
-          </div>
-        </div>
-        <div class="modal-footer" style="border-top: 1px solid #2c2e33;">
-          <button type="button" class="btn btn-secondary" data-dismiss="modal" id="bulkCancelBtn">취소</button>
-          <button type="button" class="btn btn-success" id="bulkConfirmBtn">확인</button>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- 백업 모달 (DOM 문제 발생 시 사용) -->
-  <div class="modal fade" id="bulkControlModalBackup" tabindex="-1" role="dialog">
-    <div class="modal-dialog modal-lg" role="document">
-      <div class="modal-content" style="background-color: #191c24; border: 1px solid #2c2e33;">
-        <div class="modal-header" style="border-bottom: 1px solid #2c2e33;">
-          <h4 class="modal-title" id="bulkControlTitleBackup" style="color: #e9ecef;">전체 제어</h4>
-          <button type="button" class="close" data-dismiss="modal" style="color: #e9ecef;">
-            <span>&times;</span>
-          </button>
-        </div>
-        <div class="modal-body" style="color: #e9ecef;">
-          <div id="bulkControlMessageBackup" class="text-center">준비 중...</div>
-        </div>
-        <div class="modal-footer" style="border-top: 1px solid #2c2e33;">
-          <button type="button" class="btn btn-secondary" data-dismiss="modal">취소</button>
-        </div>
-      </div>
-    </div>
-  </div>
-
   <!-- 자바스크립트 -->
   <script>
-    // 시간 카드 직접 업데이트 함수 (먼저 정의)
-    function forceUpdateTimeCard() {
+    // 페이지 로드 시 실행
+    document.addEventListener('DOMContentLoaded', function() {
+      // 현재 시간 표시
+      updateCurrentTime();
+      updateTimeDisplay();
+      
+      // 1초마다 시간 갱신
+      setInterval(updateCurrentTime, 1000);
+      setInterval(updateTimeDisplay, 1000);
+      
+      // 장치 수량 가져오기
+      fetchDeviceCounts();
+      
+      // 룸 개수 가져오기
+      fetchRoomCount();
+      
+      // 모든 장치 목록 가져오기
+      loadDashboardProjectorList();
+      loadDashboardPCList();
+      loadDashboardPDUList();
+      
+      // 시스템 상태 가져오기
+      fetchSystemStatus();
+      
+      // 20초마다 장치 목록 자동 새로고침
+      setInterval(loadDashboardProjectorList, 20000);
+      setInterval(loadDashboardPCList, 20000);
+      setInterval(loadDashboardPDUList, 20000);
+      
+      // 모든 링크에 이벤트 추가
+      setupNavigation();
+      
+      // 현재 URL에 맞는 메뉴 활성화
+      const currentPath = window.location.pathname;
+      const pageName = currentPath.split('/').pop() || 'dashboard.html';
+      
+      activateMenu(pageName);
+      
+      // 브라우저 히스토리 상태 설정
+      if (history.replaceState) {
+        history.replaceState({ page: pageName }, '', pageName);
+      }
+    });
+    
+    // 현재 시간 업데이트 (네비게이션 바용)
+    function updateCurrentTime() {
+      const now = new Date();
+      
+      // 년.월.요일 부분
+      const year = now.getFullYear();
+      const month = String(now.getMonth() + 1).padStart(2, '0');
+      const weekdays = ['일', '월', '화', '수', '목', '금', '토'];
+      const weekday = weekdays[now.getDay()];
+      
+      // 12시간 표시 시간 부분
+      let hours = now.getHours();
+      const minutes = String(now.getMinutes()).padStart(2, '0');
+      const seconds = String(now.getSeconds()).padStart(2, '0');
+      const ampm = hours >= 12 ? '오후' : '오전';
+      
+      // 12시간제로 변환
+      hours = hours % 12;
+      hours = hours ? hours : 12; // 0시는 12시로 표시
+      hours = String(hours).padStart(2, '0');
+      
+      const timeString = `${year}.${month}.${weekday} ${ampm} ${hours}:${minutes}:${seconds}`;
+      
+      const timeElement = document.getElementById('navbar-time');
+      if (timeElement) {
+        timeElement.textContent = timeString;
+      }
+    }
+    
+    // 대시보드 카드용 시간 표시
+    function updateTimeDisplay() {
       const now = new Date();
       const hours = now.getHours();
       const minutes = String(now.getMinutes()).padStart(2, '0');
       const seconds = String(now.getSeconds()).padStart(2, '0');
+      
+      // 오전/오후 구분
       const period = hours < 12 ? '오전' : '오후';
+      // 12시간제 시간 계산
       const displayHours = String(hours % 12 || 12).padStart(2, '0');
       
-      // 모든 가능한 방법으로 시간 카드 찾기
-      let timeCard = document.getElementById('time-card-display');
-      
-      if (!timeCard) {
-        // querySelector로 다시 찾기
-        timeCard = document.querySelector('#time-card-display');
-      }
-      
-      if (!timeCard) {
-        // 클래스명으로 찾기
-        const allNumbers = document.querySelectorAll('.dashboard-card-number');
-        for (let element of allNumbers) {
-          if (element.id === 'time-card-display' || element.textContent.includes('로딩중')) {
-            timeCard = element;
-            break;
-          }
-        }
-      }
-      
-      if (timeCard) {
-        // 새로운 구조로 시간 표시
-        const periodElement = timeCard.querySelector('.time-period');
-        const digitsElement = timeCard.querySelector('.time-digits');
-        
-        if (periodElement && digitsElement) {
-          periodElement.textContent = period;
-          digitsElement.textContent = `${displayHours}:${minutes}:${seconds}`;
-        } else {
-          // 백업: 기존 방식으로 표시
-          timeCard.innerHTML = `
-            <span class="time-period">${period}</span>
-            <span class="time-digits">${displayHours}:${minutes}:${seconds}</span>
-          `;
-        }
-        
-        // console.log('✅ 시간 카드 업데이트 성공:', period, `${displayHours}:${minutes}:${seconds}`);
-        return true;
-      } else {
-        // console.error('❌ 시간 카드를 찾을 수 없습니다');
-        return false;
+      // 대시보드 카드의 시간 요소만 업데이트
+      const timeDisplayElement = document.querySelector('.dashboard-card.red .dashboard-card-number');
+      if (timeDisplayElement) {
+        timeDisplayElement.textContent = `${period} ${displayHours}:${minutes}:${seconds}`;
       }
     }
     
-    // 장치 수량 가져오기 함수
+    // API에서 장치 수량 가져오기
     function fetchDeviceCounts() {
-      try {
-        // TODO: 실제 API 호출로 장치 수량 가져오기
-        // 예시: fetch('/api/devices/count').then(...)
-        
-        // 임시로 0으로 초기화 (실제 데이터가 로드되면 업데이트됨)
-        updateDashboardCard('projector', 0);
-        updateDashboardCard('pc', 0);
-        updateDashboardCard('pdu', 0);
-        
-        // console.log('장치 수량 초기화 완료 - 실제 데이터 로드 대기중');
-      } catch (error) {
-        console.error('장치 수량 가져오기 실패:', error);
+      // 실제 API 호출은 다음과 같이 할 수 있습니다
+      /*
+      fetch('/api/devices/count')
+        .then(response => response.json())
+        .then(data => {
+          updateDeviceCounts(data);
+        })
+        .catch(error => {
+          console.error('장치 수량 가져오기 오류:', error);
+        });
+      */
+      
+      // 시뮬레이션 데이터
+      const data = {
+        projectors: 0,
+        pcs: 0,
+        pdus: 0
+      };
+      
+      updateDeviceCounts(data);
+    }
+    
+    // 장치 수량 업데이트
+    function updateDeviceCounts(data) {
+      const projectorElement = document.querySelector('.dashboard-card.blue .dashboard-card-number');
+      const pcElement = document.querySelector('.dashboard-card.green .dashboard-card-number');
+      const pduElement = document.querySelector('.dashboard-card.yellow .dashboard-card-number');
+      
+      if (projectorElement) {
+        projectorElement.textContent = data.projectors;
+      }
+      
+      if (pcElement) {
+        pcElement.textContent = data.pcs;
+      }
+      
+      if (pduElement) {
+        pduElement.textContent = data.pdus;
       }
     }
     
-    // 대시보드 카드 업데이트 함수
-    function updateDashboardCard(type, count) {
-      const cards = document.querySelectorAll('.dashboard-card');
-      cards.forEach(card => {
-        const title = card.querySelector('.dashboard-card-title');
-        if (title) {
-          const titleText = title.textContent.toLowerCase();
-          if ((type === 'projector' && titleText.includes('빔프로젝터')) ||
-              (type === 'pc' && titleText.includes('pc')) ||
-              (type === 'pdu' && titleText.includes('pdu'))) {
-            const numberElement = card.querySelector('.dashboard-card-number');
-            if (numberElement && !numberElement.id) { // 시간 카드가 아닌 경우
-              numberElement.textContent = count;
+    // 룸 개수 가져오기
+    async function fetchRoomCount() {
+      try {
+        const response = await fetch('/api/settings/rooms');
+        if (response.ok) {
+          const result = await response.json();
+          if (result.success && result.data) {
+            const roomCountElement = document.getElementById('room-count');
+            if (roomCountElement) {
+              roomCountElement.textContent = result.data.room_count || 4;
             }
           }
+        }
+      } catch (error) {
+        console.error('룸 개수 가져오기 오류:', error);
+        // 기본값 30개 유지
+      }
+    }
+    
+    // 페이지 이동 함수
+    function navigateTo(url) {
+      console.log('페이지 이동:', url);
+      
+      // 기본 이동 방식 시도
+      try {
+        window.location.href = url;
+      } catch (e) {
+        console.error('기본 이동 실패:', e);
+        
+        // WebView와 통신 시도
+        try {
+          if (window.AndroidChannel) {
+            window.AndroidChannel.postMessage('navigate:' + url);
+          } else {
+            console.log('AndroidChannel을 찾을 수 없음, 직접 이동 시도');
+            document.location.href = url;
+          }
+        } catch (e2) {
+          console.error('대체 이동 실패:', e2);
+        }
+      }
+    }
+    
+    // 모든 링크에 이벤트 추가
+    function setupNavigation() {
+      document.querySelectorAll('a[href$=".html"]').forEach(function(link) {
+        // 이미 처리된 링크는 건너뜁니다
+        if (!link.getAttribute('onclick')) {
+          const url = link.getAttribute('href');
+          link.addEventListener('click', function(e) {
+            e.preventDefault();
+            navigateTo(url);
+          });
         }
       });
     }
     
+    // 시스템 상태 업데이트 함수 추가
+    function fetchSystemStatus() {
+      // 실제 API 호출은 다음과 같이 할 수 있습니다
+      /*
+      fetch('/api/system/status')
+        .then(response => response.json())
+        .then(data => {
+          updateSystemStatus(data);
+        })
+        .catch(error => {
+          console.error('시스템 상태 가져오기 오류:', error);
+        });
+      */
+      
+      // 시뮬레이션 데이터
+      const data = {
+        server: 'online',
+        network: 'online'
+      };
+      
+      updateSystemStatus(data);
+    }
+    
+    // 시스템 상태 UI 업데이트
+    function updateSystemStatus(data) {
+      const serverIndicator = document.getElementById('server-status-indicator');
+      const networkIndicator = document.getElementById('network-status-indicator');
+      const serverText = document.querySelector('.server-status-text');
+      const networkText = document.querySelector('.network-status-text');
+      
+      if (serverIndicator && serverText) {
+        if (data.server === 'online') {
+          serverIndicator.className = 'status-indicator online';
+          serverText.textContent = '서버 정상';
+        } else {
+          serverIndicator.className = 'status-indicator offline';
+          serverText.textContent = '서버 오류';
+        }
+      }
+      
+      if (networkIndicator && networkText) {
+        if (data.network === 'online') {
+          networkIndicator.className = 'status-indicator online';
+          networkText.textContent = '네트워크 정상';
+        } else {
+          networkIndicator.className = 'status-indicator offline';
+          networkText.textContent = '네트워크 오류';
+        }
+      }
+    }
+
     // 대시보드용 프로젝터 목록 로드
     async function loadDashboardProjectorList() {
       try {
@@ -1679,8 +1510,7 @@
           }
           
           // 행 내용 구성 (순번 추가)
-          tr.innerHTML = `
-            <td class="text-center">${index + 1}</td>
+          tr.innerHTML = `            <td class="text-center">${index + 1}</td>
             <td class="text-center">${projector.name || ''}</td>
             <td class="text-center">${projector.ip || ''}</td>
             <td class="text-center">${extraData.model || '미지정'}</td>
@@ -1923,61 +1753,31 @@
         }
       }
     }
-    
-    // 룸 개수 가져오기 함수
-    function fetchRoomCount() {
+
+    // 웹뷰 내에서 페이지 이동을 처리하는 함수 추가
+    function navigateToPage(pageName) {
+      // 현재 활성화된 메뉴 변경
+      activateMenu(pageName);
+      
+      // 직접 페이지 이동 방식으로 변경 (SPA 방식 제거)
+      console.log('페이지 이동:', pageName);
+      
+      // 네이티브 앱 통신이 있는 경우 시도
       try {
-        // TODO: 실제 API 호출로 룸 개수 가져오기
-        // 예시: fetch('/api/rooms/count').then(...)
-        // console.log('룸 개수 가져오기 시도 완료');
+        if (window.AndroidChannel) {
+          window.AndroidChannel.postMessage('navigate:' + pageName);
+        } else {
+          // 일반 브라우저 이동
+          window.location.href = pageName;
+        }
       } catch (error) {
-        console.error('룸 개수 가져오기 실패:', error);
+        console.error('페이지 이동 오류:', error);
+        // 오류 발생 시 직접 이동 시도
+        window.location.href = pageName;
       }
     }
-    
-    // 시스템 상태 가져오기 함수
-    function fetchSystemStatus() {
-      try {
-        // TODO: 실제 API 호출로 시스템 상태 가져오기
-        // 예시: fetch('/api/system/status').then(...)
-        // console.log('시스템 상태 가져오기 시도 완료');
-      } catch (error) {
-        console.error('시스템 상태 가져오기 실패:', error);
-      }
-    }
-    
-    // 전체 켜기 확인 모달 함수
-    function showBulkOnConfirm() {
-      if (confirm('모든 장치를 켜시겠습니까?')) {
-        alert('전체 켜기 명령이 실행되었습니다.');
-      }
-    }
-    
-    // 전체 끄기 확인 모달 함수
-    function showBulkOffConfirm() {
-      if (confirm('모든 장치를 끄시겠습니까?')) {
-        alert('전체 끄기 명령이 실행되었습니다.');
-      }
-    }
-    
-    // 네비게이션 설정 함수
-    function setupNavigation() {
-      // 모든 네비게이션 링크에 이벤트 리스너 추가
-      document.querySelectorAll('a[onclick*="navigateToPage"]').forEach(link => {
-        link.addEventListener('click', function(e) {
-          e.preventDefault();
-          const page = this.getAttribute('onclick').match(/navigateToPage\('(.+?)'\)/)[1];
-          navigateToPage(page);
-        });
-      });
-    }
-    
-    // 페이지 이동 함수
-    function navigateToPage(page) {
-      window.location.href = page;
-    }
-    
-    // 메뉴 활성화 함수
+
+    // 현재 페이지에 따라 메뉴 활성화
     function activateMenu(pageName) {
       // 모든 메뉴 링크 비활성화
       document.querySelectorAll('.nav-sidebar .nav-link').forEach(link => {
@@ -1985,376 +1785,81 @@
       });
       
       // 현재 페이지에 맞는 메뉴 활성화
-      let activeLink = null;
+      let linkId = "";
       
       switch(pageName) {
         case 'index.html':
         case '':
-          activeLink = document.querySelector('#dashboard-link');
+          linkId = "dashboard-link";
           break;
         case 'dashboard.html':
-          activeLink = document.querySelector('#dashboard-link');
+          linkId = "dashboard-link";
           break;
         case 'projector.html':
-          activeLink = document.querySelector('#projector-link');
+          linkId = "projector-link";
           break;
         case 'pc.html':
-          activeLink = document.querySelector('#pc-link');
+          linkId = "pc-link";
           break;
         case 'pdu.html':
-          activeLink = document.querySelector('#pdu-link');
+          linkId = "pdu-link";
           break;
         default:
-          // 기본값으로 대시보드 활성화
-          activeLink = document.querySelector('#dashboard-link');
+          linkId = "dashboard-link";
       }
       
+      const activeLink = document.getElementById(linkId);
       if (activeLink) {
         activeLink.classList.add('active');
       }
     }
-    
-    // 현재 시간 업데이트 (네비게이션 바용)
-    function updateCurrentTime() {
-      const now = new Date();
-      
-      // 년.월.요일 부분
-      const year = now.getFullYear();
-      const month = String(now.getMonth() + 1).padStart(2, '0');
-      const day = String(now.getDate()).padStart(2, '0');
-      const weekdays = ['일', '월', '화', '수', '목', '금', '토'];
-      const weekday = weekdays[now.getDay()];
-      
-      // 12시간 표시 시간 부분
-      let hours = now.getHours();
-      const minutes = String(now.getMinutes()).padStart(2, '0');
-      const seconds = String(now.getSeconds()).padStart(2, '0');
-      const ampm = hours >= 12 ? '오후' : '오전';
-      
-      // 12시간제로 변환
-      hours = hours % 12;
-      hours = hours ? hours : 12; // 0시는 12시로 표시
-      hours = String(hours).padStart(2, '0');
-      
-      // 한글 부분(요일, 오전/오후)은 작은 폰트로 표시
-      const timeString = `${year}.${month}.${day}.<span style="font-size: 0.9em;">${weekday}</span>&nbsp;&nbsp;<span style="font-size: 0.8em;">${ampm}</span> ${hours}:${minutes}:${seconds}`;
-      
-      const timeElement = document.getElementById('navbar-time');
-      if (timeElement) {
-        timeElement.innerHTML = timeString;
-      }
-    }
-    
-    // 대시보드 카드용 시간 표시
-    function updateTimeDisplay() {
-      const now = new Date();
-      const hours = now.getHours();
-      const minutes = String(now.getMinutes()).padStart(2, '0');
-      const seconds = String(now.getSeconds()).padStart(2, '0');
-      
-      // 오전/오후 구분
-      const period = hours < 12 ? '오전' : '오후';
-      // 12시간제 시간 계산
-      const displayHours = String(hours % 12 || 12).padStart(2, '0');
-      
-      // 대시보드 시간 카드 업데이트
-      const timeCardElement = document.getElementById('time-card-display');
-      // console.log('시간 업데이트 시도:', period, `${displayHours}:${minutes}:${seconds}`);
-      // console.log('시간 카드 요소:', timeCardElement);
-      
-      if (timeCardElement) {
-        // 새로운 구조로 시간 표시
-        const periodElement = timeCardElement.querySelector('.time-period');
-        const digitsElement = timeCardElement.querySelector('.time-digits');
-        
-        if (periodElement && digitsElement) {
-          periodElement.textContent = period;
-          digitsElement.textContent = `${displayHours}:${minutes}:${seconds}`;
-          // console.log('시간 카드 업데이트 완료:', period, `${displayHours}:${minutes}:${seconds}`);
-        } else {
-          // 백업: 기존 방식으로 표시
-          timeCardElement.innerHTML = `
-            <span class="time-period">${period}</span>
-            <span class="time-digits">${displayHours}:${minutes}:${seconds}</span>
-          `;
-          // console.log('백업 방식으로 시간 카드 업데이트 완료');
-        }
-      } else {
-        // console.error('time-card-display 요소를 찾을 수 없습니다');
-        // 요소가 없으면 다른 방법으로 찾기 시도
-        const allElements = document.querySelectorAll('[id*="time"]');
-        // console.log('시간 관련 요소들:', allElements);
-      }
-    }
-    
-    // 페이지 로드 시 실행
-    document.addEventListener('DOMContentLoaded', function() {
-      // 현재 시간 표시
-      updateCurrentTime();
-      updateTimeDisplay();
-      
-      // 시간 카드 즉시 강제 업데이트
-      forceUpdateTimeCard();
-      
-      // 시간 카드 즉시 업데이트
-      setTimeout(function() {
-        updateTimeDisplay();
-        // console.log('시간 카드 초기화 완료');
-      }, 100);
-      
-      // 1초마다 시간 갱신
-      setInterval(updateCurrentTime, 1000);
-      // setInterval(updateTimeDisplay, 1000);
-      // setInterval(forceUpdateTimeCard, 1000); // 강제 업데이트도 1초마다 실행
-      
-      // 장치 수량 가져오기
-      fetchDeviceCounts();
-      
-      // 룸 개수 가져오기
-      fetchRoomCount();
-      
-      // 모든 장치 목록 가져오기
-      loadDashboardProjectorList();
-      loadDashboardPCList();
-      loadDashboardPDUList();
-      
-      // 시스템 상태 가져오기
-      fetchSystemStatus();
-      
-      // 20초마다 장치 목록 자동 새로고침
-      setInterval(loadDashboardProjectorList, 20000);
-      setInterval(loadDashboardPCList, 20000);
-      setInterval(loadDashboardPDUList, 20000);
-      
-      // 모든 링크에 이벤트 추가
-      setupNavigation();
-      
-      // 현재 URL에 맞는 메뉴 활성화
-      const currentPath = window.location.pathname;
-      const pageName = currentPath.split('/').pop() || 'dashboard.html';
-      
-      activateMenu(pageName);
-      
-      // 브라우저 히스토리 상태 설정
-      if (history.replaceState) {
-        history.replaceState({ page: pageName }, '', pageName);
+
+    // 브라우저 뒤로가기/앞으로가기 처리
+    window.addEventListener('popstate', function(event) {
+      if (event.state && event.state.page) {
+        // 페이지 이동 (새로운 함수 사용)
+        window.location.href = event.state.page;
       }
     });
-    
-    // 실제 프로젝터 데이터 로드 함수 (API 연결용)
-    function loadRealProjectorData() {
-      return fetch('/api/projectors')
-        .then(response => {
-          if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-          }
-          return response.json();
-        })
-        .then(data => {
-          console.log('프로젝터 API 응답:', data);
-          const tbody = document.getElementById('dashboard-projector-list');
-          
-          if (!tbody) {
-            console.error('dashboard-projector-list 테이블을 찾을 수 없습니다');
-            return data;
-          }
-          
-          // API 응답 구조 처리 - data가 배열이거나 객체일 수 있음
-          let projectorList = [];
-          if (Array.isArray(data)) {
-            projectorList = data;
-          } else if (data && Array.isArray(data.projectors)) {
-            projectorList = data.projectors;
-          } else if (data && Array.isArray(data.data)) {
-            projectorList = data.data;
-          } else if (data && data.success && Array.isArray(data.data)) {
-            projectorList = data.data;
-          }
-          
-          console.log('처리된 프로젝터 목록:', projectorList);
-          
-          if (projectorList && projectorList.length > 0) {
-            tbody.innerHTML = projectorList.map((projector, index) => `
-              <tr>
-                <td class="text-center">${index + 1}</td>
-                <td class="text-center">${projector.name || projector.device_name || '이름 없음'}</td>
-                <td class="text-center">${projector.ip || projector.ip_address || 'N/A'}</td>
-                <td class="text-center">${projector.model || projector.device_type || projector.type || '모델 정보 없음'}</td>
-                <td class="text-center">
-                  <span class="badge ${(projector.networkStatus === 'online' || projector.network_status === 'online' || projector.status === 'online') ? 'badge-online' : 'badge-offline'}">
-                    ${(projector.networkStatus === 'online' || projector.network_status === 'online' || projector.status === 'online') ? '온라인' : '오프라인'}
-                  </span>
-                </td>
-                <td class="text-center">
-                  <span class="badge ${(projector.powerStatus === 'on' || projector.power_status === 'on' || projector.power === 'on') ? 'badge-online' : 'badge-offline'}">
-                    ${(projector.powerStatus === 'on' || projector.power_status === 'on' || projector.power === 'on') ? '켜짐' : '꺼짐'}
-                  </span>
-                </td>
-              </tr>
-            `).join('');
-            updateDashboardCard('projector', projectorList.length);
-            console.log(`프로젝터 ${projectorList.length}개 표시 완료`);
-          } else {
-            tbody.innerHTML = '<tr><td colspan="6" class="text-center text-muted">등록된 빔프로젝터가 없습니다.</td></tr>';
-            updateDashboardCard('projector', 0);
-            console.log('프로젝터 데이터가 없음');
-          }
-          
-          return data;
-        })
-        .catch(error => {
-          console.error('프로젝터 API 호출 실패:', error);
-          const tbody = document.getElementById('dashboard-projector-list');
-          if (tbody) {
-            tbody.innerHTML = '<tr><td colspan="6" class="text-center text-danger">데이터 로드 실패</td></tr>';
-          }
-          return null;
-        });
-    }
-    
-    // 실제 PC 데이터 로드 함수 (API 연결용)
-    function loadRealPCData() {
-      return fetch('/api/pcs')
-        .then(response => {
-          if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-          }
-          return response.json();
-        })
-        .then(data => {
-          console.log('PC API 응답:', data);
-          const tbody = document.getElementById('dashboard-pc-list');
-          
-          if (!tbody) {
-            console.error('dashboard-pc-list 테이블을 찾을 수 없습니다');
-            return data;
-          }
-          
-          // API 응답 구조 처리
-          let pcList = [];
-          if (Array.isArray(data)) {
-            pcList = data;
-          } else if (data && Array.isArray(data.pcs)) {
-            pcList = data.pcs;
-          } else if (data && Array.isArray(data.data)) {
-            pcList = data.data;
-          } else if (data && data.success && Array.isArray(data.data)) {
-            pcList = data.data;
-          }
-          
-          console.log('처리된 PC 목록:', pcList);
-          
-          if (pcList && pcList.length > 0) {
-            tbody.innerHTML = pcList.map((pc, index) => `
-              <tr>
-                <td class="text-center">${index + 1}</td>
-                <td class="text-center">${pc.name || pc.device_name || '이름 없음'}</td>
-                <td class="text-center">${pc.ip || pc.ip_address || 'N/A'}</td>
-                <td class="text-center">${pc.mac || pc.mac_address || 'N/A'}</td>
-                <td class="text-center">
-                  <span class="badge ${(pc.networkStatus === 'online' || pc.network_status === 'online' || pc.status === 'online') ? 'badge-online' : 'badge-offline'}">
-                    ${(pc.networkStatus === 'online' || pc.network_status === 'online' || pc.status === 'online') ? '온라인' : '오프라인'}
-                  </span>
-                </td>
-                <td class="text-center">
-                  <span class="badge ${(pc.powerStatus === 'on' || pc.power_status === 'on' || pc.power === 'on') ? 'badge-online' : 'badge-offline'}">
-                    ${(pc.powerStatus === 'on' || pc.power_status === 'on' || pc.power === 'on') ? '켜짐' : '꺼짐'}
-                  </span>
-                </td>
-              </tr>
-            `).join('');
-            updateDashboardCard('pc', pcList.length);
-            console.log(`PC ${pcList.length}개 표시 완료`);
-          } else {
-            tbody.innerHTML = '<tr><td colspan="6" class="text-center text-muted">등록된 PC가 없습니다.</td></tr>';
-            updateDashboardCard('pc', 0);
-            console.log('PC 데이터가 없음');
-          }
-          
-          return data;
-        })
-        .catch(error => {
-          console.error('PC API 호출 실패:', error);
-          const tbody = document.getElementById('dashboard-pc-list');
-          if (tbody) {
-            tbody.innerHTML = '<tr><td colspan="6" class="text-center text-danger">데이터 로드 실패</td></tr>';
-          }
-          return null;
-        });
-    }
-    
-    // 실제 PDU 데이터 로드 함수 (API 연결용)
-    function loadRealPDUData() {
-      return fetch('/api/pdus')
-        .then(response => {
-          if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-          }
-          return response.json();
-        })
-        .then(data => {
-          console.log('PDU API 응답:', data);
-          const tbody = document.getElementById('dashboard-pdu-list');
-          
-          if (!tbody) {
-            console.error('dashboard-pdu-list 테이블을 찾을 수 없습니다');
-            return data;
-          }
-          
-          // API 응답 구조 처리
-          let pduList = [];
-          if (Array.isArray(data)) {
-            pduList = data;
-          } else if (data && Array.isArray(data.pdus)) {
-            pduList = data.pdus;
-          } else if (data && Array.isArray(data.data)) {
-            pduList = data.data;
-          } else if (data && data.success && Array.isArray(data.data)) {
-            pduList = data.data;
-          }
-          
-          console.log('처리된 PDU 목록:', pduList);
-          
-          if (pduList && pduList.length > 0) {
-            tbody.innerHTML = pduList.map((pdu, index) => `
-              <tr>
-                <td class="text-center">${index + 1}</td>
-                <td class="text-center">${pdu.name || pdu.device_name || '이름 없음'}</td>
-                <td class="text-center">${pdu.ip || pdu.ip_address || 'N/A'}</td>
-                <td class="text-center">${pdu.port || pdu.port_number || 'N/A'}</td>
-                <td class="text-center">
-                  <span class="badge ${(pdu.networkStatus === 'online' || pdu.network_status === 'online' || pdu.status === 'online') ? 'badge-online' : 'badge-offline'}">
-                    ${(pdu.networkStatus === 'online' || pdu.network_status === 'online' || pdu.status === 'online') ? '온라인' : '오프라인'}
-                  </span>
-                </td>
-                <td class="text-center">
-                  <span class="badge ${(pdu.powerStatus === 'on' || pdu.power_status === 'on' || pdu.power === 'on') ? 'badge-online' : 'badge-offline'}">
-                    ${(pdu.powerStatus === 'on' || pdu.power_status === 'on' || pdu.power === 'on') ? '켜짐' : '꺼짐'}
-                  </span>
-                </td>
-              </tr>
-            `).join('');
-            updateDashboardCard('pdu', pduList.length);
-            console.log(`PDU ${pduList.length}개 표시 완료`);
-          } else {
-            tbody.innerHTML = '<tr><td colspan="6" class="text-center text-muted">등록된 PDU가 없습니다.</td></tr>';
-            updateDashboardCard('pdu', 0);
-            console.log('PDU 데이터가 없음');
-          }
-          
-          return data;
-        })
-        .catch(error => {
-          console.error('PDU API 호출 실패:', error);
-          const tbody = document.getElementById('dashboard-pdu-list');
-          if (tbody) {
-            tbody.innerHTML = '<tr><td colspan="6" class="text-center text-danger">데이터 로드 실패</td></tr>';
-          }
-          return null;
-        });
-    }
-    
-    // ... existing code ...
+  </script>
+  
+  <!-- FontAwesome 아이콘 확인 및 폴백 처리 -->
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      // 폰트언 로딩 확인
+      setTimeout(function() {
+        // 아이콘 폴백 처리 함수
+        function checkIcon(iconClass, fallbackClass) {
+          var icons = document.querySelectorAll(iconClass);
+          icons.forEach(function(icon) {
+            // 아이콘이 제대로 로드되지 않았는지 확인
+            if (icon.offsetWidth === 0 || getComputedStyle(icon).display === 'none') {
+              // 부모 요소에서 폴백 SVG 찾기
+              var parent = icon.parentElement;
+              if (parent) {
+                var fallback = parent.querySelector(fallbackClass);
+                if (fallback) {
+                  // 아이콘은 숨기고 SVG 표시
+                  icon.style.display = 'none';
+                  fallback.style.display = 'block';
+                }
+              }
+            }
+          });
+        }
+        
+        // 각 아이콘 유형 확인
+        checkIcon('.fa-video', '.svg-fallback');
+        
+        // 다른 아이콘들도 체크 (PC, PDU, 클럭, 그룹 등)
+        checkIcon('.fa-desktop', '.svg-fallback-pc');
+        checkIcon('.fa-power-off', '.svg-fallback-power');
+        checkIcon('.fa-clock', '.svg-fallback-clock');
+        checkIcon('.fa-users', '.svg-fallback-group');
+      }, 1000); // 페이지 로드 후 1초 후에 확인
+    });
   </script>
 </body>
 </html>
+
+
