@@ -2382,8 +2382,6 @@
         
         // 타이머 표시 시작
         if (navbarCountdown && countdownText) {
-          navbarCountdown.style.display = 'flex';
-          navbarCountdown.style.removeProperty('display'); // !important 스타일 제거
           navbarCountdown.style.setProperty('display', 'flex', 'important');
         }
         
@@ -2393,7 +2391,7 @@
           const timeString = `${minutes}:${secs.toString().padStart(2, '0')}`;
           
           // 콘솔 로그
-          // console.log(`⏰ ${title} - 남은 시간: ${timeString}`);
+          console.log(`⏰ ${title} - 남은 시간: ${timeString}`);
           
           // 상단바에 표시 (타이머 + 진행 정보)
           if (countdownText) {
@@ -2407,7 +2405,7 @@
           remainingSeconds--;
           
           if (remainingSeconds < 0) {
-            // console.log(`✅ ${title} 완료!`);
+            console.log(`✅ ${title} 완료!`);
             
             // 타이머 숨기기
             if (navbarCountdown) {
@@ -2430,14 +2428,6 @@
       const countdownText = document.getElementById('countdown-text');
       
       if (navbarCountdown && countdownText) {
-        // 현재 카운트다운이 진행 중인지 확인 (isProcessing이 true이고 카운트다운 텍스트가 있는 경우)
-        const isCountdownActive = isProcessing && countdownText.innerHTML.includes(':');
-        
-        if (isCountdownActive) {
-          console.log('⚠️ 카운트다운 진행 중이므로 상태 메시지 무시:', message);
-          return; // 카운트다운 중이면 메시지 표시하지 않음
-        }
-        
         // 상단바 표시
         navbarCountdown.style.setProperty('display', 'flex', 'important');
         countdownText.innerHTML = `<span style="color: #ffc107; font-weight: bold; font-size: 1.2rem;">${message}</span>`;
