@@ -11,7 +11,6 @@
   <!-- CSS 파일 -->
   <link rel="stylesheet" href="assets/css/bootstrap.min.css">
   <link rel="stylesheet" href="assets/css/fontawesome.min.css">
-  <link rel="stylesheet" href="assets/css/all.min.css">
   <link rel="stylesheet" href="assets/css/adminlte.min.css">
   <link rel="stylesheet" href="assets/css/common.css">
   <link rel="stylesheet" href="assets/css/icons.css">
@@ -110,27 +109,50 @@
     .dashboard-card-right {
       flex-shrink: 0;
       margin-left: 12px; /* 오른쪽 버튼과의 간격 추가 */
+      position: relative;
+      top: 10px; /* 버튼만 아래로 이동하여 숫자와 같은 높이에 배치 */
     }
     
     .dashboard-card-icon {
-      width: 40px;
-      height: 40px;
-      border-radius: 50%;
-      background-color: rgba(255, 255, 255, 0.3);
-      display: flex !important;
-      justify-content: center !important;
-      align-items: center !important;
+      width: auto; /* 자동 크기 */
+      height: auto; /* 자동 크기 */
       font-size: 1.2rem !important;
-      visibility: visible !important;
-      opacity: 1 !important;
-      flex-shrink: 0;
-      margin-right: 8px; /* 아이콘 오른쪽 여백 추가 */
+      background-color: transparent;
+      border-radius: 0;
+      border: none;
+      box-shadow: none;
+      padding: 0;
+      margin: 0;
+      margin-right: 8px;
     }
     
     .dashboard-card-icon img {
-      max-width: 70%;
-      max-height: 70%;
+      max-width: 24px; /* 기본 크기 */
+      max-height: 24px;
       object-fit: contain;
+      filter: brightness(0) invert(1); /* 화이트 색상 필터 */
+    }
+    
+    /* 반응형 크기별 아이콘 이미지 조정 */
+    @media (max-width: 1199px) {
+      .dashboard-card-icon img {
+        max-width: 22px;
+        max-height: 22px;
+      }
+    }
+    
+    @media (max-width: 991px) {
+      .dashboard-card-icon img {
+        max-width: 20px;
+        max-height: 20px;
+      }
+    }
+    
+    @media (max-width: 767px) {
+      .dashboard-card-icon img {
+        max-width: 18px;
+        max-height: 18px;
+      }
     }
     
     .nav-icon img {
@@ -219,14 +241,25 @@
       flex-direction: column;
       gap: 8px;
       align-items: center;
+      justify-content: center; /* 세로 중앙 정렬 추가 */
       width: 100%;
+      text-align: center; /* 텍스트 중앙 정렬 */
     }
     
     .dashboard-card.square .dashboard-card-icon {
-      width: 35px;
-      height: 35px;
-      margin-right: 0;
+      width: auto;
+      height: auto;
+      font-size: 1.3rem !important;
+      margin: 0 auto; /* 가로 중앙 정렬 */
       margin-bottom: 5px;
+      background-color: transparent;
+      border-radius: 0;
+      border: none;
+      box-shadow: none;
+      padding: 0;
+      display: flex !important;
+      justify-content: center !important;
+      align-items: center !important;
     }
     
     .dashboard-card.square .dashboard-card-text {
@@ -545,6 +578,8 @@
         width: 30px;
         height: 30px;
         font-size: 0.9rem !important;
+        background-color: transparent; /* 배경 투명하게 */
+        border-radius: 0; /* 동그라미 제거 */
       }
       
       .dashboard-card-title {
@@ -738,16 +773,87 @@
         opacity: 1;
       }
     }
+    
+    .toast-message {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      padding: 16px 20px;
+      margin-bottom: 10px;
+      border-radius: 8px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+      opacity: 0;
+      transform: translateX(400px);
+      transition: all 0.3s ease-in-out;
+      position: relative;
+      overflow: hidden;
+      border-left: 4px solid #28a745;
+      display: flex;
+      align-items: center;
+      font-weight: 500;
+      pointer-events: auto;
+      z-index: 99999;
+      min-width: 300px;
+    }
+    
+    .toast-message.show {
+      opacity: 1;
+      transform: translateX(0);
+    }
+    
+    .toast-message.toast-success {
+      background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+      border-left-color: #155724;
+    }
+    
+    .toast-message.toast-info {
+      background: linear-gradient(135deg, #17a2b8 0%, #138496 100%);
+      border-left-color: #0c5460;
+    }
+    
+    .toast-message.toast-warning {
+      background: linear-gradient(135deg, #ffc107 0%, #e0a800 100%);
+      border-left-color: #856404;
+      color: #212529;
+    }
+    
+    .toast-message.toast-error {
+      background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+      border-left-color: #721c24;
+    }
+    
+    .toast-message .toast-icon {
+      margin-right: 12px;
+      font-size: 1.2em;
+    }
+    
+    .toast-message .toast-content {
+      flex: 1;
+    }
+    
+    .toast-message .toast-title {
+      font-weight: bold;
+      margin-bottom: 4px;
+      font-size: 1.1em;
+    }
+    
+    .toast-message .toast-text {
+      font-size: 0.9em;
+      opacity: 0.9;
+    }
   </style>
   <script>
+    // 전체 제어 진행 상태 추적 변수
+    let isProcessing = false;
+    let currentProcessType = '';
+    
     // 웹뷰 메시지 완전히 제거하기 위한 즉시 실행 스크립트
     (function() {
       // console 완전 무력화 - 모든 로그 차단
-      console.log = function() {};
-      console.error = function() {};
-      console.warn = function() {};
-      console.info = function() {};
-      console.debug = function() {};
+      // console.log = function() {};
+      // console.error = function() {};
+      // console.warn = function() {};
+      // console.info = function() {};
+      // console.debug = function() {};
       
       // 웹뷰 상단 메시지 제거를 위한 스타일 즉시 적용
       var style = document.createElement('style');
@@ -892,8 +998,8 @@
       
       // 1초마다 시간 갱신
       setInterval(updateCurrentTime, 1000);
-      // setInterval(updateTimeDisplay, 1000);
-      // setInterval(forceUpdateTimeCard, 1000); // 강제 업데이트도 1초마다 실행
+      setInterval(updateTimeDisplay, 1000);
+      setInterval(forceUpdateTimeCard, 1000); // 강제 업데이트도 1초마다 실행
       
       // 장치 수량 가져오기
       fetchDeviceCounts();
@@ -927,6 +1033,35 @@
       if (history.replaceState) {
         history.replaceState({ page: pageName }, '', pageName);
       }
+      
+      // 전체 켜기/끄기 버튼 클릭 이벤트 확인을 위한 추가 로그
+      console.log('🔍 전체 제어 버튼들 확인 중...');
+      
+      // 전체 켜기 버튼 확인
+      const bulkOnCard = document.querySelector('div[onclick="showBulkOnConfirm()"]');
+      if (bulkOnCard) {
+        console.log('✅ 전체 켜기 버튼 찾음:', bulkOnCard);
+        // 추가 클릭 이벤트 로그
+        bulkOnCard.addEventListener('click', function() {
+          console.log('🟢 전체 켜기 버튼 클릭 감지됨!');
+        });
+      } else {
+        console.error('❌ 전체 켜기 버튼을 찾을 수 없음');
+      }
+      
+      // 전체 끄기 버튼 확인
+      const bulkOffCard = document.querySelector('div[onclick="showBulkOffConfirm()"]');
+      if (bulkOffCard) {
+        console.log('✅ 전체 끄기 버튼 찾음:', bulkOffCard);
+        // 추가 클릭 이벤트 로그
+        bulkOffCard.addEventListener('click', function() {
+          console.log('🔴 전체 끄기 버튼 클릭 감지됨!');
+        });
+      } else {
+        console.error('❌ 전체 끄기 버튼을 찾을 수 없음');
+      }
+      
+      console.log('✅ 대시보드 초기화 완료');
     });
     
     // 웹뷰 플랫폼 감지 및 스타일 적용 함수
@@ -1073,6 +1208,18 @@
   </script>
 </head>
 <body class="hold-transition sidebar-mini layout-fixed">
+  <!-- 토스트 메시지 컨테이너 -->
+  <div id="toast-container" style="
+    position: fixed;
+    top: 80px;
+    right: 20px;
+    z-index: 99999;
+    max-width: 400px;
+    pointer-events: none;
+  "></div>
+  
+  <!-- 웹뷰 상단 메시지 대신 상단바 타이머만 사용 -->
+  
   <div class="wrapper">
     <!-- 네비게이션 바 -->
     <nav class="main-header navbar navbar-expand navbar-dark" style="background-color: #191c24 !important; border-bottom: 1px solid #2c2e33;">
@@ -1170,14 +1317,17 @@
       <section class="content">
         <div class="container-fluid">
           <div class="row dashboard-cards-row">
-            <!-- 프로젝터 관리 카드 -->
+            <!-- 빔프로젝터 관리 카드 -->
             <div class="dashboard-card-wrapper">
               <div class="dashboard-card blue">
                 <div class="dashboard-card-content">
                   <div class="dashboard-card-left">
                     <div class="dashboard-card-icon">
-                      <i class="fas fa-projector fa-lg"></i>
-                      <!-- 항상 표시될 백업 SVG (폰트가 로드되지 않을 때만 보임) -->
+                      <!-- 프로젝터 인라인 SVG 아이콘 -->
+                      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" fill="white">
+                        <path d="M2 6c-1.1 0-2 .9-2 2v8c0 1.1.9 2 2 2h14l4 2.5v-13L16 6H2zm0 2h12v8H2V8zm14 1l2-1.25v6.5L16 13V9zM4 10h8v4H4v-4z"/>
+                      </svg>
+                      <!-- 백업 SVG -->
                       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 576 512" width="24" height="24" fill="white" style="display:none; position:absolute; top:50%; left:50%; transform:translate(-50%, -50%);" class="svg-fallback">
                         <path d="M336.2 64H47.8C21.4 64 0 85.4 0 111.8v288.4C0 426.6 21.4 448 47.8 448h288.4c26.4 0 47.8-21.4 47.8-47.8V111.8c0-26.4-21.4-47.8-47.8-47.8zm189.4 37.7L416 177.3v157.4l109.6 75.5c21.2 14.6 50.4-.3 50.4-25.8V127.5c0-25.4-29.1-40.4-50.4-25.8z"/>
                       </svg>
@@ -1721,6 +1871,7 @@
         // 테이블 초기화
         tbody.innerHTML = '';
         
+        
         // PC 데이터 배열 찾기 - 다양한 가능한 필드명 확인
         let pcList = [];
         if (data.pcs && Array.isArray(data.pcs)) {
@@ -1758,34 +1909,63 @@
         // PC 목록 렌더링
         pcList.forEach((pc, index) => {
           console.log(`PC ${index + 1} 데이터:`, pc);
+          console.log(`PC ${pc.name || pc.id} 원본 상태 필드들:`, {
+            network_status: pc.network_status,
+            ping_status: pc.ping_status,
+            connection_status: pc.connection_status,
+            status: pc.status,
+            power_status: pc.power_status,
+            state: pc.state,
+            power: pc.power
+          });
+          
           const tr = document.createElement('tr');
           tr.setAttribute('data-id', pc.id);
           tr.setAttribute('data-ip', pc.ip);
           
-          // 네트워크 상태 배지 CSS 클래스 (다양한 필드명 확인)
-          const networkStatus = pc.network_status || pc.ping_status || pc.connection_status;
-          const isNetworkOnline = networkStatus === 'online' || networkStatus === 1 || networkStatus === true;
+          // 네트워크 상태 처리 - 객체인 경우 값 추출
+          let networkStatus = pc.network_status || pc.ping_status || pc.connection_status;
+          
+          // 객체인 경우 처리
+          if (typeof networkStatus === 'object' && networkStatus !== null) {
+            console.log(`PC ${pc.name || pc.id} 네트워크 상태 객체:`, networkStatus);
+            // 객체에서 실제 상태 값 추출
+            networkStatus = networkStatus.status || networkStatus.state || networkStatus.value || 
+                           networkStatus.online || networkStatus.connected;
+          }
+          
+          console.log(`PC ${pc.name || pc.id} 처리된 네트워크 상태:`, networkStatus);
+          
+          const isNetworkOnline = networkStatus === 'online' || networkStatus === 1 || networkStatus === true || 
+                                 networkStatus === 'connected' || networkStatus === 'up';
           const networkStatusClass = isNetworkOnline ? 'badge-online' : 'badge-offline';
           const networkStatusText = isNetworkOnline ? '연결됨' : '대기중';
           
-          console.log(`PC ${pc.name || pc.id} 네트워크 상태:`, {
-            network_status: pc.network_status,
-            ping_status: pc.ping_status,
-            connection_status: pc.connection_status,
-            최종판단: isNetworkOnline
-          });
+          // PC 전원 상태 처리 - 객체인 경우 값 추출
+          let pcStatus = pc.status || pc.power_status || pc.state || pc.power;
           
-          // PC 상태 배지 CSS 클래스와 텍스트 (다양한 필드명 확인)
+          // 객체인 경우 처리
+          if (typeof pcStatus === 'object' && pcStatus !== null) {
+            console.log(`PC ${pc.name || pc.id} 전원 상태 객체:`, pcStatus);
+            // 객체에서 실제 상태 값 추출
+            pcStatus = pcStatus.status || pcStatus.state || pcStatus.value || 
+                       pcStatus.power || pcStatus.running || pcStatus.active;
+          }
+          
+          console.log(`PC ${pc.name || pc.id} 처리된 전원 상태:`, pcStatus);
+          
+          // PC 상태 배지 CSS 클래스와 텍스트
           let statusClass = 'badge-offline';
           let statusText = '꺼짐';
           
-          const pcStatus = pc.status || pc.power_status || pc.state;
-          
-          switch(pcStatus) {
+          switch(String(pcStatus).toLowerCase()) {
             case 'online':
             case 'on':
+            case 'true':
+            case '1':
             case 'running':
             case 'active':
+            case 'up':
               statusClass = 'badge-online';
               statusText = '작동중';
               break;
@@ -1806,19 +1986,19 @@
               break;
             case 'offline':
             case 'off':
+            case 'false':
+            case '0':
             case 'stopped':
+            case 'down':
             default:
               statusClass = 'badge-offline';
               statusText = '꺼짐';
               break;
           }
           
-          console.log(`PC ${pc.name || pc.id} 전원 상태:`, {
-            status: pc.status,
-            power_status: pc.power_status,
-            state: pc.state,
-            최종상태: pcStatus,
-            최종텍스트: statusText
+          console.log(`PC ${pc.name || pc.id} 최종 표시:`, {
+            네트워크: { 상태: networkStatusText, 클래스: networkStatusClass },
+            전원: { 상태: statusText, 클래스: statusClass }
           });
           
           // 행 내용 구성
@@ -1948,16 +2128,671 @@
     
     // 전체 켜기 확인 모달 함수
     function showBulkOnConfirm() {
-      if (confirm('모든 장치를 켜시겠습니까?')) {
-        alert('전체 켜기 명령이 실행되었습니다.');
+      console.log('🟢 showBulkOnConfirm 함수 호출됨 - 바로 실행');
+      
+      // 진행 중인지 확인
+      if (isProcessing) {
+        console.log('⚠️ 이미 처리 중입니다:', currentProcessType);
+        showNavbarStatus(`현재 ${currentProcessType} 처리 중입니다. 잠시만 기다려 주세요.`, 5000);
+        return;
+      }
+      
+      // 확인 없이 바로 실행
+      try {
+        console.log('✅ 확인 없이 바로 전체 켜기 실행');
+        executeBulkControl('on');
+      } catch (error) {
+        console.error('❌ 전체 켜기 실행 중 오류:', error);
+        // 오류도 상단바에 간단히 표시
+        showNavbarStatus(`전체 켜기 오류: ${error.message}`, 10000);
       }
     }
     
     // 전체 끄기 확인 모달 함수
     function showBulkOffConfirm() {
-      if (confirm('모든 장치를 끄시겠습니까?')) {
-        alert('전체 끄기 명령이 실행되었습니다.');
+      console.log('🔴 showBulkOffConfirm 함수 호출됨 - 바로 실행');
+      
+      // 진행 중인지 확인
+      if (isProcessing) {
+        console.log('⚠️ 이미 처리 중입니다:', currentProcessType);
+        showNavbarStatus(`현재 ${currentProcessType} 처리 중입니다. 잠시만 기다려 주세요.`, 5000);
+        return;
       }
+      
+      // 확인 없이 바로 실행
+      try {
+        console.log('✅ 확인 없이 바로 전체 끄기 실행');
+        executeBulkControl('off');
+      } catch (error) {
+        console.error('❌ 전체 끄기 실행 중 오류:', error);
+        // 오류도 상단바에 간단히 표시
+        showNavbarStatus(`전체 끄기 오류: ${error.message}`, 10000);
+      }
+    }
+    
+    // 전체 제어 실행 함수
+    async function executeBulkControl(action) {
+      console.log(`🚀 executeBulkControl(${action}) 함수 시작`);
+      
+      // 진행 상태 설정
+      isProcessing = true;
+      currentProcessType = action === 'on' ? '전체 켜기' : '전체 끄기';
+      
+      // 시작 메시지 제거 - 바로 카운트다운으로 넘어감
+      const actionText = action === 'on' ? '켜기' : '끄기';
+      
+      try {
+        // 프로젝터와 PC 목록만 가져오기 (PDU 제외)
+        console.log('📡 장치 목록 가져오기 시작...');
+        
+        const [projectors, pcs] = await Promise.all([
+          fetchAllProjectors(),
+          fetchAllPCs()
+        ]);
+        
+        console.log('📊 가져온 장치 목록:', { 
+          projectors: projectors.length, 
+          pcs: pcs.length,
+          projectorList: projectors,
+          pcList: pcs
+        });
+        
+        const totalDevices = projectors.length + pcs.length;
+        
+        if (totalDevices === 0) {
+          console.warn('⚠️ 제어할 장치가 없습니다');
+          showNavbarStatus('제어할 장치가 없습니다', 5000);
+          return;
+        }
+        
+        console.log(`🎯 총 ${totalDevices}개 장치 제어 시작`);
+        
+        // 켜기와 끄기에 따른 시퀀스 실행
+        if (action === 'on') {
+          console.log('🟢 켜기 시퀀스 시작');
+          await executeStartupSequenceSimple(projectors, pcs);
+        } else {
+          console.log('🔴 끄기 시퀀스 시작');
+          await executeShutdownSequenceSimple(projectors, pcs);
+        }
+        
+        console.log('✅ executeBulkControl 완료');
+        showNavbarStatus(`전체 ${actionText} 완료!`, 5000);
+        
+        // 완료 후 장치 목록 새로고침
+        setTimeout(() => {
+          loadDashboardProjectorList();
+          loadDashboardPCList();
+        }, 1000);
+        
+      } catch (error) {
+        console.error('❌ 전체 제어 실행 중 오류:', error);
+        showNavbarStatus(`전체 ${actionText} 오류: ${error.message}`, 10000);
+      } finally {
+        // 진행 상태 해제
+        isProcessing = false;
+        currentProcessType = '';
+        console.log('🔓 진행 상태 해제됨');
+      }
+    }
+    
+    // 켜기 시퀀스: 프로젝터 먼저 → 2분 대기 → PC 켜기
+    async function executeStartupSequenceSimple(projectors, pcs) {
+      try {
+        console.log('🟢 1단계: 빔프로젝터 켜기 시작');
+        
+        // 1단계: 빔프로젝터 켜기 (2초 간격으로 순차 실행)
+        if (projectors.length > 0) {
+          for (let i = 0; i < projectors.length; i++) {
+            const projector = projectors[i];
+            try {
+              await controlDevice({ ...projector, type: 'projector' }, 'on');
+              console.log(`✅ 프로젝터 ${i + 1}/${projectors.length} 켜기 완료: ${projector.name}`);
+              
+              // 마지막이 아니면 2초 대기
+              if (i < projectors.length - 1) {
+                await new Promise(resolve => setTimeout(resolve, 2000));
+              }
+            } catch (error) {
+              console.error(`❌ 프로젝터 제어 실패 (${projector.name}):`, error);
+            }
+          }
+        }
+        
+        console.log('🟡 2단계: 빔프로젝터 예열 대기 시작 (2분)');
+        
+        // 2단계: 2분 대기 (프로젝터 예열 시간) - 상단바에만 표시
+        await showSimpleCountdown(120, '빔프로젝터 예열 중', '전체 켜기 진행 처리중'); // 120초 = 2분
+        
+        console.log('🟢 3단계: PC 켜기 시작');
+        
+        // 3단계: PC 켜기
+        if (pcs.length > 0) {
+          // PC는 동시에 켜기
+          const pcPromises = pcs.map(async (pc, index) => {
+            try {
+              await controlDevice({ ...pc, type: 'pc' }, 'on');
+              console.log(`✅ PC ${index + 1}/${pcs.length} 켜기 완료: ${pc.name}`);
+              return { success: true, device: pc };
+            } catch (error) {
+              console.error(`❌ PC 제어 실패 (${pc.name}):`, error);
+              return { success: false, device: pc, error };
+            }
+          });
+          
+          await Promise.all(pcPromises);
+        }
+        
+        console.log('🚀 켜기 시퀀스 완료');
+        
+      } catch (error) {
+        console.error('❌ 켜기 시퀀스 실행 중 오류:', error);
+        throw error;
+      }
+    }
+    
+    // 끄기 시퀀스: PC 먼저 → 2분 대기 → 프로젝터 끄기
+    async function executeShutdownSequenceSimple(projectors, pcs) {
+      console.log('🔴 1단계: PC 끄기 시작');
+      console.log('🔴 끄기할 PC 목록:', pcs);
+      
+      // 1단계: PC 끄기 - 오류가 발생해도 계속 진행
+      if (pcs.length > 0) {
+        console.log(`🔴 총 ${pcs.length}개 PC 끄기 시작`);
+        
+        // PC는 동시에 끄기
+        const pcPromises = pcs.map(async (pc, index) => {
+          try {
+            console.log(`🔴 PC ${index + 1}/${pcs.length} 끄기 시도: ${pc.name} (ID: ${pc.id})`);
+            await controlDevice({ ...pc, type: 'pc' }, 'off');
+            console.log(`✅ PC ${index + 1}/${pcs.length} 끄기 완료: ${pc.name}`);
+            return { success: true, device: pc };
+          } catch (error) {
+            console.error(`❌ PC 제어 실패 (${pc.name}):`, error);
+            return { success: false, device: pc, error };
+          }
+        });
+        
+        const pcResults = await Promise.all(pcPromises);
+        console.log('🔴 PC 끄기 결과:', pcResults);
+        
+        // 성공/실패 개수 확인
+        const successCount = pcResults.filter(r => r.success).length;
+        const failCount = pcResults.filter(r => !r.success).length;
+        console.log(`🔴 PC 끄기 완료: 성공 ${successCount}개, 실패 ${failCount}개`);
+        
+        // PC 끄기 실패가 있어도 계속 진행
+        if (failCount > 0) {
+          console.warn(`⚠️ ${failCount}개 PC 끄기 실패했지만 시퀀스 계속 진행`);
+        }
+      } else {
+        console.log('🔴 끄기할 PC가 없습니다');
+      }
+      
+      console.log('🟡 2단계: PC 완전 종료 대기 시작 (2분)');
+      
+      // 2단계: 2분 대기 (PC 완전 종료 시간) - 상단바에만 표시
+      try {
+        await showSimpleCountdown(120, 'PC 완전 종료 대기 중', '전체 끄기 진행 처리중'); // 120초 = 2분
+        console.log('🟡 2분 대기 완료');
+      } catch (error) {
+        console.error('❌ 카운트다운 오류:', error);
+        // 카운트다운 오류가 발생해도 계속 진행
+      }
+      
+      console.log('🔴 3단계: 빔프로젝터 끄기 시작');
+      console.log('🔴 끄기할 프로젝터 목록:', projectors);
+      
+      // 3단계: 빔프로젝터 끄기 (2초 간격으로 순차 실행)
+      if (projectors.length > 0) {
+        console.log(`🔴 총 ${projectors.length}개 프로젝터 끄기 시작`);
+        
+        for (let i = 0; i < projectors.length; i++) {
+          const projector = projectors[i];
+          try {
+            console.log(`🔴 프로젝터 ${i + 1}/${projectors.length} 끄기 시도: ${projector.name} (IP: ${projector.ip})`);
+            await controlDevice({ ...projector, type: 'projector' }, 'off');
+            console.log(`✅ 프로젝터 ${i + 1}/${projectors.length} 끄기 완료: ${projector.name}`);
+            
+            // 마지막이 아니면 2초 대기
+            if (i < projectors.length - 1) {
+              console.log('🔴 다음 프로젝터까지 2초 대기...');
+              await new Promise(resolve => setTimeout(resolve, 2000));
+            }
+          } catch (error) {
+            console.error(`❌ 프로젝터 제어 실패 (${projector.name}):`, error);
+            // 프로젝터 제어 실패해도 다음 프로젝터 계속 진행
+          }
+        }
+      } else {
+        console.log('🔴 끄기할 프로젝터가 없습니다');
+      }
+      
+      console.log('🔴 끄기 시퀀스 완료');
+    }
+    
+    // 간단한 카운트다운 (콘솔 + 상단바 표시)
+    async function showSimpleCountdown(seconds, title, progressInfo = '') {
+      return new Promise((resolve) => {
+        let remainingSeconds = seconds;
+        
+        // 상단바 타이머 요소 가져오기
+        const navbarCountdown = document.getElementById('navbar-countdown');
+        const countdownText = document.getElementById('countdown-text');
+        
+        // 타이머 표시 시작
+        if (navbarCountdown && countdownText) {
+          navbarCountdown.style.display = 'flex';
+          navbarCountdown.style.removeProperty('display'); // !important 스타일 제거
+          navbarCountdown.style.setProperty('display', 'flex', 'important');
+        }
+        
+        const updateCountdown = () => {
+          const minutes = Math.floor(remainingSeconds / 60);
+          const secs = remainingSeconds % 60;
+          const timeString = `${minutes}:${secs.toString().padStart(2, '0')}`;
+          
+          // 콘솔 로그
+          // console.log(`⏰ ${title} - 남은 시간: ${timeString}`);
+          
+          // 상단바에 표시 (타이머 + 진행 정보)
+          if (countdownText) {
+            countdownText.innerHTML = `
+              <span style="margin-right: 8px; font-size: 1.2rem;">${title}</span>
+              <span style="font-weight: bold; color: #ffc107; font-size: 1.2rem;">${timeString}</span>
+              ${progressInfo ? `<span style="margin-left: 12px; color: #e9ecef; font-size: 1.2rem;">| ${progressInfo}</span>` : ''}
+            `;
+          }
+          
+          remainingSeconds--;
+          
+          if (remainingSeconds < 0) {
+            // console.log(`✅ ${title} 완료!`);
+            
+            // 타이머 숨기기
+            if (navbarCountdown) {
+              navbarCountdown.style.setProperty('display', 'none', 'important');
+            }
+            
+            resolve();
+          } else {
+            setTimeout(updateCountdown, 1000);
+          }
+        };
+        
+        updateCountdown();
+      });
+    }
+    
+    // 상단바에만 상태 표시하는 함수 (모든 알림 대체)
+    function showNavbarStatus(message, duration = 0) {
+      const navbarCountdown = document.getElementById('navbar-countdown');
+      const countdownText = document.getElementById('countdown-text');
+      
+      if (navbarCountdown && countdownText) {
+        // 현재 카운트다운이 진행 중인지 확인 (isProcessing이 true이고 카운트다운 텍스트가 있는 경우)
+        const isCountdownActive = isProcessing && countdownText.innerHTML.includes(':');
+        
+        if (isCountdownActive) {
+          console.log('⚠️ 카운트다운 진행 중이므로 상태 메시지 무시:', message);
+          return; // 카운트다운 중이면 메시지 표시하지 않음
+        }
+        
+        // 상단바 표시
+        navbarCountdown.style.setProperty('display', 'flex', 'important');
+        countdownText.innerHTML = `<span style="color: #ffc107; font-weight: bold; font-size: 1.2rem;">${message}</span>`;
+        
+        // 자동 숨김 - duration이 0이면 숨기지 않음 (기본값 변경)
+        if (duration > 0) {
+          setTimeout(() => {
+            navbarCountdown.style.setProperty('display', 'none', 'important');
+          }, duration);
+        }
+      }
+    }
+    
+    // 알림바 표시 함수를 완전히 비활성화 (빈 함수로 교체)
+    function showNotification(message, type = 'info', duration = 4000) {
+      // 완전히 비활성화 - 아무것도 하지 않음
+      console.log('알림 무시됨:', message);
+    }
+    
+    // 알림바 숨기기 함수를 완전히 비활성화
+    function hideNotificationBar() {
+      // 완전히 비활성화 - 아무것도 하지 않음
+    }
+    
+    // showToast 함수를 완전히 비활성화 (빈 함수로 교체)
+    function showToast(title, message = '', type = 'info', duration = 4000) {
+      // 완전히 비활성화 - 아무것도 하지 않음
+      console.log('토스트 무시됨:', title, message);
+    }
+    
+    // 모든 프로젝터 가져오기
+    async function fetchAllProjectors() {
+      console.log('📡 fetchAllProjectors 시작');
+      try {
+        const response = await fetch('/api/projector/list');
+        console.log('📡 프로젝터 API 응답 상태:', response.status, response.statusText);
+        
+        const data = await response.json();
+        console.log('📊 프로젝터 API 응답 데이터:', data);
+        
+        let devices = [];
+        if (data.success && data.devices) {
+          devices = data.devices.map(p => ({ ...p, type: 'projector' }));
+          console.log('✅ data.devices 사용:', devices);
+        } else {
+          const fallbackDevices = data.data?.devices || data.data?.projectors || data.projectors || [];
+          devices = fallbackDevices.map(p => ({ ...p, type: 'projector' }));
+          console.log('✅ 폴백 데이터 사용:', devices);
+        }
+        
+        console.log(`✅ fetchAllProjectors 완료: ${devices.length}개 프로젝터`);
+        return devices;
+      } catch (error) {
+        console.error('❌ 프로젝터 목록 가져오기 실패:', error);
+        return [];
+      }
+    }
+    
+    // 모든 PC 가져오기 
+    async function fetchAllPCs() {
+      console.log('📡 fetchAllPCs 시작');
+      try {
+        const response = await fetch('/api/pc/list');
+        console.log('📡 PC API 응답 상태:', response.status, response.statusText);
+        
+        const data = await response.json();
+        console.log('📊 PC API 응답 데이터:', data);
+        
+        let devices = [];
+        
+        // PC API는 pc_list 키를 사용
+        if (data.success && data.pc_list) {
+          devices = data.pc_list.map(p => ({ ...p, type: 'pc' }));
+          console.log('✅ data.pc_list 사용:', devices);
+        } else if (data.success && data.devices) {
+          devices = data.devices.map(p => ({ ...p, type: 'pc' }));
+          console.log('✅ data.devices 사용:', devices);
+        } else {
+          // 다양한 폴백 시도
+          const fallbackDevices = data.pc_list || data.devices || data.data?.devices || data.data?.pcs || data.data?.computers || data.pcs || data.computers || [];
+          devices = fallbackDevices.map(p => ({ ...p, type: 'pc' }));
+          console.log('✅ 폴백 데이터 사용:', devices);
+        }
+        
+        // PC 상태 정보 정규화
+        devices = devices.map(pc => {
+          // 네트워크 상태 정규화
+          let networkStatus = pc.network_status || pc.ping_status || pc.connection_status;
+          if (typeof networkStatus === 'object' && networkStatus !== null) {
+            networkStatus = networkStatus.status || networkStatus.state || networkStatus.value || 
+                           networkStatus.online || networkStatus.connected;
+          }
+          
+          // 전원 상태 정규화
+          let powerStatus = pc.status || pc.power_status || pc.state || pc.power;
+          if (typeof powerStatus === 'object' && powerStatus !== null) {
+            powerStatus = powerStatus.status || powerStatus.state || powerStatus.value || 
+                         powerStatus.power || powerStatus.running || powerStatus.active;
+          }
+          
+          console.log(`PC ${pc.name || pc.id} 상태 정규화:`, {
+            원본_네트워크: pc.network_status,
+            정규화된_네트워크: networkStatus,
+            원본_전원: pc.status || pc.power_status,
+            정규화된_전원: powerStatus
+          });
+          
+          return {
+            ...pc,
+            type: 'pc',
+            network_status: networkStatus,
+            power_status: powerStatus
+          };
+        });
+        
+        console.log(`✅ fetchAllPCs 완료: ${devices.length}개 PC (상태 정규화됨)`);
+        return devices;
+      } catch (error) {
+        console.error('❌ PC 목록 가져오기 실패:', error);
+        return [];
+      }
+    }
+    
+    // 모든 PDU 가져오기
+    async function fetchAllPDUs() {
+      try {
+        const response = await fetch('/api/pdu/list');
+        const data = await response.json();
+        
+        if (data.success && data.devices) {
+          return data.devices;
+        }
+        return data.data?.devices || data.data?.pdus || data.pdus || [];
+      } catch (error) {
+        console.error('PDU 목록 가져오기 실패:', error);
+        return [];
+      }
+    }
+    
+    // 개별 장치 제어
+    async function controlDevice(device, action) {
+      console.log(`🎯 controlDevice 호출: ${device.type} ${device.name} ${action}`);
+      
+      if (device.type === 'projector') {
+        // 프로젝터는 /api/projector/command 사용
+        const command = action === 'on' ? 'power_on' : 'power_off';
+        
+        const response = await fetch('/api/projector/command', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            ip: device.ip,
+            command: command
+          })
+        });
+        
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}`);
+        }
+        
+        const result = await response.json();
+        if (!result.success) {
+          throw new Error(result.error || result.message || '제어 실패');
+        }
+        
+        console.log(`✅ 프로젝터 제어 성공: ${device.name} ${action}`);
+        return result;
+        
+      } else if (device.type === 'pc') {
+        // PC는 각 PC에 설치된 C# 종료 서버 사용 (포트 8081)
+        console.log(`🔧 PC 제어 (C# 종료 서버): ${device.name} ${action}`);
+        
+        if (action === 'off') {
+          // PC 끄기: 다양한 방법 시도
+          console.log(`🔧 PC 종료 시도: ${device.name} (IP: ${device.ip})`);
+          
+          // 방법 1: 각 PC의 8081 포트로 POST 요청 (C# 종료 서버)
+          try {
+            const shutdownUrl = `http://${device.ip}:8081/shutdown`;
+            console.log(`📡 방법 1 - C# 종료 서버 요청: ${shutdownUrl}`);
+            
+            const response = await fetch(shutdownUrl, {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json'
+              },
+              body: JSON.stringify({}),
+              // 타임아웃 설정 (5초)
+              signal: AbortSignal.timeout(5000)
+            });
+            
+            console.log(`📡 C# 종료 서버 응답 상태: ${response.status} ${response.statusText}`);
+            
+            if (response.ok) {
+              const result = await response.text();
+              console.log(`✅ C# 종료 서버로 PC 종료 성공: ${device.name}`);
+              return { success: true, message: 'C# 종료 서버를 통한 종료 완료' };
+            } else {
+              throw new Error(`HTTP ${response.status} - C# 종료 서버 응답 실패`);
+            }
+            
+          } catch (error) {
+            console.warn(`⚠️ 방법 1 실패 (C# 종료 서버): ${error.message}`);
+            
+            // 방법 2: 기존 API로 PC 종료 시도
+            try {
+              console.log(`📡 방법 2 - 기존 API로 PC 종료 시도: ${device.name}`);
+              
+              const response = await fetch('/api/pc/control', {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                  pc_id: device.id,
+                  ip: device.ip,
+                  action: 'off'
+                }),
+                // 타임아웃 설정 (10초)
+                signal: AbortSignal.timeout(10000)
+              });
+              
+              console.log(`📡 PC 종료 API 응답 상태: ${response.status} ${response.statusText}`);
+              
+              if (!response.ok) {
+                throw new Error(`HTTP ${response.status}`);
+              }
+              
+              const result = await response.json();
+              console.log(`📊 PC 종료 API 응답:`, result);
+              
+              if (result.success) {
+                console.log(`✅ 기존 API로 PC 종료 성공: ${device.name}`);
+                return result;
+              } else {
+                throw new Error(result.error || result.message || '기존 API를 통한 PC 종료 실패');
+              }
+              
+            } catch (apiError) {
+              console.warn(`⚠️ 방법 2 실패 (기존 API): ${apiError.message}`);
+              
+              // 방법 3: WMI를 통한 원격 종료 시도
+              try {
+                console.log(`📡 방법 3 - WMI 원격 종료 시도: ${device.name}`);
+                
+                const response = await fetch('/api/pc/shutdown', {
+                  method: 'POST',
+                  headers: {
+                    'Content-Type': 'application/json'
+                  },
+                  body: JSON.stringify({
+                    ip: device.ip,
+                    name: device.name,
+                    method: 'wmi'
+                  }),
+                  // 타임아웃 설정 (15초)
+                  signal: AbortSignal.timeout(15000)
+                });
+                
+                console.log(`📡 WMI 원격 종료 API 응답 상태: ${response.status} ${response.statusText}`);
+                
+                if (response.ok) {
+                  const result = await response.json();
+                  console.log(`📊 WMI 원격 종료 API 응답:`, result);
+                  
+                  if (result.success) {
+                    console.log(`✅ WMI를 통한 PC 종료 성공: ${device.name}`);
+                    return result;
+                  } else {
+                    throw new Error(result.error || 'WMI 원격 종료 실패');
+                  }
+                } else {
+                  throw new Error(`HTTP ${response.status}`);
+                }
+                
+              } catch (wmiError) {
+                console.error(`❌ 방법 3 실패 (WMI): ${wmiError.message}`);
+                
+                // 모든 방법 실패
+                const errorMessage = `모든 PC 종료 방법 실패:\n1. C# 종료 서버: ${error.message}\n2. 기존 API: ${apiError.message}\n3. WMI 원격 종료: ${wmiError.message}`;
+                console.error(`❌ PC 종료 완전 실패 (${device.name}):`, errorMessage);
+                throw new Error(`PC 종료 실패: ${device.name} - 모든 종료 방법 시도 실패`);
+              }
+            }
+          }
+          
+        } else if (action === 'on') {
+          // PC 켜기: Wake-on-LAN 또는 기존 API 사용
+          console.log(`🔧 PC 켜기 시도: ${device.name} (WOL 또는 기존 API)`);
+          
+          try {
+            // 기존 API로 PC 켜기 시도 (WOL 등)
+            const response = await fetch('/api/pc/control', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json'
+              },
+              body: JSON.stringify({
+                pc_id: device.id,
+                ip: device.ip,
+                action: 'on'
+              }),
+              // 타임아웃 설정 (10초)
+              signal: AbortSignal.timeout(10000)
+            });
+            
+            console.log(`📡 PC 켜기 API 응답 상태: ${response.status} ${response.statusText}`);
+            
+            if (!response.ok) {
+              throw new Error(`HTTP ${response.status}`);
+            }
+            
+            const result = await response.json();
+            console.log(`📊 PC 켜기 API 응답:`, result);
+            
+            if (!result.success) {
+              throw new Error(result.error || result.message || 'PC 켜기 실패');
+            }
+            
+            console.log(`✅ PC 켜기 성공: ${device.name}`);
+            return result;
+            
+          } catch (error) {
+            console.error(`❌ PC 켜기 실패 (${device.name}):`, error);
+            throw new Error(`PC 켜기 실패: ${error.message}`);
+          }
+        } else {
+          throw new Error(`지원하지 않는 PC 작업: ${action}`);
+        }
+        
+      } else {
+        throw new Error(`지원하지 않는 장치 타입: ${device.type}`);
+      }
+    }
+    
+    // 제어 엔드포인트 가져오기
+    function getControlEndpoint(deviceType, action) {
+      const endpoints = {
+        projector: {
+          on: '/api/projector/power-on',
+          off: '/api/projector/power-off'
+        },
+        pc: {
+          on: '/api/pc/power-on',
+          off: '/api/pc/power-off'
+        },
+        pdu: {
+          on: '/api/pdu/power-on',
+          off: '/api/pdu/power-off'
+        }
+      };
+      
+      return endpoints[deviceType]?.[action] || '/api/device/control';
     }
     
     // 네비게이션 설정 함수
@@ -2104,8 +2939,8 @@
       
       // 1초마다 시간 갱신
       setInterval(updateCurrentTime, 1000);
-      // setInterval(updateTimeDisplay, 1000);
-      // setInterval(forceUpdateTimeCard, 1000); // 강제 업데이트도 1초마다 실행
+      setInterval(updateTimeDisplay, 1000);
+      setInterval(forceUpdateTimeCard, 1000); // 강제 업데이트도 1초마다 실행
       
       // 장치 수량 가져오기
       fetchDeviceCounts();
@@ -2139,6 +2974,35 @@
       if (history.replaceState) {
         history.replaceState({ page: pageName }, '', pageName);
       }
+      
+      // 전체 켜기/끄기 버튼 클릭 이벤트 확인을 위한 추가 로그
+      console.log('🔍 전체 제어 버튼들 확인 중...');
+      
+      // 전체 켜기 버튼 확인
+      const bulkOnCard = document.querySelector('div[onclick="showBulkOnConfirm()"]');
+      if (bulkOnCard) {
+        console.log('✅ 전체 켜기 버튼 찾음:', bulkOnCard);
+        // 추가 클릭 이벤트 로그
+        bulkOnCard.addEventListener('click', function() {
+          console.log('🟢 전체 켜기 버튼 클릭 감지됨!');
+        });
+      } else {
+        console.error('❌ 전체 켜기 버튼을 찾을 수 없음');
+      }
+      
+      // 전체 끄기 버튼 확인
+      const bulkOffCard = document.querySelector('div[onclick="showBulkOffConfirm()"]');
+      if (bulkOffCard) {
+        console.log('✅ 전체 끄기 버튼 찾음:', bulkOffCard);
+        // 추가 클릭 이벤트 로그
+        bulkOffCard.addEventListener('click', function() {
+          console.log('🔴 전체 끄기 버튼 클릭 감지됨!');
+        });
+      } else {
+        console.error('❌ 전체 끄기 버튼을 찾을 수 없음');
+      }
+      
+      console.log('✅ 대시보드 초기화 완료');
     });
     
     // 실제 프로젝터 데이터 로드 함수 (API 연결용)
