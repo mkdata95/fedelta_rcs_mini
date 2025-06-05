@@ -548,6 +548,9 @@
       console.log('🚀 켜기 시퀀스 시작: 빔프로젝터 → 2분 대기 → PC');
       
       try {
+        // 사이드바 메뉴 비활성화
+        disableSidebarMenu();
+        
         // 1단계: 빔프로젝터 모두 켜기
         showToast('1단계: 빔프로젝터를 켜는 중...', 'info');
         console.log('📽️ 1단계: 빔프로젝터 켜기 시작');
@@ -580,6 +583,9 @@
         console.error('❌ 켜기 시퀀스 오류:', error);
         showToast('켜기 시퀀스 중 오류가 발생했습니다.', 'error');
         hideCountdown();
+      } finally {
+        // 완료 후 사이드바 메뉴 활성화
+        enableSidebarMenu();
       }
     }
 
@@ -588,6 +594,9 @@
       console.log('🚀 끄기 시퀀스 시작: PC → 2분 대기 → 빔프로젝터');
       
       try {
+        // 사이드바 메뉴 비활성화
+        disableSidebarMenu();
+        
         // 1단계: PC 모두 끄기
         showToast('1단계: PC를 끄는 중...', 'info');
         console.log('💻 1단계: PC 끄기 시작');
@@ -620,6 +629,9 @@
         console.error('❌ 끄기 시퀀스 오류:', error);
         showToast('끄기 시퀀스 중 오류가 발생했습니다.', 'error');
         hideCountdown();
+      } finally {
+        // 완료 후 사이드바 메뉴 활성화
+        enableSidebarMenu();
       }
     }
 
@@ -824,6 +836,59 @@
         countdownElement.innerHTML = ''; // 내용도 완전히 지우기
         countdownElement.style.visibility = 'hidden'; // 추가 보장
       }
+    }
+
+    // 사이드바 메뉴 비활성화
+    function disableSidebarMenu() {
+      const sidebarLinks = document.querySelectorAll('.nav-sidebar .nav-link');
+      sidebarLinks.forEach(link => {
+        // 원래 onclick과 href 저장
+        link.dataset.originalOnclick = link.getAttribute('onclick') || '';
+        link.dataset.originalHref = link.getAttribute('href') || '';
+        
+        // 클릭 이벤트 비활성화
+        link.removeAttribute('onclick');
+        link.setAttribute('href', 'javascript:void(0);');
+        link.style.pointerEvents = 'none';
+        link.style.opacity = '0.5';
+        link.style.cursor = 'not-allowed';
+        
+        // 비활성화 표시
+        link.classList.add('disabled');
+      });
+      
+      console.log('🔒 사이드바 메뉴 비활성화됨');
+    }
+
+    // 사이드바 메뉴 활성화
+    function enableSidebarMenu() {
+      const sidebarLinks = document.querySelectorAll('.nav-sidebar .nav-link');
+      sidebarLinks.forEach(link => {
+        // 원래 onclick과 href 복원
+        const originalOnclick = link.dataset.originalOnclick;
+        const originalHref = link.dataset.originalHref;
+        
+        if (originalOnclick) {
+          link.setAttribute('onclick', originalOnclick);
+        }
+        if (originalHref) {
+          link.setAttribute('href', originalHref);
+        }
+        
+        // 스타일 복원
+        link.style.pointerEvents = '';
+        link.style.opacity = '';
+        link.style.cursor = '';
+        
+        // 비활성화 클래스 제거
+        link.classList.remove('disabled');
+        
+        // 저장된 데이터 정리
+        delete link.dataset.originalOnclick;
+        delete link.dataset.originalHref;
+      });
+      
+      console.log('🔓 사이드바 메뉴 활성화됨');
     }
 
     // 토스트 메시지 표시 함수
