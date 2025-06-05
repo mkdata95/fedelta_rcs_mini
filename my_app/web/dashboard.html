@@ -19,6 +19,138 @@
   <link rel="stylesheet" href="assets/css/dashboard.css">
   <!-- 자바스크립트 파일 -->
   <script src="assets/js/common.js"></script>
+  
+  <!-- 인라인 모듈들 로드 (MIME type 문제 해결) -->
+  <script>
+    // time-manager.js 내용 인라인
+    /**
+     * 시간 관리 JavaScript 모듈
+     */
+
+    // 시간 카드 직접 업데이트 함수
+    function forceUpdateTimeCard() {
+      const now = new Date();
+      const hours = now.getHours();
+      const minutes = String(now.getMinutes()).padStart(2, '0');
+      const seconds = String(now.getSeconds()).padStart(2, '0');
+      const period = hours < 12 ? '오전' : '오후';
+      const displayHours = String(hours % 12 || 12).padStart(2, '0');
+      
+      // 모든 가능한 방법으로 시간 카드 찾기
+      let timeCard = document.getElementById('time-card-display');
+      
+      if (!timeCard) {
+        timeCard = document.querySelector('#time-card-display');
+      }
+      
+      if (!timeCard) {
+        const allNumbers = document.querySelectorAll('.dashboard-card-number');
+        for (let element of allNumbers) {
+          if (element.id === 'time-card-display') {
+            timeCard = element;
+            break;
+          }
+        }
+      }
+      
+      if (timeCard) {
+        const periodElement = timeCard.querySelector('.time-period');
+        const digitsElement = timeCard.querySelector('.time-digits');
+        
+        if (periodElement && digitsElement) {
+          periodElement.textContent = period;
+          digitsElement.textContent = `${displayHours}:${minutes}:${seconds}`;
+        } else {
+          timeCard.innerHTML = `
+            <span class="time-period">${period}</span>
+            <span class="time-digits">${displayHours}:${minutes}:${seconds}</span>
+          `;
+        }
+        return true;
+      }
+      return false;
+    }
+
+    // 현재 시간 업데이트 (네비게이션 바용)
+    function updateCurrentTime() {
+      const now = new Date();
+      const year = now.getFullYear();
+      const month = String(now.getMonth() + 1).padStart(2, '0');
+      const day = String(now.getDate()).padStart(2, '0');
+      const weekdays = ['일', '월', '화', '수', '목', '금', '토'];
+      const weekday = weekdays[now.getDay()];
+      
+      let hours = now.getHours();
+      const minutes = String(now.getMinutes()).padStart(2, '0');
+      const seconds = String(now.getSeconds()).padStart(2, '0');
+      const ampm = hours >= 12 ? '오후' : '오전';
+      
+      hours = hours % 12;
+      hours = hours ? hours : 12;
+      hours = String(hours).padStart(2, '0');
+      
+      const timeString = `${year}.${month}.${day}.<span style="font-size: 0.9em;">${weekday}</span>&nbsp;&nbsp;<span style="font-size: 0.8em;">${ampm}</span> ${hours}:${minutes}:${seconds}`;
+      
+      const timeElement = document.getElementById('navbar-time');
+      if (timeElement) {
+        timeElement.innerHTML = timeString;
+      }
+    }
+
+    // 대시보드 카드용 시간 표시
+    function updateTimeDisplay() {
+      const now = new Date();
+      const hours = now.getHours();
+      const minutes = String(now.getMinutes()).padStart(2, '0');
+      const seconds = String(now.getSeconds()).padStart(2, '0');
+      const period = hours < 12 ? '오전' : '오후';
+      const displayHours = String(hours % 12 || 12).padStart(2, '0');
+      
+      const timeCardElement = document.getElementById('time-card-display');
+      
+      if (timeCardElement) {
+        const periodElement = timeCardElement.querySelector('.time-period');
+        const digitsElement = timeCardElement.querySelector('.time-digits');
+        
+        if (periodElement && digitsElement) {
+          periodElement.textContent = period;
+          digitsElement.textContent = `${displayHours}:${minutes}:${seconds}`;
+        } else {
+          timeCardElement.innerHTML = `
+            <span class="time-period">${period}</span>
+            <span class="time-digits">${displayHours}:${minutes}:${seconds}</span>
+          `;
+        }
+      }
+    }
+
+    // 시간 관리 모듈 초기화 함수
+    function initializeTimeManager() {
+      updateCurrentTime();
+      updateTimeDisplay();
+      forceUpdateTimeCard();
+      
+      // 즉시 시간 업데이트
+      setTimeout(function() {
+        updateTimeDisplay();
+      }, 100);
+      
+      // 1초마다 시간 갱신
+      setInterval(updateCurrentTime, 1000);
+      setInterval(updateTimeDisplay, 1000);
+      setInterval(forceUpdateTimeCard, 1000);
+      
+      console.log('✅ 시간 관리 모듈 초기화 완료');
+    }
+
+    // 전역 스코프에 함수들 등록
+    window.forceUpdateTimeCard = forceUpdateTimeCard;
+    window.updateCurrentTime = updateCurrentTime;
+    window.updateTimeDisplay = updateTimeDisplay;
+    window.initializeTimeManager = initializeTimeManager;
+
+    console.log('✅ time-manager.js 인라인 로드 완료');
+  </script>
   <style>
     /* 대시보드 카드 컨테이너 */
     .dashboard-cards-row {
@@ -1401,7 +1533,7 @@
                     <div class="dashboard-card-text">
                       <div class="dashboard-card-title">현재 시간</div>
                       <div class="dashboard-card-number" id="time-card-display">
-                        <span class="time-period">로딩중...</span>
+                        <span class="time-period"></span>
                         <span class="time-digits"></span>
                       </div>
                     </div>
@@ -1661,10 +1793,33 @@
     </div>
   </div>
 
-  <!-- 자바스크립트 -->
+  <!-- 초기화 스크립트 -->
   <script>
-    // 시간 카드 직접 업데이트 함수 (먼저 정의)
-    function forceUpdateTimeCard() {
+    // 대시보드 초기화
+    document.addEventListener('DOMContentLoaded', function() {
+      console.log('🚀 대시보드 초기화 시작');
+      
+      // 시간 관리 모듈 즉시 초기화
+      if (typeof initializeTimeManager === 'function') {
+        initializeTimeManager();
+        console.log('✅ 시간 관리 모듈 초기화 완료');
+      } else {
+        console.error('❌ initializeTimeManager 함수를 찾을 수 없음');
+      }
+      
+      // 추가 시간 카드 업데이트
+      setTimeout(function() {
+        if (typeof forceUpdateTimeCard === 'function') {
+          forceUpdateTimeCard();
+          console.log('✅ 시간 카드 강제 업데이트 완료');
+        }
+      }, 500);
+      
+      console.log('✅ 대시보드 초기화 완료');
+    });
+  </script>
+</body>
+</html>
       const now = new Date();
       const hours = now.getHours();
       const minutes = String(now.getMinutes()).padStart(2, '0');
@@ -3212,3 +3367,4 @@
   </script>
 </body>
 </html>
+
