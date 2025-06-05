@@ -89,7 +89,7 @@
       hours = hours ? hours : 12;
       hours = String(hours).padStart(2, '0');
       
-      const timeString = `${year}.${month}.${day}.<span style="font-size: 0.9em;">${weekday}</span>&nbsp;&nbsp;<span style="font-size: 0.8em;">${ampm}</span> ${hours}:${minutes}:${seconds}`;
+      const timeString = `${year}.${month}.${day}.${weekday}&nbsp;&nbsp;${ampm} ${hours}:${minutes}:${seconds}`;
       
       const timeElement = document.getElementById('navbar-time');
       if (timeElement) {
@@ -1478,6 +1478,44 @@
       font-size: 1.1rem;
       font-weight: bold;
     }
+
+    /* 네비게이션 바 시간 표시 웹뷰 최적화 */
+    .webview #navbar-time,
+    [data-platform="android"] #navbar-time,
+    [data-platform="ios"] #navbar-time {
+      font-size: 1.0rem !important;
+      font-weight: 600 !important;
+      font-family: 'Noto Sans KR', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
+      letter-spacing: 0.3px !important;
+      line-height: 1.4 !important;
+      text-shadow: 1px 1px 2px rgba(0,0,0,0.3) !important;
+    }
+
+    /* 전체적인 시간 표시 일관성 */
+    #navbar-time {
+      white-space: nowrap !important;
+      overflow: hidden !important;
+      text-overflow: ellipsis !important;
+    }
+
+    /* 카운트다운 표시 웹뷰 최적화 */
+    .webview #navbar-countdown,
+    [data-platform="android"] #navbar-countdown,
+    [data-platform="ios"] #navbar-countdown {
+      font-size: 1.0rem !important;
+      font-weight: 600 !important;
+      font-family: 'Noto Sans KR', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
+      letter-spacing: 0.3px !important;
+      line-height: 1.4 !important;
+      text-shadow: 1px 1px 2px rgba(0,0,0,0.3) !important;
+    }
+
+    /* 카운트다운 텍스트 일관성 */
+    #navbar-countdown {
+      white-space: nowrap !important;
+      overflow: hidden !important;
+      text-overflow: ellipsis !important;
+    }
     
     /* 정사각형 카드 반응형 */
     @media (max-width: 1199px) {
@@ -2512,11 +2550,11 @@
       <!-- 우측 네비게이션 링크 -->
       <ul class="navbar-nav ml-auto" style="margin-right: 30px !important;">
         <!-- 카운트다운 표시 영역 (전체 제어 중에만 표시) -->
-        <div id="navbar-countdown" class="mr-4 d-flex align-items-center text-warning" style="display: none !important; font-size: 1.2rem; font-weight: bold;">
+        <div id="navbar-countdown" class="mr-4 d-flex align-items-center text-warning" style="display: none !important; font-size: 1.1rem; font-weight: 600; font-family: 'Noto Sans KR', -apple-system, BlinkMacSystemFont, sans-serif; letter-spacing: 0.5px; line-height: 1.3;">
           <i class="fas fa-clock mr-2"></i>
           <span id="countdown-text"></span>
         </div>
-        <div id="navbar-time" class="mr-3 d-flex align-items-center text-white" style="font-size: 1.2rem; font-weight: bold;"></div>
+        <div id="navbar-time" class="mr-3 d-flex align-items-center text-white" style="font-size: 1.1rem; font-weight: 600; font-family: 'Noto Sans KR', -apple-system, BlinkMacSystemFont, sans-serif; letter-spacing: 0.5px; line-height: 1.3;"></div>
       </ul>
     </nav>
     <!-- /.navbar -->
@@ -2728,13 +2766,13 @@
           <!-- 프로젝터 목록 테이블 -->
           <div class="row mt-5">
             <div class="col-12">
-              <h4 class="mb-4 ml-2" style="color: #e9ecef;">빔프로젝터 모니터링</h4>
+              <h4 class="mb-4 ml-2" style="color: #e9ecef; font-size: 1.1rem; font-weight: 600; font-family: 'Noto Sans KR', -apple-system, BlinkMacSystemFont, sans-serif; letter-spacing: 0.5px;">빔프로젝터 모니터링</h4>
               
               <div class="card shadow-sm">
                 <div class="card-header d-flex justify-content-between align-items-center text-white py-3" style="background-color: #0090e7; border-radius: 5px 5px 0 0;">
                   <div class="d-flex align-items-center">
                     <i class="fas fa-projector mr-3 fa-lg"></i>
-                    <h3 class="card-title mb-0 font-weight-bold">빔프로젝터 실시간 모니터링</h3>
+                    <h3 class="card-title mb-0" style="font-size: 1.1rem; font-weight: 600; font-family: 'Noto Sans KR', -apple-system, BlinkMacSystemFont, sans-serif; letter-spacing: 0.5px;">빔프로젝터 실시간 모니터링</h3>
                   </div>
                   <div>
                     <span class="small"><i class="fas fa-sync-alt mr-1"></i> 20초마다 자동 새로고침</span>
@@ -2775,13 +2813,13 @@
           <!-- PC 목록 테이블 -->
           <div class="row mt-5">
             <div class="col-12">
-              <h4 class="mb-4 ml-2">PC 모니터링</h4>
+              <h4 class="mb-4 ml-2" style="color: #e9ecef; font-size: 1.1rem; font-weight: 600; font-family: 'Noto Sans KR', -apple-system, BlinkMacSystemFont, sans-serif; letter-spacing: 0.5px;">PC 모니터링</h4>
               
               <div class="card shadow-sm">
                 <div class="card-header d-flex justify-content-between align-items-center bg-success text-white py-3">
                   <div class="d-flex align-items-center">
                     <i class="fas fa-desktop mr-3 fa-lg"></i>
-                    <h3 class="card-title mb-0 font-weight-bold">PC 실시간 모니터링</h3>
+                    <h3 class="card-title mb-0" style="font-size: 1.1rem; font-weight: 600; font-family: 'Noto Sans KR', -apple-system, BlinkMacSystemFont, sans-serif; letter-spacing: 0.5px;">PC 실시간 모니터링</h3>
                   </div>
                   <div>
                     <span class="small"><i class="fas fa-sync-alt mr-1"></i> 20초마다 자동 새로고침</span>
@@ -2822,13 +2860,13 @@
           <!-- PDU 목록 테이블 -->
           <div class="row mt-5 mb-5">
             <div class="col-12">
-              <h4 class="mb-4 ml-2">PDU 모니터링</h4>
+              <h4 class="mb-4 ml-2" style="color: #e9ecef; font-size: 1.1rem; font-weight: 600; font-family: 'Noto Sans KR', -apple-system, BlinkMacSystemFont, sans-serif; letter-spacing: 0.5px;">PDU 모니터링</h4>
               
               <div class="card shadow-sm">
                 <div class="card-header d-flex justify-content-between align-items-center bg-warning text-dark py-3">
                   <div class="d-flex align-items-center">
                     <i class="fas fa-plug mr-3 fa-lg"></i>
-                    <h3 class="card-title mb-0 font-weight-bold">PDU 실시간 모니터링</h3>
+                    <h3 class="card-title mb-0" style="font-size: 1.1rem; font-weight: 600; font-family: 'Noto Sans KR', -apple-system, BlinkMacSystemFont, sans-serif; letter-spacing: 0.5px;">PDU 실시간 모니터링</h3>
                   </div>
                   <div>
                     <span class="small"><i class="fas fa-sync-alt mr-1"></i> 20초마다 자동 새로고침</span>

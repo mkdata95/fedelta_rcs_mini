@@ -478,7 +478,7 @@
 
       <!-- 우측 네비게이션 링크 -->
       <ul class="navbar-nav ml-auto" style="margin-right: 30px !important;">
-        <div id="current-time" class="d-flex align-items-center text-white" style="font-size: 1.2rem; font-weight: bold;"></div>
+        <div id="current-time" class="d-flex align-items-center text-white" style="font-size: 1.1rem; font-weight: 600; font-family: 'Noto Sans KR', -apple-system, BlinkMacSystemFont, sans-serif; letter-spacing: 0.5px; line-height: 1.3;"></div>
       </ul>
     </nav>
     <!-- /.navbar -->
@@ -1996,8 +1996,8 @@ function updateCurrentTime() {
   hours = hours ? hours : 12; // 0시는 12시로 표시
   hours = String(hours).padStart(2, '0');
   
-  // 오전/오후와 시간만 표시 (년월일 제거)
-  const timeString = `<span style="font-size: 0.8em;">${ampm}</span> ${hours}:${minutes}:${seconds}`;
+      // 오전/오후와 시간만 표시 (년월일 제거)
+    const timeString = `${ampm} ${hours}:${minutes}:${seconds}`;
   
   const timeElement = document.getElementById('current-time');
   if (timeElement) {
