@@ -519,6 +519,333 @@
       }
     }
 
+    // 전체 켜기 확인 대화상자 표시
+    function showBulkOnConfirm() {
+      console.log('🟢 전체 켜기 확인 대화상자 호출됨');
+      
+      if (confirm('모든 장치를 켜시겠습니까?\n\n- 빔프로젝터\n- PC\n\n순서: 빔프로젝터 켜기 → 2분 대기 → PC 켜기\n이 작업에는 시간이 소요될 수 있습니다.')) {
+        console.log('✅ 전체 켜기 확인됨 - 실행 시작');
+        executeAllDevicesOn();
+      } else {
+        console.log('❌ 전체 켜기 취소됨');
+      }
+    }
+
+    // 전체 끄기 확인 대화상자 표시
+    function showBulkOffConfirm() {
+      console.log('🔴 전체 끄기 확인 대화상자 호출됨');
+      
+      if (confirm('모든 장치를 끄시겠습니까?\n\n- PC\n- 빔프로젝터\n\n순서: PC 끄기 → 2분 대기 → 빔프로젝터 끄기\n이 작업에는 시간이 소요될 수 있습니다.')) {
+        console.log('✅ 전체 끄기 확인됨 - 실행 시작');
+        executeAllDevicesOff();
+      } else {
+        console.log('❌ 전체 끄기 취소됨');
+      }
+    }
+
+    // 모든 장치 켜기 실행 (시퀀스: 빔프로젝터 → 2분 대기 → PC)
+    async function executeAllDevicesOn() {
+      console.log('🚀 켜기 시퀀스 시작: 빔프로젝터 → 2분 대기 → PC');
+      
+      try {
+        // 1단계: 빔프로젝터 모두 켜기
+        showToast('1단계: 빔프로젝터를 켜는 중...', 'info');
+        console.log('📽️ 1단계: 빔프로젝터 켜기 시작');
+        await controlAllProjectors('on');
+        console.log('✅ 빔프로젝터 켜기 완료');
+        
+        // 2단계: 2분 카운트다운 (빔프로젝터 예열 시간)
+        showToast('빔프로젝터 예열 중... 2분 후 PC가 켜집니다.', 'info');
+        console.log('⏱️ 2분 카운트다운 시작 (빔프로젝터 예열)');
+        await startCountdown(120, '빔프로젝터 예열', 'PC 켜기까지');
+        
+        // 3단계: PC 모두 켜기
+        showToast('2단계: PC를 켜는 중...', 'info');
+        console.log('💻 2단계: PC 켜기 시작');
+        await controlAllPCs('on');
+        console.log('✅ PC 켜기 완료');
+        
+        // 완료
+        console.log('🎉 켜기 시퀀스 완료!');
+        showToast('모든 장치가 켜졌습니다! 사용 준비 완료!', 'success');
+        
+        // 데이터 새로고침
+        setTimeout(() => {
+          loadDashboardProjectorList();
+          loadDashboardPCList();
+          loadDashboardPDUList();
+        }, 2000);
+        
+      } catch (error) {
+        console.error('❌ 켜기 시퀀스 오류:', error);
+        showToast('켜기 시퀀스 중 오류가 발생했습니다.', 'error');
+        hideCountdown();
+      }
+    }
+
+    // 모든 장치 끄기 실행 (시퀀스: PC → 2분 대기 → 빔프로젝터)
+    async function executeAllDevicesOff() {
+      console.log('🚀 끄기 시퀀스 시작: PC → 2분 대기 → 빔프로젝터');
+      
+      try {
+        // 1단계: PC 모두 끄기
+        showToast('1단계: PC를 끄는 중...', 'info');
+        console.log('💻 1단계: PC 끄기 시작');
+        await controlAllPCs('off');
+        console.log('✅ PC 끄기 완료');
+        
+        // 2단계: 2분 카운트다운 (PC 완전 종료 시간)
+        showToast('PC 완전 종료 대기 중... 2분 후 빔프로젝터가 꺼집니다.', 'info');
+        console.log('⏱️ 2분 카운트다운 시작 (PC 완전 종료)');
+        await startCountdown(120, 'PC 완전 종료', '빔프로젝터 끄기까지');
+        
+        // 3단계: 빔프로젝터 모두 끄기
+        showToast('2단계: 빔프로젝터를 끄는 중...', 'info');
+        console.log('📽️ 2단계: 빔프로젝터 끄기 시작');
+        await controlAllProjectors('off');
+        console.log('✅ 빔프로젝터 끄기 완료');
+        
+        // 완료
+        console.log('🎉 끄기 시퀀스 완료!');
+        showToast('모든 장치가 안전하게 꺼졌습니다!', 'success');
+        
+        // 데이터 새로고침
+        setTimeout(() => {
+          loadDashboardProjectorList();
+          loadDashboardPCList();
+          loadDashboardPDUList();
+        }, 2000);
+        
+      } catch (error) {
+        console.error('❌ 끄기 시퀀스 오류:', error);
+        showToast('끄기 시퀀스 중 오류가 발생했습니다.', 'error');
+        hideCountdown();
+      }
+    }
+
+    // 모든 빔프로젝터 제어 (2초 간격 순차 실행)
+    async function controlAllProjectors(action) {
+      try {
+        const response = await fetch('/api/projector/list');
+        const data = await response.json();
+        
+        if (data.success && data.devices) {
+          console.log(`📽️ ${data.devices.length}개 빔프로젝터 ${action} 시작 (2초 간격)`);
+          
+          for (let i = 0; i < data.devices.length; i++) {
+            const projector = data.devices[i];
+            console.log(`📽️ 빔프로젝터 ${i + 1}/${data.devices.length} ${action}: ${projector.ip}`);
+            
+            try {
+              const command = action === 'on' ? 'power_on' : 'power_off';
+              const response = await fetch('/api/projector/command', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ 
+                  ip: projector.ip,
+                  command: command 
+                })
+              });
+              
+              const result = await response.json();
+              console.log(`📡 빔프로젝터 ${projector.ip} ${action} 응답:`, result);
+              
+              if (response.ok && result.success) {
+                console.log(`✅ 빔프로젝터 ${projector.ip} ${action} 성공`);
+              } else {
+                console.error(`❌ 빔프로젝터 ${projector.ip} ${action} 실패: ${result.message || result.error || '알 수 없는 오류'}`);
+              }
+            } catch (error) {
+              console.error(`❌ 빔프로젝터 ${projector.ip} ${action} 네트워크 오류:`, error);
+            }
+            
+            // 마지막 장치가 아니면 2초 대기
+            if (i < data.devices.length - 1) {
+              console.log('⏱️ 2초 대기...');
+              await new Promise(resolve => setTimeout(resolve, 2000));
+            }
+          }
+          
+          console.log(`✅ 모든 빔프로젝터 ${action} 명령 전송 완료`);
+        }
+      } catch (error) {
+        console.error(`❌ 빔프로젝터 ${action} 오류:`, error);
+      }
+    }
+
+    // 모든 PC 제어 (2초 간격 순차 실행)
+    async function controlAllPCs(action) {
+      try {
+        const response = await fetch('/api/pc/list');
+        const data = await response.json();
+        
+        if (data.success && data.pc_list) {
+          console.log(`💻 ${data.pc_list.length}개 PC ${action} 시작 (2초 간격)`);
+          
+          for (let i = 0; i < data.pc_list.length; i++) {
+            const pc = data.pc_list[i];
+            console.log(`💻 PC ${i + 1}/${data.pc_list.length} ${action}: ${pc.ip}`);
+            
+            try {
+              const response = await fetch('/api/pc/control', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ 
+                  pc_id: pc.id,
+                  action: action
+                })
+              });
+              
+              const result = await response.json();
+              console.log(`📡 PC ${pc.ip} ${action} 응답:`, result);
+              
+              if (response.ok && result.success) {
+                console.log(`✅ PC ${pc.ip} ${action} 성공`);
+              } else {
+                console.error(`❌ PC ${pc.ip} ${action} 실패: ${result.message || result.error || '알 수 없는 오류'}`);
+              }
+            } catch (error) {
+              console.error(`❌ PC ${pc.ip} ${action} 네트워크 오류:`, error);
+            }
+            
+            // 마지막 장치가 아니면 2초 대기
+            if (i < data.pc_list.length - 1) {
+              console.log('⏱️ 2초 대기...');
+              await new Promise(resolve => setTimeout(resolve, 2000));
+            }
+          }
+          
+          console.log(`✅ 모든 PC ${action} 명령 전송 완료`);
+        }
+      } catch (error) {
+        console.error(`❌ PC ${action} 오류:`, error);
+      }
+    }
+
+    // 모든 PDU 제어
+    async function controlAllPDUs(action) {
+      try {
+        const response = await fetch('/api/pdu/list');
+        const data = await response.json();
+        
+        if (data.pdus) {
+          const promises = data.pdus.map(pdu => 
+            fetch(`/api/pdu/${action}`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ 
+                id: pdu.id,
+                ip: pdu.ip 
+              })
+            })
+          );
+          
+          await Promise.allSettled(promises);
+          console.log(`✅ 모든 PDU ${action} 명령 전송 완료`);
+        }
+      } catch (error) {
+        console.error(`❌ PDU ${action} 오류:`, error);
+      }
+    }
+
+    // 카운트다운 함수
+    function startCountdown(seconds, currentTask, nextTask) {
+      return new Promise((resolve) => {
+        let remaining = seconds;
+        const countdownElement = document.getElementById('navbar-countdown');
+        
+        if (!countdownElement) {
+          console.error('카운트다운 요소를 찾을 수 없습니다');
+          resolve();
+          return;
+        }
+        
+        // 카운트다운 표시
+        countdownElement.style.display = 'flex';
+        console.log(`⏱️ 카운트다운 시작: ${seconds}초`);
+        
+        function updateCountdown() {
+          const minutes = Math.floor(remaining / 60);
+          const secs = remaining % 60;
+          const timeString = `${minutes}:${secs.toString().padStart(2, '0')}`;
+          
+          countdownElement.innerHTML = `
+            <i class="fas fa-clock mr-2"></i>
+            <span>${currentTask} 중... ${nextTask} ${timeString}</span>
+          `;
+          
+          console.log(`⏱️ 카운트다운: ${timeString} (remaining: ${remaining})`);
+          
+          // 0에 도달하면 즉시 숨기고 종료
+          if (remaining <= 0) {
+            console.log('🎯 카운트다운 완료 - 숨김 처리');
+            countdownElement.style.display = 'none';
+            countdownElement.innerHTML = ''; // 내용도 완전히 지우기
+            resolve();
+            return;
+          }
+          
+          remaining--;
+          setTimeout(updateCountdown, 1000);
+        }
+        
+        updateCountdown();
+      });
+    }
+
+    // 카운트다운 숨기기
+    function hideCountdown() {
+      const countdownElement = document.getElementById('navbar-countdown');
+      if (countdownElement) {
+        console.log('🚫 카운트다운 강제 숨김');
+        countdownElement.style.display = 'none';
+        countdownElement.innerHTML = ''; // 내용도 완전히 지우기
+        countdownElement.style.visibility = 'hidden'; // 추가 보장
+      }
+    }
+
+    // 토스트 메시지 표시 함수
+    function showToast(message, type = 'info') {
+      const toastContainer = document.getElementById('toast-container');
+      if (!toastContainer) return;
+      
+      const toast = document.createElement('div');
+      toast.className = `toast-message toast-${type}`;
+      toast.style.cssText = `
+        background: ${type === 'success' ? '#28a745' : type === 'error' ? '#dc3545' : '#17a2b8'};
+        color: white;
+        padding: 12px 20px;
+        margin-bottom: 10px;
+        border-radius: 4px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+        opacity: 0;
+        transform: translateX(100%);
+        transition: all 0.3s ease;
+        pointer-events: auto;
+        font-weight: 500;
+      `;
+      toast.textContent = message;
+      
+      toastContainer.appendChild(toast);
+      
+      // 애니메이션 효과
+      setTimeout(() => {
+        toast.style.opacity = '1';
+        toast.style.transform = 'translateX(0)';
+      }, 100);
+      
+      // 자동 제거
+      setTimeout(() => {
+        toast.style.opacity = '0';
+        toast.style.transform = 'translateX(100%)';
+        setTimeout(() => {
+          if (toast.parentNode) {
+            toast.parentNode.removeChild(toast);
+          }
+        }, 300);
+      }, 4000);
+    }
+
     // 전역 스코프에 함수들 등록
     window.fetchDeviceCounts = fetchDeviceCounts;
     window.updateDashboardCard = updateDashboardCard;
@@ -527,6 +854,9 @@
     window.loadDashboardPDUList = loadDashboardPDUList;
     window.fetchRoomCount = fetchRoomCount;
     window.fetchSystemStatus = fetchSystemStatus;
+    window.showBulkOnConfirm = showBulkOnConfirm;
+    window.showBulkOffConfirm = showBulkOffConfirm;
+    window.showToast = showToast;
 
     console.log('✅ 데이터 로드 함수들 인라인 로드 완료');
   </script>
