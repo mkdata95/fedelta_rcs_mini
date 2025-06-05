@@ -670,9 +670,8 @@
       console.log('🚀 켜기 시퀀스 시작: 빔프로젝터 → 2분 대기 → PC');
       
       try {
-        // 사이드바 메뉴 및 카드 더보기 버튼 비활성화
+        // 사이드바 메뉴 비활성화
         disableSidebarMenu();
-        disableCardMoreButtons();
         
         // 1단계: 빔프로젝터 모두 켜기
         showToast('1단계: 빔프로젝터를 켜는 중...', 'info');
@@ -707,9 +706,8 @@
         showToast('켜기 시퀀스 중 오류가 발생했습니다.', 'error');
         hideCountdown();
       } finally {
-        // 완료 후 사이드바 메뉴 및 카드 더보기 버튼 활성화
+        // 완료 후 사이드바 메뉴 활성화
         enableSidebarMenu();
-        enableCardMoreButtons();
       }
     }
 
@@ -718,9 +716,8 @@
       console.log('🚀 끄기 시퀀스 시작: PC → 2분 대기 → 빔프로젝터');
       
       try {
-        // 사이드바 메뉴 및 카드 더보기 버튼 비활성화
+        // 사이드바 메뉴 비활성화
         disableSidebarMenu();
-        disableCardMoreButtons();
         
         // 1단계: PC 모두 끄기
         showToast('1단계: PC를 끄는 중...', 'info');
@@ -755,9 +752,8 @@
         showToast('끄기 시퀀스 중 오류가 발생했습니다.', 'error');
         hideCountdown();
       } finally {
-        // 완료 후 사이드바 메뉴 및 카드 더보기 버튼 활성화
+        // 완료 후 사이드바 메뉴 활성화
         enableSidebarMenu();
-        enableCardMoreButtons();
       }
     }
 
@@ -1017,52 +1013,6 @@
       console.log('🔓 사이드바 메뉴 활성화됨');
     }
 
-    // 카드 더보기 버튼 비활성화
-    function disableCardMoreButtons() {
-      const moreButtons = document.querySelectorAll('.btn-more');
-      moreButtons.forEach(button => {
-        // 원래 href 저장
-        button.dataset.originalHref = button.getAttribute('href') || '';
-        
-        // 클릭 이벤트 비활성화
-        button.setAttribute('href', 'javascript:void(0);');
-        button.style.pointerEvents = 'none';
-        button.style.opacity = '0.5';
-        button.style.cursor = 'not-allowed';
-        
-        // 비활성화 표시
-        button.classList.add('disabled');
-      });
-      
-      console.log('🔒 카드 더보기 버튼 비활성화됨');
-    }
-
-    // 카드 더보기 버튼 활성화
-    function enableCardMoreButtons() {
-      const moreButtons = document.querySelectorAll('.btn-more');
-      moreButtons.forEach(button => {
-        // 원래 href 복원
-        const originalHref = button.dataset.originalHref;
-        
-        if (originalHref) {
-          button.setAttribute('href', originalHref);
-        }
-        
-        // 스타일 복원
-        button.style.pointerEvents = '';
-        button.style.opacity = '';
-        button.style.cursor = '';
-        
-        // 비활성화 클래스 제거
-        button.classList.remove('disabled');
-        
-        // 저장된 데이터 정리
-        delete button.dataset.originalHref;
-      });
-      
-      console.log('🔓 카드 더보기 버튼 활성화됨');
-    }
-
     // 토스트 메시지 표시 함수
     function showToast(message, type = 'info') {
       const toastContainer = document.getElementById('toast-container');
@@ -1116,8 +1066,6 @@
     window.showBulkOnConfirm = showBulkOnConfirm;
     window.showBulkOffConfirm = showBulkOffConfirm;
     window.showToast = showToast;
-    window.disableCardMoreButtons = disableCardMoreButtons;
-    window.enableCardMoreButtons = enableCardMoreButtons;
     
     // PC 종료 서버 직접 테스트 함수 (콘솔에서 testDirectShutdown() 호출)
     window.testDirectShutdown = async function() {

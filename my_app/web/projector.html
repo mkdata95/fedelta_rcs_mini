@@ -1167,7 +1167,11 @@ async function addProjector() {
       ip: ip,
       type: type,
       userId: userId || 'admin',
-      password: password
+      password: password,
+      extra: JSON.stringify({
+        model: type,
+        username: userId || 'admin'
+      })
     };
     
     console.log('클라이언트 요청 데이터:', projectorData);
