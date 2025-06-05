@@ -673,39 +673,59 @@
       }
     }
 
-    // 모든 PC 제어 (2초 간격 순차 실행)
+    // 모든 PC 제어 (2초 간격 순차 실행) - 직접 8081 포트로 요청
     async function controlAllPCs(action) {
       try {
+        console.log(`🔍 PC 목록 조회 시작: /api/pc/list`);
         const response = await fetch('/api/pc/list');
         const data = await response.json();
+        
+        console.log(`📋 PC 목록 응답:`, data);
         
         if (data.success && data.pc_list) {
           console.log(`💻 ${data.pc_list.length}개 PC ${action} 시작 (2초 간격)`);
           
           for (let i = 0; i < data.pc_list.length; i++) {
             const pc = data.pc_list[i];
-            console.log(`💻 PC ${i + 1}/${data.pc_list.length} ${action}: ${pc.ip}`);
+            console.log(`💻 PC ${i + 1}/${data.pc_list.length} ${action}: ${pc.name} (${pc.ip})`);
             
             try {
-              const response = await fetch('/api/pc/control', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ 
-                  pc_id: pc.id,
-                  action: action
-                })
-              });
-              
-              const result = await response.json();
-              console.log(`📡 PC ${pc.ip} ${action} 응답:`, result);
-              
-              if (response.ok && result.success) {
-                console.log(`✅ PC ${pc.ip} ${action} 성공`);
-              } else {
-                console.error(`❌ PC ${pc.ip} ${action} 실패: ${result.message || result.error || '알 수 없는 오류'}`);
+              if (action === 'off') {
+                // PC 끄기: 직접 8081 포트 종료 서버로 요청
+                const shutdownUrl = `http://${pc.ip}:8081/shutdown`;
+                console.log(`🚀 PC 종료 요청: ${shutdownUrl}`);
+                
+                const controlResponse = await fetch(shutdownUrl, {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  mode: 'no-cors' // CORS 우회
+                });
+                
+                console.log(`✅ PC ${pc.ip} (${pc.name}) 종료 신호 전송 완료`);
+                
+              } else if (action === 'on') {
+                // PC 켜기: 기존 API 사용 (WOL 등)
+                const controlResponse = await fetch('/api/pc/control', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({ 
+                    pc_id: pc.id,
+                    action: action
+                  })
+                });
+                
+                const result = await controlResponse.json();
+                console.log(`📡 PC ${pc.ip} ${action} 응답:`, result);
+                
+                if (controlResponse.ok && result.success) {
+                  console.log(`✅ PC ${pc.ip} (${pc.name}) ${action} 성공`);
+                } else {
+                  console.error(`❌ PC ${pc.ip} (${pc.name}) ${action} 실패:`, result);
+                }
               }
+              
             } catch (error) {
-              console.error(`❌ PC ${pc.ip} ${action} 네트워크 오류:`, error);
+              console.error(`❌ PC ${pc.ip} (${pc.name}) ${action} 오류:`, error);
             }
             
             // 마지막 장치가 아니면 2초 대기
@@ -716,9 +736,11 @@
           }
           
           console.log(`✅ 모든 PC ${action} 명령 전송 완료`);
+        } else {
+          console.error(`❌ PC 목록 조회 실패:`, data);
         }
       } catch (error) {
-        console.error(`❌ PC ${action} 오류:`, error);
+        console.error(`❌ PC ${action} 전체 오류:`, error);
       }
     }
 
@@ -857,6 +879,126 @@
     window.showBulkOnConfirm = showBulkOnConfirm;
     window.showBulkOffConfirm = showBulkOffConfirm;
     window.showToast = showToast;
+    
+    // PC 종료 서버 직접 테스트 함수 (콘솔에서 testDirectShutdown() 호출)
+    window.testDirectShutdown = async function() {
+      try {
+        console.log('🚀 PC 종료 서버 직접 테스트 시작');
+        const response = await fetch('/api/pc/list');
+        const data = await response.json();
+        
+        if (data.success && data.pc_list && data.pc_list.length > 0) {
+          const pc = data.pc_list[0];
+          console.log('🎯 테스트 대상 PC:', pc);
+          
+          // PC의 8081 포트로 직접 종료 요청
+          const shutdownUrl = `http://${pc.ip}:8081/shutdown`;
+          console.log('📡 종료 서버 URL:', shutdownUrl);
+          
+          try {
+            // 직접 PC 종료 서버 호출
+            const directResponse = await fetch(shutdownUrl, {
+              method: 'POST',
+              mode: 'no-cors', // CORS 우회
+              headers: { 'Content-Type': 'application/json' }
+            });
+            
+            console.log('✅ 직접 종료 요청 전송 완료');
+            console.log('📋 응답 상태:', directResponse.status, directResponse.statusText);
+            
+            alert(`PC ${pc.ip}:8081로 직접 종료 요청을 보냈습니다!\n\nPC가 꺼지는지 확인해보세요.`);
+            
+          } catch (directError) {
+            console.error('❌ 직접 요청 실패:', directError);
+            
+            // CORS 때문에 실패할 수 있으니 서버를 통한 프록시 방식도 시도
+            console.log('🔄 서버 프록시를 통한 요청 시도...');
+            
+            const proxyResponse = await fetch('/api/pc/direct-shutdown', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ 
+                pc_ip: pc.ip,
+                shutdown_url: shutdownUrl
+              })
+            });
+            
+            const proxyResult = await proxyResponse.json();
+            console.log('🔄 프록시 응답:', proxyResult);
+          }
+          
+        } else {
+          console.error('❌ PC 목록이 없습니다:', data);
+        }
+      } catch (error) {
+        console.error('🚀 직접 테스트 오류:', error);
+      }
+    };
+
+    // 개별 PC 테스트 함수 (콘솔에서 testSinglePCOff() 호출)
+    window.testSinglePCOff = async function() {
+      try {
+        console.log('🧪 개별 PC 끄기 테스트 시작');
+        const response = await fetch('/api/pc/list');
+        const data = await response.json();
+        
+        if (data.success && data.pc_list && data.pc_list.length > 0) {
+          const pc = data.pc_list[0]; // 첫 번째 PC 사용
+          console.log('🎯 테스트 대상 PC:', pc);
+          
+          // 직접 PC 끄기 API 호출
+          const controlResponse = await fetch('/api/pc/control', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ 
+              pc_id: pc.id,
+              action: 'off'
+            })
+          });
+          
+          const result = await controlResponse.json();
+          console.log('🧪 개별 PC 끄기 테스트 결과:', result);
+          
+          // 추가 상세 정보
+          console.log('📋 API 응답 상세:', {
+            status: controlResponse.status,
+            ok: controlResponse.ok,
+            headers: controlResponse.headers,
+            result: result
+          });
+          
+          // 5초, 10초, 15초 후 PC 상태 확인
+          [5, 10, 15].forEach(delay => {
+            setTimeout(async () => {
+              try {
+                const statusResponse = await fetch('/api/pc/list');
+                const statusData = await statusResponse.json();
+                const updatedPC = statusData.pc_list.find(p => p.id === pc.id);
+                console.log(`🔍 ${delay}초 후 PC 상태:`, updatedPC);
+                
+                // 실제 PC 네트워크 상태도 핑으로 확인
+                fetch(`http://${pc.ip}:3000/status`, { 
+                  method: 'GET',
+                  timeout: 2000 
+                }).then(() => {
+                  console.log(`🌐 ${delay}초 후 PC ${pc.ip} 네트워크: 응답함 (아직 살아있음)`);
+                }).catch(() => {
+                  console.log(`🌐 ${delay}초 후 PC ${pc.ip} 네트워크: 응답없음 (꺼졌을 가능성)`);
+                });
+              } catch (e) {
+                console.error(`❌ ${delay}초 후 상태 확인 오류:`, e);
+              }
+            }, delay * 1000);
+          });
+          
+          alert('개별 PC 끄기 테스트 완료! 콘솔을 계속 확인하세요.');
+        } else {
+          console.error('❌ PC 목록이 없습니다:', data);
+        }
+      } catch (error) {
+        console.error('🧪 개별 PC 테스트 오류:', error);
+      }
+    };
 
     console.log('✅ 데이터 로드 함수들 인라인 로드 완료');
   </script>
