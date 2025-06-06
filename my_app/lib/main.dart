@@ -21,6 +21,7 @@ import 'routes/pc_routes.dart';
 import 'routes/pdu_routes.dart';
 import 'routes/schedule_routes.dart';
 import 'routes/settings_routes.dart';
+import 'routes/system_routes.dart';
 import 'services/schedule_service.dart';
 import 'services/pdu_service.dart';
 import 'database/database_helper.dart';
@@ -1095,6 +1096,7 @@ class RemoteControlServer {
       ..mount('/api/pdu', pduRoutes)
       ..mount('/api/schedule', ScheduleRoutes().router)
       ..mount('/api/settings', SettingsRoutes().router)
+      ..mount('/api', SystemRoutes().router)
       ..get('/', _handleRootRequest)
       ..get('/<file|.*>', _handleWebRequest)
       ..all('/api/<ignored|.*>', (request) {
