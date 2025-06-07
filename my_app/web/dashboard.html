@@ -182,7 +182,7 @@
         
         if (systemStatusEl) {
           systemStatusEl.textContent = systemStatus;
-          systemStatusEl.className = 'dual-info-value ' + statusClass;
+          systemStatusEl.className = 'dashboard-card-number ' + statusClass;
         }
         if (cpuUsageEl) cpuUsageEl.textContent = `CPU: ${cpuUsage}%`;
         if (memoryUsageEl) memoryUsageEl.textContent = `메모리: ${memoryUsage}%`;
@@ -195,34 +195,14 @@
     // 네트워크 상태 업데이트
     async function updateNetworkStatus() {
       try {
-        // 실제로는 ping API나 네트워크 상태 확인 API 호출
+        // 네트워크 연결 상태만 확인
         const networkConnected = navigator.onLine;
-        const networkSpeed = '1Gbps'; // 실제로는 서버에서 측정
-        const pingTime = Math.floor(Math.random() * 5) + 1; // 1-6ms
         
         let networkStatus = networkConnected ? '연결됨' : '연결 끊김';
         let networkStatusClass = networkConnected ? 'status-normal' : 'status-offline';
         
-        // 핑 시간에 따른 상태 조정
-        if (networkConnected) {
-          if (pingTime > 10) {
-            networkStatusClass = 'status-warning';
-          } else if (pingTime > 20) {
-            networkStatusClass = 'status-danger';
-          }
-        }
-        
-        // DOM 업데이트
-        const networkStatusEl = document.getElementById('network-status');
-        const networkSpeedEl = document.getElementById('network-speed');
-        const pingStatusEl = document.getElementById('ping-status');
-        
-        if (networkStatusEl) {
-          networkStatusEl.textContent = networkStatus;
-          networkStatusEl.className = 'dual-info-value ' + networkStatusClass;
-        }
-        if (networkSpeedEl) networkSpeedEl.textContent = `속도: ${networkSpeed}`;
-        if (pingStatusEl) pingStatusEl.textContent = `핑: ${pingTime}ms`;
+        // 네트워크 카드가 제거되어 DOM 업데이트 불필요
+        console.log('ℹ️ 네트워크 카드 제거됨 - DOM 업데이트 건너뛰기');
         
       } catch (error) {
         console.error('❌ 네트워크 상태 업데이트 실패:', error);
@@ -241,9 +221,7 @@
         return {
           cpu_usage: Math.floor(Math.random() * 30) + 20,
           memory_usage: Math.floor(Math.random() * 40) + 30,
-          network_connected: navigator.onLine,
-          network_speed: '1Gbps',
-          ping: Math.floor(Math.random() * 5) + 1
+          network_connected: navigator.onLine
         };
       } catch (error) {
         console.error('❌ 시스템 정보 API 호출 실패:', error);
@@ -251,18 +229,19 @@
       }
     }
 
-    // 시스템 & 네트워크 상태 관리 모듈 초기화
+    // 시스템 & 네트워크 상태 관리 모듈 초기화 (비활성화 - 새로운 시스템 사용)
     function initializeSystemNetworkManager() {
-      updateSystemStatus();
-      updateNetworkStatus();
+      console.log('⚠️ 기존 시스템 & 네트워크 상태 관리 모듈은 비활성화됨 (새로운 fetchSystemStatus 사용)');
+      // updateSystemStatus();
+      // updateNetworkStatus();
       
-      // 5초마다 시스템 상태 갱신
-      setInterval(updateSystemStatus, 5000);
+      // // 5초마다 시스템 상태 갱신
+      // setInterval(updateSystemStatus, 5000);
       
-      // 3초마다 네트워크 상태 갱신
-      setInterval(updateNetworkStatus, 3000);
+      // // 3초마다 네트워크 상태 갱신
+      // setInterval(updateNetworkStatus, 3000);
       
-      console.log('✅ 시스템 & 네트워크 상태 관리 모듈 초기화 완료');
+      // console.log('✅ 시스템 & 네트워크 상태 관리 모듈 초기화 완료');
     }
 
     // 전역 스코프에 함수들 등록
@@ -663,24 +642,18 @@
             memoryUsageElement.textContent = `메모리: ${systemData.memory_usage.toFixed(1)}%`;
           }
           
-          // 네트워크 정보는 더미 데이터 유지 (변경하지 않음)
-          const networkStatusElement = document.getElementById('network-status');
-          const networkSpeedElement = document.getElementById('network-speed');
-          const pingStatusElement = document.getElementById('ping-status');
+          // 안드로이드 보드의 실제 네트워크 상태 업데이트
+          // 메인 카드가 없으므로 하단바만 업데이트하고 사용자에게 알림
+          console.log('🔍 네트워크 상태 확인:');
+          console.log('- 시스템&네트워크 카드가 DOM에 렌더링되지 않음');
+          console.log('- 하단바 network-status-indicator만 존재');
+          console.log('- networkData:', networkData);
+          console.log('✅ 하단바에서 네트워크 상태 확인 가능');
           
-          if (networkStatusElement) {
-            networkStatusElement.textContent = '연결됨'; // 더미 데이터 유지
-          }
+          // 하단바 네트워크 상태도 업데이트
+          updateFooterNetworkStatus(networkData.connected);
           
-          if (networkSpeedElement) {
-            networkSpeedElement.textContent = '속도: 1Gbps'; // 더미 데이터 유지
-          }
-          
-          if (pingStatusElement) {
-            pingStatusElement.textContent = '핑: 2ms'; // 더미 데이터 유지
-          }
-          
-          console.log(`✅ 시스템 정보 업데이트 완료 - CPU: ${systemData.cpu_usage.toFixed(1)}%, 메모리: ${systemData.memory_usage.toFixed(1)}%`);
+          console.log(`✅ 시스템 정보 업데이트 완료 - CPU: ${systemData.cpu_usage.toFixed(1)}%, 메모리: ${systemData.memory_usage.toFixed(1)}%, 네트워크: ${networkData.status}`);
           
         } else {
           console.error('❌ 시스템 API 응답 오류:', data.error || '알 수 없는 오류');
@@ -697,6 +670,49 @@
         if (systemStatusElement) systemStatusElement.textContent = '정상';
         if (cpuUsageElement) cpuUsageElement.textContent = 'CPU: 45%';
         if (memoryUsageElement) memoryUsageElement.textContent = '메모리: 62%';
+        
+        const networkStatusElement = document.getElementById('network-status');
+        if (networkStatusElement) networkStatusElement.textContent = '연결안됨';
+        
+        // 오류 시 하단바 네트워크 상태도 오류로 표시
+        updateFooterNetworkStatus(false);
+      }
+    }
+
+    // 하단바 네트워크 상태 업데이트 함수 + 카드도 함께 업데이트
+    function updateFooterNetworkStatus(isConnected) {
+      const networkIndicator = document.getElementById('network-status-indicator');
+      const networkText = document.querySelector('.network-status-text');
+      
+      // 하단바 업데이트 (기존 유지)
+      if (networkIndicator && networkText) {
+        if (isConnected) {
+          networkIndicator.className = 'status-indicator online';
+          networkText.textContent = '네트워크 정상';
+          console.log('🌐 하단바 네트워크 상태: 정상');
+        } else {
+          networkIndicator.className = 'status-indicator offline';
+          networkText.textContent = '네트워크 오류';
+          console.log('🌐 하단바 네트워크 상태: 오류');
+        }
+      }
+      
+
+    }
+    
+
+
+    // 시스템 카드에서 잘못 추가된 네트워크 정보 제거
+    function removeNetworkFromSystemCard() {
+      const networkSimple = document.getElementById('network-status-simple');
+      if (networkSimple) {
+        // 이전 br 태그도 함께 제거
+        const prevElement = networkSimple.previousSibling;
+        if (prevElement && prevElement.tagName === 'BR') {
+          prevElement.remove();
+        }
+        networkSimple.remove();
+        console.log('✅ 시스템 카드에서 네트워크 정보 제거됨');
       }
     }
 
@@ -1497,74 +1513,40 @@
     .dashboard-card.purple {
       background: linear-gradient(135deg, #667eea, #764ba2);
     }
-    
-    /* 시스템 & 네트워크 카드 스타일 */
-    .dashboard-card-dual-info {
-      display: flex;
-      gap: 15px;
-      width: 100%;
-      margin-top: 8px;
-    }
-    
-    .dual-info-left,
-    .dual-info-right {
-      flex: 1;
-      display: flex;
-      align-items: flex-start;
-      gap: 8px;
-    }
-    
-    .dual-info-icon {
-      font-size: 1.2rem;
-      color: rgba(255, 255, 255, 0.9);
-      margin-top: 2px;
-    }
-    
-    .dual-info-content {
-      flex: 1;
-    }
-    
-    .dual-info-label {
-      font-size: 0.75rem;
+
+
+
+    /* 시스템 상세 정보 스타일 */
+    .system-details {
+      margin-top: 5px;
       color: rgba(255, 255, 255, 0.8);
-      font-weight: 600;
-      margin-bottom: 2px;
-    }
-    
-    .dual-info-value {
-      font-size: 0.9rem;
-      color: white;
-      font-weight: 700;
-      margin-bottom: 4px;
-    }
-    
-    .dual-info-detail {
-      font-size: 0.65rem;
-      color: rgba(255, 255, 255, 0.7);
+      font-size: 0.7rem;
       line-height: 1.3;
     }
-    
-    .dual-info-detail span {
-      display: inline-block;
-      margin-right: 8px;
+
+    .system-details small {
+      color: rgba(255, 255, 255, 0.9);
+      font-weight: 500;
+    }
+
+    /* 상태별 색상 */
+    .status-normal {
+      color: #28a745 !important;
+    }
+
+    .status-warning {
+      color: #ffc107 !important;
+    }
+
+    .status-danger {
+      color: #dc3545 !important;
+    }
+
+    .status-offline {
+      color: #6c757d !important;
     }
     
-    /* 시스템 & 네트워크 상태별 색상 */
-    .dual-info-value.status-normal {
-      color: #28a745;
-    }
-    
-    .dual-info-value.status-warning {
-      color: #ffc107;
-    }
-    
-    .dual-info-value.status-danger {
-      color: #dc3545;
-    }
-    
-    .dual-info-value.status-offline {
-      color: #6c757d;
-    }
+    /* 기존 시스템 & 네트워크 카드 스타일 제거됨 - 이제 별도 카드 사용 */
     
     /* 정사각형 카드 전용 스타일 */
     .dashboard-card-wrapper.square-card {
@@ -2625,9 +2607,30 @@
       console.log('✅ loadDashboardPDUList 함수 즉시 호출');
       loadDashboardPDUList();
       
-      // 시스템 상태 가져오기
-              console.log('✅ fetchSystemStatus 함수 즉시 호출');
-        fetchSystemStatus();
+              // 시스템 상태 가져오기 (DOM 완전 렌더링 후 지연 실행)
+        setTimeout(() => {
+          console.log('✅ fetchSystemStatus 함수 지연 호출 (DOM 렌더링 완료 후)');
+          
+          // DOM 요소 존재 확인
+          const networkStatus = document.getElementById('network-status');
+          const cpuUsage = document.getElementById('cpu-usage');
+          console.log('🔍 DOM 요소 확인:', {
+            networkStatus: networkStatus,
+            cpuUsage: cpuUsage,
+            systemCard: document.querySelector('.system-network-card')
+          });
+          
+          if (networkStatus && cpuUsage) {
+            console.log('✅ 필요한 DOM 요소들이 준비됨');
+      fetchSystemStatus();
+          } else {
+            console.log('⚠️ DOM 요소가 아직 준비되지 않아 추가 대기');
+            setTimeout(() => {
+              console.log('🔄 5초 후 재시도');
+              fetchSystemStatus();
+            }, 5000);
+          }
+        }, 3000); // 3초 지연으로 증가
         
         // 30초마다 시스템 정보 자동 업데이트
         setInterval(() => {
@@ -2641,6 +2644,17 @@
       setInterval(loadDashboardPDUList, 20000);
       
       console.log('📊 데이터 로드 함수 즉시 호출 완료');
+      
+      // 시스템 카드에서 잘못 추가된 네트워크 정보 제거 및 네트워크 상태 초기화
+      setTimeout(() => {
+        removeNetworkFromSystemCard();
+        console.log('✅ 페이지 로드 시 네트워크 정보 정리 완료');
+        
+        // DOM이 완전히 로드된 후 하단바 네트워크 상태만 업데이트 
+        const isOnline = navigator.onLine;
+        console.log('🔄 DOM 로드 완료 후 하단바 네트워크 상태 업데이트:', isOnline ? '연결됨' : '연결안됨');
+        updateFooterNetworkStatus(isOnline);
+      }, 2000);
       
               // 중복 호출 제거됨 - 상단의 지연 호출에서 처리됨
       
@@ -2850,7 +2864,33 @@
       <!-- 좌측 네비게이션 링크 -->
       <ul class="navbar-nav">
         <li class="nav-item">
-          <span class="nav-link font-weight-bold">SMART RCS</span>
+          <span class="nav-link font-weight-bold d-flex align-items-center">
+            <!-- RCS 로고 SVG -->
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="28" height="28" style="margin-right: 12px;" fill="#0090e7">
+              <defs>
+                <linearGradient id="logoGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" style="stop-color:#0090e7;stop-opacity:1" />
+                  <stop offset="100%" style="stop-color:#00d4ff;stop-opacity:1" />
+                </linearGradient>
+              </defs>
+              <!-- 외부 원형 링 -->
+              <circle cx="16" cy="16" r="15" stroke="url(#logoGradient)" stroke-width="2" fill="none"/>
+              <!-- 중앙 컨트롤 아이콘 -->
+              <circle cx="16" cy="16" r="3" fill="url(#logoGradient)"/>
+              <!-- 신호파 라인들 -->
+              <path d="M 8 10 Q 16 6 24 10" stroke="url(#logoGradient)" stroke-width="1.5" fill="none"/>
+              <path d="M 8 16 L 24 16" stroke="url(#logoGradient)" stroke-width="2" fill="none"/>
+              <path d="M 8 22 Q 16 26 24 22" stroke="url(#logoGradient)" stroke-width="1.5" fill="none"/>
+              <!-- 연결점들 -->
+              <circle cx="8" cy="10" r="1.5" fill="url(#logoGradient)"/>
+              <circle cx="24" cy="10" r="1.5" fill="url(#logoGradient)"/>
+              <circle cx="8" cy="16" r="1.5" fill="url(#logoGradient)"/>
+              <circle cx="24" cy="16" r="1.5" fill="url(#logoGradient)"/>
+              <circle cx="8" cy="22" r="1.5" fill="url(#logoGradient)"/>
+              <circle cx="24" cy="22" r="1.5" fill="url(#logoGradient)"/>
+            </svg>
+            SMART RCS
+          </span>
         </li>
       </ul>
 
@@ -2879,35 +2919,47 @@
         <nav class="mt-3">
           <ul class="nav nav-pills nav-sidebar flex-column" data-widget="treeview" role="menu" data-accordion="false">
             <li class="nav-item mb-2">
-              <a href="javascript:void(0);" onclick="navigateToPage('dashboard.html')" class="nav-link active" id="dashboard-link" style="background-color: #0090e7; border-radius: 5px; margin: 0 10px;">
-                <i class="nav-icon fas fa-tachometer-alt"></i>
-                <p>
+              <a href="javascript:void(0);" onclick="navigateToPage('dashboard.html')" class="nav-link active" id="dashboard-link" style="background-color: #0090e7; border-radius: 5px; margin: 0 10px; padding: 12px 16px;">
+                <!-- 대시보드 통일된 SVG 아이콘 -->
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="18" height="18" fill="currentColor" style="margin-right: 12px; vertical-align: middle;">
+                  <path d="M3 13h8V3H3v10zm0 8h8v-6H3v6zm10 0h8V11h-8v10zm0-18v6h8V3h-8z"/>
+                </svg>
+                <span style="font-size: 1rem; font-weight: 600; letter-spacing: 0.5px; vertical-align: middle; color: #ffffff;">
                   대시보드
-                </p>
+                </span>
               </a>
             </li>
             <li class="nav-item mb-2">
-              <a href="javascript:void(0);" onclick="navigateToPage('projector.html')" class="nav-link" id="projector-link" style="border-radius: 5px; margin: 0 10px; transition: all 0.3s;">
-                <i class="nav-icon fas fa-projector"></i>
-                <p>
+              <a href="javascript:void(0);" onclick="navigateToPage('projector.html')" class="nav-link" id="projector-link" style="border-radius: 5px; margin: 0 10px; transition: all 0.3s; padding: 12px 16px;">
+                <!-- 통일된 SVG 아이콘 -->
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="18" height="18" fill="currentColor" style="margin-right: 12px; vertical-align: middle;">
+                  <path d="M3 13h8V3H3v10zm0 8h8v-6H3v6zm10 0h8V11h-8v10zm0-18v6h8V3h-8z"/>
+                </svg>
+                <span style="font-size: 1rem; font-weight: 600; letter-spacing: 0.5px; vertical-align: middle;">
                   빔프로젝터관리
-                </p>
+                </span>
               </a>
             </li>
             <li class="nav-item mb-2">
-              <a href="javascript:void(0);" onclick="navigateToPage('pc.html')" class="nav-link" id="pc-link" style="border-radius: 5px; margin: 0 10px; transition: all 0.3s;">
-                <i class="nav-icon fas fa-desktop"></i>
-                <p>
+              <a href="javascript:void(0);" onclick="navigateToPage('pc.html')" class="nav-link" id="pc-link" style="border-radius: 5px; margin: 0 10px; transition: all 0.3s; padding: 12px 16px;">
+                <!-- 통일된 SVG 아이콘 -->
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="18" height="18" fill="currentColor" style="margin-right: 12px; vertical-align: middle;">
+                  <path d="M3 13h8V3H3v10zm0 8h8v-6H3v6zm10 0h8V11h-8v10zm0-18v6h8V3h-8z"/>
+                </svg>
+                <span style="font-size: 1rem; font-weight: 600; letter-spacing: 0.5px; vertical-align: middle;">
                   PC관리
-                </p>
+                </span>
               </a>
             </li>
             <li class="nav-item mb-2">
-              <a href="javascript:void(0);" onclick="navigateToPage('pdu.html')" class="nav-link" id="pdu-link" style="border-radius: 5px; margin: 0 10px; transition: all 0.3s;">
-                <i class="nav-icon fas fa-power-off"></i>
-                <p>
+              <a href="javascript:void(0);" onclick="navigateToPage('pdu.html')" class="nav-link" id="pdu-link" style="border-radius: 5px; margin: 0 10px; transition: all 0.3s; padding: 12px 16px;">
+                <!-- 통일된 SVG 아이콘 -->
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="18" height="18" fill="currentColor" style="margin-right: 12px; vertical-align: middle;">
+                  <path d="M3 13h8V3H3v10zm0 8h8v-6H3v6zm10 0h8V11h-8v10zm0-18v6h8V3h-8z"/>
+                </svg>
+                <span style="font-size: 1rem; font-weight: 600; letter-spacing: 0.5px; vertical-align: middle;">
                   PDU관리
-                </p>
+                </span>
               </a>
             </li>
             <!-- 그룹원격제어 메뉴 삭제됨 -->
@@ -3016,47 +3068,40 @@
               </div>
             </div>
             
-            <!-- 시스템 & 네트워크 상태 카드 -->
+            <!-- 시스템 상태 카드 (CPU & 메모리) -->
             <div class="dashboard-card-wrapper">
-              <div class="dashboard-card purple system-network-card">
+              <div class="dashboard-card purple">
                 <div class="dashboard-card-content">
                   <div class="dashboard-card-left">
+                    <div class="dashboard-card-icon">
+                      <!-- 시스템 상태 인라인 SVG 아이콘 (모니터링 차트) -->
+                      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" fill="white">
+                        <path d="M22 3H2C.9 3 0 3.9 0 5v14c0 1.1.9 2 2 2h20c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zM2 19V5h20v14H2z"/>
+                        <path d="M4 17l4-4 3 3 6-6 1 1v5H4z"/>
+                        <circle cx="7" cy="9" r="1.5"/>
+                        <circle cx="17" cy="7" r="1.5"/>
+                      </svg>
+                      <!-- 백업 CPU SVG 아이콘 -->
+                      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="24" height="24" fill="white" style="display:none; position:absolute; top:50%; left:50%; transform:translate(-50%, -50%);" class="svg-fallback-system">
+                        <path d="M176 24c0-13.3-10.7-24-24-24s-24 10.7-24 24V64c-35.3 0-64 28.7-64 64H24c-13.3 0-24 10.7-24 24s10.7 24 24 24H64v56H24c-13.3 0-24 10.7-24 24s10.7 24 24 24H64v56H24c-13.3 0-24 10.7-24 24s10.7 24 24 24H64c0 35.3 28.7 64 64 64v40c0 13.3 10.7 24 24 24s24-10.7 24-24V448h56v40c0 13.3 10.7 24 24 24s24-10.7 24-24V448h56v40c0 13.3 10.7 24 24 24s24-10.7 24-24V448c35.3 0 64-28.7 64-64h40c13.3 0 24-10.7 24-24s-10.7-24-24-24H448V280h40c13.3 0 24-10.7 24-24s-10.7-24-24-24H448V176h40c13.3 0 24-10.7 24-24s-10.7-24-24-24H448c0-35.3-28.7-64-64-64V24c0-13.3-10.7-24-24-24s-24 10.7-24 24V64H280V24c0-13.3-10.7-24-24-24s-24 10.7-24 24V64H176V24zM160 128H352c17.7 0 32 14.3 32 32V352c0 17.7-14.3 32-32 32H160c-17.7 0-32-14.3-32-32V160c0-17.7 14.3-32 32-32zm192 32H160V352H352V160z"/>
+                      </svg>
+                    </div>
                     <div class="dashboard-card-text">
-                      <div class="dashboard-card-title">시스템 & 네트워크 상태</div>
-                      <div class="dashboard-card-dual-info">
-                        <div class="dual-info-left">
-                          <div class="dual-info-icon">
-                            <i class="fas fa-microchip"></i>
-                          </div>
-                          <div class="dual-info-content">
-                            <div class="dual-info-label">시스템</div>
-                            <div class="dual-info-value" id="system-status">정상</div>
-                            <div class="dual-info-detail">
-                              <span id="cpu-usage">CPU: 45%</span><br>
-                              <span id="memory-usage">메모리: 62%</span>
-                            </div>
-                          </div>
-                        </div>
-                        <div class="dual-info-right">
-                          <div class="dual-info-icon">
-                            <i class="fas fa-network-wired"></i>
-                          </div>
-                          <div class="dual-info-content">
-                            <div class="dual-info-label">네트워크</div>
-                            <div class="dual-info-value" id="network-status">연결됨</div>
-                            <div class="dual-info-detail">
-                              <span id="network-speed">속도: 1Gbps</span><br>
-                              <span id="ping-status">핑: 2ms</span>
-                            </div>
-                          </div>
-                        </div>
+                      <div class="dashboard-card-title">시스템 상태</div>
+                      <div class="dashboard-card-number" id="system-status">정상</div>
+                      <div class="system-details">
+                        <small id="cpu-usage">CPU: 45%</small><br>
+                        <small id="memory-usage">메모리: 62%</small>
                       </div>
                     </div>
                   </div>
+
                 </div>
               </div>
             </div>
 
+
+            
             <!-- 현재 시간 카드 -->
             <div class="dashboard-card-wrapper">
               <div class="dashboard-card red time-card">
@@ -3344,7 +3389,7 @@
       if (typeof initializeSystemNetworkManager === 'function') {
         initializeSystemNetworkManager();
         console.log('✅ 시스템 & 네트워크 상태 관리 모듈 초기화 완료');
-      } else {
+        } else {
         console.error('❌ initializeSystemNetworkManager 함수를 찾을 수 없음');
       }
       
