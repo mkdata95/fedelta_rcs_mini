@@ -1013,10 +1013,26 @@ class PcService {
       final socket = await RawDatagramSocket.bind(InternetAddress.anyIPv4, 0);
       socket.broadcastEnabled = true;
       
-      // 웹뷰 호환성: 패킷 여러 번 전송 (안정성 향상)
-      for (int i = 0; i < 3; i++) {
-      socket.send(magicPacket, InternetAddress('255.255.255.255'), 9);
-        await Future.delayed(Duration(milliseconds: 500));
+      // PC 켜기 신호 3번 재시도 전송 (안정성 향상)
+      int packetsSent = 0;
+      for (int retry = 0; retry < 3; retry++) {
+        try {
+          // 포트 9로 전송
+          socket.send(magicPacket, InternetAddress('255.255.255.255'), 9);
+          packetsSent++;
+          
+          // 포트 7로도 전송 (일부 PC에서 필요)
+          socket.send(magicPacket, InternetAddress('255.255.255.255'), 7);
+          packetsSent++;
+          
+          print('PC 켜기 신호 전송 ${retry + 1}/3 (패킷: ${packetsSent}개)');
+          
+          if (retry < 2) {
+            await Future.delayed(Duration(seconds: 2)); // 2초 간격
+          }
+        } catch (e) {
+          print('PC 켜기 신호 전송 실패 (시도 ${retry + 1}): $e');
+        }
       }
       
       // 소켓 닫기

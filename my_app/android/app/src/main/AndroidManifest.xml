@@ -10,7 +10,7 @@
     
     <application
         android:label="RCS컨트롤"
-        android:name="${applicationName}"
+        android:name=".MyApplication"
         android:icon="@mipmap/ic_launcher"
         android:usesCleartextTraffic="true"> <!-- HTTP 트래픽 허용 -->
         <activity
